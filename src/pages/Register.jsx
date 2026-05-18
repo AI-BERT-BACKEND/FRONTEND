@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
-import { getBaseStyles, ErrorIcon } from '../styles/theme';
-import ThemeToggle from '../components/ThemeToggle';
+import ErrorIcon from '../components/ErrorIcon';
 
 const Register = ({ theme = 'light', onToggleTheme }) => {
   const [form, setForm] = useState({
@@ -46,58 +45,7 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
     }
   };
 
-  const b = getBaseStyles(isDark);
-
-  const s = {
-    ...b,
-    page: {
-      position: 'relative',
-      zIndex: 1,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 56,
-      padding: '32px 24px',
-      width: '100%',
-      maxWidth: 960,
-      flexWrap: 'wrap',
-    },
-    card: {
-      ...b.card,
-      padding: '36px 36px 28px',
-      width: '100%',
-      maxWidth: 380,
-      flexShrink: 0,
-    },
-    title: { ...b.title, fontSize: 26, lineHeight: 1.2, marginBottom: 6 },
-    subtitle: {
-      fontSize: 13,
-      color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.65)',
-      fontWeight: 400,
-      marginBottom: 24,
-    },
-    field: { marginBottom: 14 },
-    select: {
-      appearance: 'none',
-      WebkitAppearance: 'none',
-      cursor: 'pointer',
-      paddingRight: 32,
-    },
-    btn: { ...b.btn, marginTop: 6, marginBottom: 16 },
-    loginRow: {
-      textAlign: 'center',
-      fontSize: 12,
-      color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
-    },
-    mascotWrap: {
-      flexShrink: 0,
-      width: 300,
-      height: 300,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-  };
+  const s = getStyles(isDark);
 
   const Field = ({ label, field, type = 'text', placeholder }) => (
     <div style={s.field}>
@@ -131,7 +79,10 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
     <div style={s.root}>
       <div style={s.grid} />
 
-      <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
+      <button style={s.themeBtn} onClick={onToggleTheme}>
+        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
+        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
+      </button>
 
       <div style={s.page}>
         <div style={s.mascotWrap}>
@@ -189,5 +140,174 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
     </div>
   );
 };
+
+const getStyles = (isDark) => ({
+  root: {
+    position: 'relative',
+    minHeight: '100vh',
+    backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    fontFamily: "'Poppins', sans-serif",
+    transition: 'background-color 0.35s',
+  },
+  grid: {
+    position: 'fixed',
+    inset: 0,
+    backgroundImage: `
+      linear-gradient(${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px),
+      linear-gradient(90deg, ${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px)
+    `,
+    backgroundSize: '36px 36px',
+    opacity: 0.55,
+    pointerEvents: 'none',
+    zIndex: 0,
+  },
+  themeBtn: {
+    position: 'fixed',
+    top: 20,
+    right: 24,
+    zIndex: 100,
+    background: isDark ? '#171717' : '#FEFAF9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
+    borderRadius: 50,
+    padding: '6px 14px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontFamily: "'Poppins', sans-serif",
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+  },
+  page: {
+    position: 'relative',
+    zIndex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 56,
+    padding: '32px 24px',
+    width: '100%',
+    maxWidth: 960,
+    flexWrap: 'wrap',
+  },
+  card: {
+    background: isDark ? '#171717' : '#FEFAF9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
+    borderRadius: 20,
+    padding: '36px 36px 28px',
+    width: '100%',
+    maxWidth: 380,
+    boxShadow: isDark
+      ? '0 0 0 1px rgba(196,16,122,0.35), 0 8px 48px rgba(196,16,122,0.22), 0 2px 16px rgba(0,0,0,0.60)'
+      : '0 8px 40px rgba(253,214,189,0.60), 0 2px 12px rgba(196,16,122,0.08)',
+    flexShrink: 0,
+  },
+  title: {
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 26,
+    fontWeight: 800,
+    background: isDark
+      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
+      : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    lineHeight: 1.2,
+    marginBottom: 6,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.65)',
+    fontWeight: 400,
+    marginBottom: 24,
+  },
+  field: { marginBottom: 14 },
+  label: {
+    display: 'block',
+    fontSize: 10,
+    fontWeight: 600,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)',
+    marginBottom: 6,
+  },
+  input: {
+    width: '100%',
+    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
+    borderRadius: 10,
+    padding: '10px 14px',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: 13,
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+    boxSizing: 'border-box',
+  },
+  select: {
+    appearance: 'none',
+    WebkitAppearance: 'none',
+    cursor: 'pointer',
+    paddingRight: 32,
+  },
+  inputError: {
+    borderColor: '#F00707',
+    boxShadow: '0 0 0 3px rgba(240,7,7,0.12)',
+  },
+  errorRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+    fontSize: 11.5,
+    color: '#F00707',
+    marginTop: 5,
+    fontWeight: 500,
+  },
+  btn: {
+    width: '100%',
+    padding: 13,
+    border: 'none',
+    borderRadius: 10,
+    background: isDark
+      ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
+      : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    color: '#fff',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 14,
+    fontWeight: 700,
+    letterSpacing: '0.05em',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+    marginTop: 6,
+    marginBottom: 16,
+  },
+  loginRow: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
+  },
+  link: {
+    fontSize: 12,
+    color: isDark ? '#FF5B2E' : '#F7306D',
+    textDecoration: 'none',
+    fontWeight: 600,
+    cursor: 'pointer',
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    fontFamily: "'Poppins', sans-serif",
+  },
+  mascotWrap: {
+    flexShrink: 0,
+    width: 300,
+    height: 300,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
 export default Register;

@@ -1,7 +1,5 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { getBaseStyles } from '../styles/theme';
-import ThemeToggle from '../components/ThemeToggle';
 
 const EmailSent = ({ theme = 'light', onToggleTheme }) => {
   const isDark = theme === 'dark';
@@ -9,102 +7,16 @@ const EmailSent = ({ theme = 'light', onToggleTheme }) => {
   const location = useLocation();
   const email = location.state?.email || 'estudiante@mail.escuelang.edu.co';
 
-  const b = getBaseStyles(isDark);
-
-  const s = {
-    ...b,
-    card: {
-      ...b.card,
-      padding: '40px 44px 36px',
-      width: '100%',
-      maxWidth: 420,
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      textAlign: 'center',
-      margin: '0 24px',
-    },
-    title: { ...b.title, fontSize: 24, marginBottom: 18 },
-    iconArea: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 10,
-      marginBottom: 22,
-    },
-    linesWrap: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 5,
-      alignItems: 'flex-end',
-    },
-    line: {
-      width: 26,
-      height: 2.5,
-      borderRadius: 2,
-      background: isDark
-        ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
-        : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    },
-    iconCircle: {
-      width: 64,
-      height: 64,
-      borderRadius: '50%',
-      border: `2px solid ${isDark ? 'rgba(196,16,122,0.50)' : 'rgba(247,48,109,0.35)'}`,
-      background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.06)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-    },
-    checkBadge: {
-      position: 'absolute',
-      top: -2,
-      right: -2,
-      width: 20,
-      height: 20,
-      borderRadius: '50%',
-      background: 'linear-gradient(135deg, #FF8430, #F7306D)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      border: `2px solid ${isDark ? '#171717' : '#FEFAF9'}`,
-    },
-    infoRow: {
-      display: 'flex',
-      alignItems: 'flex-start',
-      gap: 8,
-      textAlign: 'left',
-      marginBottom: 18,
-      maxWidth: 320,
-    },
-    infoText: {
-      fontSize: 13,
-      color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.60)',
-      lineHeight: 1.65,
-      margin: 0,
-    },
-    emailBold: {
-      fontWeight: 700,
-      color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-    },
-    spamRow: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      marginBottom: 28,
-    },
-    spamText: {
-      fontSize: 12,
-      color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
-    },
-  };
+  const s = getStyles(isDark);
 
   return (
     <div style={s.root}>
       <div style={s.grid} />
 
-      <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
+      <button style={s.themeBtn} onClick={onToggleTheme}>
+        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
+        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
+      </button>
 
       <div style={s.card}>
         <div style={s.iconArea}>
@@ -168,5 +80,166 @@ const EmailSent = ({ theme = 'light', onToggleTheme }) => {
     </div>
   );
 };
+
+const getStyles = (isDark) => ({
+  root: {
+    position: 'relative',
+    minHeight: '100vh',
+    backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    fontFamily: "'Poppins', sans-serif",
+    transition: 'background-color 0.35s',
+  },
+  grid: {
+    position: 'fixed',
+    inset: 0,
+    backgroundImage: `
+      linear-gradient(${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px),
+      linear-gradient(90deg, ${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px)
+    `,
+    backgroundSize: '36px 36px',
+    opacity: 0.55,
+    pointerEvents: 'none',
+    zIndex: 0,
+  },
+  themeBtn: {
+    position: 'fixed',
+    top: 20,
+    right: 24,
+    zIndex: 100,
+    background: isDark ? '#171717' : '#FEFAF9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
+    borderRadius: 50,
+    padding: '6px 14px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontFamily: "'Poppins', sans-serif",
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+  },
+  card: {
+    position: 'relative',
+    zIndex: 1,
+    background: isDark ? '#171717' : '#FEFAF9',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
+    borderRadius: 20,
+    padding: '40px 44px 36px',
+    width: '100%',
+    maxWidth: 420,
+    boxShadow: isDark
+      ? '0 0 0 1px rgba(196,16,122,0.35), 0 8px 48px rgba(196,16,122,0.22), 0 2px 16px rgba(0,0,0,0.60)'
+      : '0 8px 40px rgba(253,214,189,0.60), 0 2px 12px rgba(196,16,122,0.08)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
+    margin: '0 24px',
+  },
+  iconArea: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 22,
+  },
+  linesWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 5,
+    alignItems: 'flex-end',
+  },
+  line: {
+    width: 26,
+    height: 2.5,
+    borderRadius: 2,
+    background: isDark
+      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
+      : 'linear-gradient(90deg, #FF8430, #F7306D)',
+  },
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: '50%',
+    border: `2px solid ${isDark ? 'rgba(196,16,122,0.50)' : 'rgba(247,48,109,0.35)'}`,
+    background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.06)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #FF8430, #F7306D)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: `2px solid ${isDark ? '#171717' : '#FEFAF9'}`,
+  },
+  title: {
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 24,
+    fontWeight: 800,
+    background: isDark
+      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
+      : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    marginBottom: 18,
+  },
+  infoRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 8,
+    textAlign: 'left',
+    marginBottom: 18,
+    maxWidth: 320,
+  },
+  infoText: {
+    fontSize: 13,
+    color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.60)',
+    lineHeight: 1.65,
+    margin: 0,
+  },
+  emailBold: {
+    fontWeight: 700,
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+  },
+  spamRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 28,
+  },
+  spamText: {
+    fontSize: 12,
+    color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
+  },
+  btn: {
+    width: '100%',
+    padding: 13,
+    border: 'none',
+    borderRadius: 10,
+    background: isDark
+      ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
+      : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    color: '#fff',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: '0.05em',
+    textTransform: 'uppercase',
+    cursor: 'pointer',
+  },
+});
 
 export default EmailSent;
