@@ -41,7 +41,7 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
 
   const handleSubmit = () => {
     if (validate()) {
-      // → navigate('/dashboard');
+      navigate('/verify-email');
     }
   };
 
