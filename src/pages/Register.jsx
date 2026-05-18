@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import LoginScreen from '../pages/Login';
-import ForgotPasswordScreen from '../pages/ForgotPassword';
-import EmailSentScreen from '../pages/EmailSent';
-import RegisterScreen from '../pages/Register';
+import Login from '../pages/Login';
+import ForgotPassword from '../pages/ForgotPassword';
+import EmailSent from '../pages/EmailSent';
+import Register from '../pages/Register';
 
 const AppRouter = () => {
   const [theme, setTheme] = useState('light');
