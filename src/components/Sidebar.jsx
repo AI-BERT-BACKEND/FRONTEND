@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import LogoImg from '../assets/LOGO.PNG';
+import LogoImg from '../assets/LOGO.png';
 
 const NAV_ACADEMIC = [
   { label: 'Inicio', icon: '🏠', path: '/dashboard' },
