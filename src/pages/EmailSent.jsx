@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getBaseStyles } from '../styles/theme';
+import ThemeToggle from '../components/ThemeToggle';
 
 const EmailSent = ({ theme = 'light', onToggleTheme }) => {
   const isDark = theme === 'dark';
@@ -103,10 +104,7 @@ const EmailSent = ({ theme = 'light', onToggleTheme }) => {
     <div style={s.root}>
       <div style={s.grid} />
 
-      <button style={s.themeBtn} onClick={onToggleTheme}>
-        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
-        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-      </button>
+      <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
 
       <div style={s.card}>
         <div style={s.iconArea}>

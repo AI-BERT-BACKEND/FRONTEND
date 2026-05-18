@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getBaseStyles, ErrorIcon } from '../styles/theme';
+import ThemeToggle from '../components/ThemeToggle';
 
 const ForgotPassword = ({ theme = 'light', onToggleTheme }) => {
   const [email, setEmail] = useState('');
@@ -70,10 +71,7 @@ const ForgotPassword = ({ theme = 'light', onToggleTheme }) => {
     <div style={s.root}>
       <div style={s.grid} />
 
-      <button style={s.themeBtn} onClick={onToggleTheme}>
-        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
-        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-      </button>
+      <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
 
       <div style={s.card}>
         <div style={s.iconWrap}>
@@ -130,10 +128,7 @@ const ForgotPassword = ({ theme = 'light', onToggleTheme }) => {
 
         <p style={s.backRow}>
           ¿Recordaste tu contraseña?{' '}
-          <button
-            style={s.link}
-            onClick={() => navigate('/login')}
-          >
+          <button style={s.link} onClick={() => navigate('/login')}>
             Inicia sesión
           </button>
         </p>

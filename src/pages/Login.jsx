@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 import { getBaseStyles, ErrorIcon } from '../styles/theme';
+import ThemeToggle from '../components/ThemeToggle';
 
 const Login = ({ theme = 'light', onToggleTheme }) => {
   const [email, setEmail] = useState('');
@@ -94,13 +95,9 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
     <div style={s.root}>
       <div style={s.grid} />
 
-      <button style={s.themeBtn} onClick={onToggleTheme}>
-        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
-        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-      </button>
+      <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
 
       <div style={s.page}>
-
         <div style={s.card}>
           <h1 style={s.title}>¡Bienvenido de vuelta!</h1>
           <p style={s.subtitle}>Ingresa a tu cuenta</p>
@@ -185,7 +182,6 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         </div>
-
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 import { getBaseStyles, ErrorIcon } from '../styles/theme';
+import ThemeToggle from '../components/ThemeToggle';
 
 const Register = ({ theme = 'light', onToggleTheme }) => {
   const [form, setForm] = useState({
@@ -130,10 +131,7 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
     <div style={s.root}>
       <div style={s.grid} />
 
-      <button style={s.themeBtn} onClick={onToggleTheme}>
-        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
-        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-      </button>
+      <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
 
       <div style={s.page}>
         <div style={s.mascotWrap}>
