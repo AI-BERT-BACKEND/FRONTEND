@@ -4,8 +4,7 @@ import Login from '../pages/Login';
 import ForgotPassword from '../pages/ForgotPassword';
 import EmailSent from '../pages/EmailSent';
 import Register from '../pages/Register';
-import VerifyEmail from '../pages/VerifyEmail';
-import VerifiedSuccess from '../pages/VerifiedSuccess';
+import Dashboard from '../pages/Dashboard';
 
 const AppRouter = () => {
   const [theme, setTheme] = useState('light');
@@ -19,8 +18,7 @@ const AppRouter = () => {
         <Route path="/forgot-password" element={<ForgotPassword theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/forgot-password/sent" element={<EmailSent theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/register" element={<Register theme={theme} onToggleTheme={toggleTheme} />} />
-        <Route path="/verify-email" element={<VerifyEmail theme={theme} onToggleTheme={toggleTheme} />} />
-        <Route path="/verified-success" element={<VerifiedSuccess theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/dashboard" element={<Dashboard theme={theme} onToggleTheme={toggleTheme} />} />
       </Routes>
     </BrowserRouter>
   );
