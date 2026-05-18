@@ -1,9 +1,8 @@
-﻿function App() {
-  return (
-    <div>
-      <h1>AI.BERT</h1>
-    </div>
-  )
-}
+﻿import React from 'react';
+import AppRouter from './routes/AppRouter';
 
-export default App
+const App = () => {
+  return <AppRouter />;
+};
+
+export default App;
