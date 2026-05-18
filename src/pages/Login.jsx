@@ -22,7 +22,6 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
 
   const handleSubmit = () => {
     if (validate()) {
-      console.log('Login OK', { email, password, remember });
       // → navigate('/dashboard');
     }
   };
@@ -48,7 +47,6 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
 
       <div style={s.page}>
 
-        {/* TARJETA LOGIN */}
         <div style={s.card}>
           <h1 style={s.title}>¡Bienvenido de vuelta!</h1>
           <p style={s.subtitle}>Ingresa a tu cuenta</p>
@@ -109,7 +107,7 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
               />
               <span style={s.checkLabel}>Recordarme</span>
             </label>
-
+            <a  {/* ← AQUÍ ESTABA EL BUG, faltaba "<a" */}
               href="#"
               style={s.link}
               onClick={e => { e.preventDefault(); navigate('/forgot-password'); }}
@@ -124,7 +122,7 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
 
           <p style={s.registerRow}>
             ¿No tienes una cuenta?{' '}
-
+            <a  {/* ← AQUÍ TAMBIÉN, faltaba "<a" */}
               href="#"
               style={s.link}
               onClick={e => { e.preventDefault(); navigate('/register'); }}
@@ -134,7 +132,6 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
           </p>
         </div>
 
-        {/* MASCOTA */}
         <div style={s.mascotWrap}>
           <img
             src={MascotaGif}
