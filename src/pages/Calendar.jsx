@@ -1,4 +1,3 @@
-// src/pages/Calendar.jsx
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 
@@ -101,7 +100,6 @@ const Calendar = ({ theme = 'light', onToggleTheme }) => {
   const today = new Date(2026, 4, 18);
   const todayStr = dateStr(today.getFullYear(), today.getMonth(), today.getDate());
 
-  // SVG Icons
   const IconPrev = () => (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
       <path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -172,7 +170,6 @@ const Calendar = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      <div style={s.grid} />
 
       <Sidebar theme={theme} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(p => !p)} />
 
@@ -479,15 +476,19 @@ const Calendar = ({ theme = 'light', onToggleTheme }) => {
 
 const getStyles = (isDark) => ({
   root: {
-    display: 'flex',
-    minHeight: '100vh',
-    width: '100%',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    fontFamily: "'Poppins', sans-serif",
-    position: 'relative',
-    boxSizing: 'border-box',
-  },
-  grid: {
+      display: 'flex',
+      minHeight: '100vh',
+      width: '100%',
+      fontFamily: "'Poppins', sans-serif",
+      position: 'relative',
+      boxSizing: 'border-box',
+      backgroundColor: isDark ? '#050208' : '#FDF2EB',
+      backgroundImage: isDark
+        ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
+        : `linear-gradient(rgba(210,140,100,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(210,140,100,0.35) 1px, transparent 1px)`,
+      backgroundSize: '36px 36px',
+    },
+    grid: {
     position: 'fixed',
     inset: 0,
     backgroundImage: isDark
@@ -504,7 +505,7 @@ const getStyles = (isDark) => ({
     position: 'relative',
     zIndex: 1,
     minWidth: 0,
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    backgroundColor: 'transparent',
   },
   topbar: {
     height: 56,
