@@ -4,7 +4,6 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import GridBackground from '../components/GridBackground';
 
-/* ── Icons específicos de esta pantalla ── */
 const DashboardIcon = ({ isDark }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
     stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2"
@@ -163,7 +162,6 @@ const AcademicManagement = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      {/* ── Componente reutilizable de fondo ── */}
       <GridBackground isDark={isDark} />
 
       <Sidebar
@@ -173,7 +171,6 @@ const AcademicManagement = ({ theme = 'light', onToggleTheme }) => {
       />
 
       <div style={s.main}>
-        {/* ── Componente reutilizable de header ── */}
         <Header theme={theme} onToggleTheme={onToggleTheme} />
 
         <div style={s.scrollArea}>

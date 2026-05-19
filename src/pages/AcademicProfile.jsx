@@ -91,13 +91,11 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      {/* ── Componente reutilizable de fondo ── */}
       <GridBackground isDark={isDark} />
 
       <Sidebar theme={theme} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(p => !p)} />
 
       <div style={s.main}>
-        {/* ── Componente reutilizable de header ── */}
         <Header theme={theme} onToggleTheme={onToggleTheme} />
 
         <div style={s.scrollArea}>
@@ -108,9 +106,7 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
             </p>
 
             <div style={s.layout}>
-              {/* COLUMNA IZQUIERDA */}
               <div style={s.leftCol}>
-                {/* DATOS ACADÉMICOS */}
                 <div style={s.card}>
                   <div style={s.cardHeader}>
                     <span style={s.cardIcon}>🎓</span>
@@ -167,7 +163,7 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
                   </div>
                 </div>
 
-                {/* MATERIAS CURSADAS */}
+
                 <div style={s.card}>
                   <div style={s.cardHeader}>
                     <span style={s.cardIcon}>📚</span>
@@ -186,7 +182,6 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
                   <ErrorMsg field="materias" />
                 </div>
 
-                {/* OBJETIVO ACADÉMICO */}
                 <div style={s.card}>
                   <div style={s.cardHeader}>
                     <span style={s.cardIcon}>🎯</span>
@@ -210,9 +205,7 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
                 </div>
               </div>
 
-              {/* COLUMNA DERECHA */}
               <div style={s.rightCol}>
-                {/* DISPONIBILIDAD */}
                 <div style={s.card}>
                   <div style={{ ...s.cardTitle, marginBottom: 14, fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                     DISPONIBILIDAD
@@ -240,7 +233,7 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
                   </div>
                 </div>
 
-                {/* ¿TRABAJAS? */}
+
                 <div style={s.card}>
                   <div style={{ ...s.cardTitle, marginBottom: 14 }}>¿TRABAJAS?</div>
                   <div style={s.trabajaRow}>
@@ -252,7 +245,7 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
                   <ErrorMsg field="trabaja" />
                 </div>
 
-                {/* FRASE */}
+
                 <div style={s.quoteCard}>
                   <span style={s.quoteIcon}>💬</span>
                   <p style={s.quoteText}>
@@ -267,7 +260,7 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
         </div>
       </div>
 
-      {/* MODAL AÑADIR MATERIA */}
+
       {showModal && (
         <div style={s.modalOverlay} onClick={handleCloseModal}>
           <div style={s.modalCard} onClick={e => e.stopPropagation()}>

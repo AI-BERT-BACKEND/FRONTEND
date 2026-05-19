@@ -4,7 +4,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import GridBackground from '../components/GridBackground';
 
-/* ── Icons específicos de esta pantalla ── */
+
 const StarIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="#F9A825" stroke="#F9A825" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -68,7 +68,7 @@ const PlayIcon = () => (
   </svg>
 );
 
-/* ── Data ── */
+
 const ESTADO_COLORS = {
   ESTABLE:   { bg: 'rgba(76,175,80,0.18)',  text: '#4CAF50' },
   MEJORANDO: { bg: 'rgba(33,150,243,0.18)', text: '#2196F3' },
@@ -167,7 +167,6 @@ const AcademicDashboard = ({ theme = 'light', onToggleTheme }) => {
                 </div>
               </div>
 
-              {/* ACCESOS RÁPIDOS */}
               <div style={{ ...s.card, ...s.accesosCard }}>
                 <span style={s.cardTitle}>Accesos Rápidos</span>
                 <button style={s.accesoBtn} onClick={() => navigate('/calendario')}>
@@ -185,7 +184,7 @@ const AcademicDashboard = ({ theme = 'light', onToggleTheme }) => {
               </div>
             </div>
 
-            {/* MATERIAS */}
+
             <div style={s.materiasRow}>
               {materias.map(m => {
                 const ec = ESTADO_COLORS[m.estado] || { bg: 'rgba(255,255,255,0.08)', text: '#fff' };
@@ -220,7 +219,7 @@ const AcademicDashboard = ({ theme = 'light', onToggleTheme }) => {
   );
 };
 
-/* ── Circular Progress ── */
+
 const CircleProgress = ({ pct, isDark }) => {
   const r = 52;
   const circ = 2 * Math.PI * r;
