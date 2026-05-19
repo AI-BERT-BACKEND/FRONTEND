@@ -9,7 +9,8 @@ import VerifiedSuccess from '../pages/VerifiedSuccess';
 import AcademicProfile from '../pages/AcademicProfile';
 import Dashboard from '../pages/Dashboard';
 import StudentProfile from '../pages/StudentProfile';
-import Materias from '../pages/Subjects';
+import Subjects from '../pages/Subjects';
+import AcademicManagement from '../pages/AcademicManagement';
 
 const AppRouter = () => {
   const [theme, setTheme] = useState('light');
@@ -29,6 +30,7 @@ const AppRouter = () => {
         <Route path="/dashboard" element={<Dashboard theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/profile" element={<StudentProfile theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/Subjects" element={<Subjects theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/gestion" element={<AcademicManagement theme={theme} onToggleTheme={toggleTheme} />} />
       </Routes>
     </BrowserRouter>
   );
