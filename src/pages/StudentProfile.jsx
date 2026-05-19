@@ -330,8 +330,11 @@ root: {
   },
   content: {
     padding: '28px 32px',
-    maxWidth: 600,
+    width: '100%',
     boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   pageTitle: {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -339,12 +342,16 @@ root: {
     fontWeight: 800,
     color: isDark ? '#FF5B2E' : '#FF8430',
     margin: '0 0 24px 0',
+    width: '100%',
+    maxWidth: 560
   },
   card: {
     background: isDark ? '#171717' : '#FEFAF9',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
     borderRadius: 16,
     padding: '28px 32px',
+    width: '100%',
+    maxWidth: 560,
     boxShadow: isDark
       ? '0 4px 24px rgba(196,16,122,0.10)'
       : '0 4px 24px rgba(253,214,189,0.50)',
