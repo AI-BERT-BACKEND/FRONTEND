@@ -275,8 +275,8 @@ const getStyles = (isDark) => ({
     position: 'fixed',
     inset: 0,
     backgroundImage: isDark
-      ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
-      : `linear-gradient(#FDEEE6 1px, transparent 1px), linear-gradient(90deg, #FDEEE6 1px, transparent 1px)`,
+      ? `linear-gradient(rgba(14,60,120,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(14,60,120,0.6) 1px, transparent 1px)`
+      : `linear-gradient(rgba(253,200,180,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(253,200,180,0.8) 1px, transparent 1px)`,
     backgroundSize: '36px 36px',
     pointerEvents: 'none',
     zIndex: 0,
