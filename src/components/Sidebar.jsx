@@ -25,25 +25,39 @@ const Sidebar = ({ theme, collapsed, onToggle }) => {
 
   return (
     <aside style={s.sidebar}>
+
+      {/* LOGO */}
       <div style={s.logoRow} onClick={onToggle}>
         <div style={s.logoCircle}>
-          <img src={LogoImg} alt="AI.BERT" style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 10 }} />
+          <img
+            src={LogoImg}
+            alt="AI.BERT"
+            style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 10 }}
+          />
         </div>
         {!collapsed && <span style={s.logoText}>AI.BERT</span>}
       </div>
 
+      {/* USER BLOCK */}
       {!collapsed && (
-        <div style={s.userBlock}>
-          <div style={s.avatar}>JS</div>
+        <div style={s.userBlock} onClick={() => navigate('/profile')}>
+          <div style={s.avatar}>—</div>
           <div>
-            <div style={s.userName}>Juan Esteban Sánchez</div>
-            <div style={s.userRole}>ESTUDIANTE INGENIERÍA DE SISTEMAS</div>
+            <div style={s.userName}>—</div>
+            <div style={s.userRole}>ESTUDIANTE</div>
           </div>
+        </div>
+      )}
+
+      {collapsed && (
+        <div style={s.avatarCollapsed} onClick={() => navigate('/profile')}>
+          —
         </div>
       )}
 
       <div style={s.divider} />
 
+      {/* NAV ACADÉMICO */}
       {!collapsed && <div style={s.sectionLabel}>ACADÉMICO</div>}
       {NAV_ACADEMIC.map(item => {
         const active = location.pathname === item.path;
@@ -54,13 +68,18 @@ const Sidebar = ({ theme, collapsed, onToggle }) => {
             onClick={() => navigate(item.path)}
           >
             <span style={s.navIcon}>{item.icon}</span>
-            {!collapsed && <span style={s.navLabel}>{item.label}</span>}
+            {!collapsed && (
+              <span style={{ ...s.navLabel, ...(active ? s.navLabelActive : {}) }}>
+                {item.label}
+              </span>
+            )}
           </div>
         );
       })}
 
       <div style={{ ...s.divider, marginTop: 12 }} />
 
+      {/* NAV PERSONAL */}
       {!collapsed && <div style={s.sectionLabel}>PERSONAL</div>}
       {NAV_PERSONAL.map(item => {
         const active = location.pathname === item.path;
@@ -71,14 +90,22 @@ const Sidebar = ({ theme, collapsed, onToggle }) => {
             onClick={() => navigate(item.path)}
           >
             <span style={s.navIcon}>{item.icon}</span>
-            {!collapsed && <span style={s.navLabel}>{item.label}</span>}
+            {!collapsed && (
+              <span style={{ ...s.navLabel, ...(active ? s.navLabelActive : {}) }}>
+                {item.label}
+              </span>
+            )}
           </div>
         );
       })}
 
+      {/* BOTTOM */}
       <div style={s.bottomSection}>
         <div style={s.divider} />
-        <div style={s.navItem} onClick={() => navigate('/configuracion')}>
+        <div
+          style={{ ...s.navItem, ...(location.pathname === '/configuracion' ? s.navItemActive : {}) }}
+          onClick={() => navigate('/configuracion')}
+        >
           <span style={s.navIcon}>⚙️</span>
           {!collapsed && <span style={s.navLabel}>Configuración</span>}
         </div>
@@ -87,6 +114,7 @@ const Sidebar = ({ theme, collapsed, onToggle }) => {
           {!collapsed && <span style={s.navLabel}>Cerrar Sesión</span>}
         </div>
       </div>
+
     </aside>
   );
 };
@@ -96,7 +124,7 @@ const getStyles = (isDark, collapsed) => ({
     width: collapsed ? 64 : 220,
     minHeight: '100vh',
     background: isDark ? '#0F0E0F' : '#FEFBF9',
-    borderRight: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.05)'}`,
+    borderRight: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'}`,
     display: 'flex',
     flexDirection: 'column',
     padding: '16px 0',
@@ -141,6 +169,26 @@ const getStyles = (isDark, collapsed) => ({
     alignItems: 'center',
     gap: 10,
     padding: '8px 16px 12px',
+    cursor: 'pointer',
+    borderRadius: 8,
+    margin: '0 8px',
+    transition: 'background 0.15s',
+  },
+  avatarCollapsed: {
+    width: 32,
+    height: 32,
+    borderRadius: '50%',
+    background: isDark
+      ? 'linear-gradient(135deg, #C4107A, #FF5B2E)'
+      : 'linear-gradient(135deg, #FF8430, #F7306D)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: 700,
+    cursor: 'pointer',
+    margin: '0 auto 8px',
   },
   avatar: {
     width: 32,
@@ -211,6 +259,10 @@ const getStyles = (isDark, collapsed) => ({
     fontWeight: 500,
     color: isDark ? 'rgba(255,255,255,0.80)' : 'rgba(0,0,0,0.75)',
     whiteSpace: 'nowrap',
+  },
+  navLabelActive: {
+    color: '#FFFFFF',
+    fontWeight: 600,
   },
   bottomSection: {
     marginTop: 'auto',
