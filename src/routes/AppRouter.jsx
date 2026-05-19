@@ -10,6 +10,8 @@ import AcademicProfile from '../pages/AcademicProfile';
 import Dashboard from '../pages/Dashboard';
 import StudentProfile from '../pages/StudentProfile';
 import Subjects from '../pages/Subjects';
+import AcademicManagement from '../pages/AcademicManagement';
+import AcademicDashboard from '../pages/AcademicDashboard';
 import Calendar from '../pages/Calendar';
 
 const AppRouter = () => {
@@ -31,6 +33,9 @@ const AppRouter = () => {
         <Route path="/profile" element={<StudentProfile theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/Subjects" element={<Subjects theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/calendario" element={<Calendar theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/gestion" element={<AcademicManagement theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/gestion/dashboard" element={<AcademicDashboard theme={theme} onToggleTheme={toggleTheme} />} />
+
       </Routes>
     </BrowserRouter>
   );
