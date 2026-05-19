@@ -23,7 +23,7 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
 
   const handleSubmit = () => {
     if (validate()) {
-      // → navigate('/dashboard');
+      navigate('/academic-profile');
     }
   };
 
