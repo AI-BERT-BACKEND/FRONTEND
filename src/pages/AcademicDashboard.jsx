@@ -4,30 +4,30 @@ import Sidebar from '../components/Sidebar';
 
 /* ── SVG Icons ── */
 const StarIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="#F9A825" stroke="#F9A825" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="#F9A825" stroke="#F9A825" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
   </svg>
 );
 
 const BookIcon = ({ isDark }) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-    stroke={isDark ? '#A78BFA' : '#8B5CF6'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+    stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
   </svg>
 );
 
 const ClockIcon = ({ isDark }) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-    stroke={isDark ? '#FB923C' : '#F97316'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+    stroke="#FB923C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10"/>
     <polyline points="12 6 12 12 16 14"/>
   </svg>
 );
 
 const PinIcon = ({ isDark }) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-    stroke={isDark ? '#F472B6' : '#EC4899'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+    stroke="#F472B6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
     <circle cx="12" cy="10" r="3"/>
   </svg>
@@ -35,7 +35,7 @@ const PinIcon = ({ isDark }) => (
 
 const EditIcon = ({ isDark }) => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-    stroke={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
   </svg>
@@ -43,7 +43,7 @@ const EditIcon = ({ isDark }) => (
 
 const CalendarAccesoIcon = ({ isDark }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-    stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2"/>
     <line x1="16" y1="2" x2="16" y2="6"/>
     <line x1="8" y1="2" x2="8" y2="6"/>
@@ -53,7 +53,7 @@ const CalendarAccesoIcon = ({ isDark }) => (
 
 const MetaAccesoIcon = ({ isDark }) => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-    stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    stroke="#F7306D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10"/>
     <circle cx="12" cy="12" r="6"/>
     <circle cx="12" cy="12" r="2"/>
