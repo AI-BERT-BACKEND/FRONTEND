@@ -239,14 +239,19 @@ const StudentProfile = ({ theme = 'light', onToggleTheme }) => {
 };
 
 const getStyles = (isDark) => ({
-  root: {
-    display: 'flex',
-    minHeight: '100vh',
-    width: '100%',
-    fontFamily: "'Poppins', sans-serif",
-    position: 'relative',
-    boxSizing: 'border-box',
-  },
+root: {
+  display: 'flex',
+  minHeight: '100vh',
+  width: '100%',
+  fontFamily: "'Poppins', sans-serif",
+  position: 'relative',
+  boxSizing: 'border-box',
+  backgroundColor: isDark ? '#050208' : '#FDF2EB',
+  backgroundImage: isDark
+    ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
+    : `linear-gradient(rgba(210,140,100,0.30) 1px, transparent 1px), linear-gradient(90deg, rgba(210,140,100,0.30) 1px, transparent 1px)`,
+  backgroundSize: '36px 36px',
+},
   grid: {
     position: 'fixed',
     inset: 0,
