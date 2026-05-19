@@ -3,6 +3,45 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 
+/* ── SVG Icons ── */
+const BellIcon = ({ isDark }) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+    stroke="url(#bellGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <defs>
+      <linearGradient id="bellGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor={isDark ? '#FF5B2E' : '#FF8430'} />
+        <stop offset="100%" stopColor={isDark ? '#C4107A' : '#F7306D'} />
+      </linearGradient>
+    </defs>
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </svg>
+);
+
+const SocialIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+    stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+);
+
+const AlertIcon = ({ isDark }) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="url(#alertGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <defs>
+      <linearGradient id="alertGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor={isDark ? '#FF5B2E' : '#FF8430'} />
+        <stop offset="100%" stopColor={isDark ? '#C4107A' : '#F7306D'} />
+      </linearGradient>
+    </defs>
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </svg>
+);
+
 const Dashboard = ({ theme = 'light', onToggleTheme }) => {
   const isDark = theme === 'dark';
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -35,8 +74,8 @@ const Dashboard = ({ theme = 'light', onToggleTheme }) => {
               <span style={{ fontSize: 15 }}>{isDark ? '☀️' : '🌙'}</span>
               <span style={{ fontSize: 12 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
             </button>
-            <button style={s.iconBtn}>🔔</button>
-            <button style={s.socialBtn}>👥 Social</button>
+            <button style={s.iconBtn}><BellIcon isDark={isDark} /></button>
+            <button style={s.socialBtn}><SocialIcon /> Social</button>
           </div>
         </div>
 
@@ -50,7 +89,7 @@ const Dashboard = ({ theme = 'light', onToggleTheme }) => {
             {/* ALERTS */}
             <div style={s.card}>
               <div style={s.alertHeader}>
-                <span style={{ fontSize: 16 }}>⚠️</span>
+                <AlertIcon isDark={isDark} />
                 <span style={s.cardTitle}>Centro de Alertas</span>
               </div>
               <div style={s.alertItem}>
@@ -235,10 +274,9 @@ const getStyles = (isDark) => ({
   grid: {
     position: 'fixed',
     inset: 0,
-    backgroundImage: `
-      linear-gradient(${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px),
-      linear-gradient(90deg, ${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px)
-    `,
+    backgroundImage: isDark
+      ? `linear-gradient(rgba(30,80,160,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(30,80,160,0.35) 1px, transparent 1px)`
+      : `linear-gradient(rgba(220,150,120,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(220,150,120,0.25) 1px, transparent 1px)`,
     backgroundSize: '36px 36px',
     pointerEvents: 'none',
     zIndex: 0,
@@ -286,21 +324,26 @@ const getStyles = (isDark) => ({
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    fontSize: 18,
     padding: '4px 6px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   socialBtn: {
     background: isDark
       ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
       : 'linear-gradient(90deg, #FF8430, #F7306D)',
     border: 'none',
-    borderRadius: 8,
-    padding: '6px 16px',
+    borderRadius: 20,
+    padding: '7px 16px',
     color: '#fff',
     fontFamily: "'Poppins', sans-serif",
     fontSize: 12,
     fontWeight: 600,
     cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
   },
   scrollArea: {
     flex: 1,
