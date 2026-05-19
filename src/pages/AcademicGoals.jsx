@@ -133,6 +133,7 @@ const AddMetaModal = ({ isDark, onClose }) => {
 
         <div style={ms.divider} />
 
+
         <div style={ms.fieldGroup}>
           <div style={ms.labelRow}>
             <label style={ms.label}>Nombre de la meta</label>
@@ -232,69 +233,70 @@ const AddMetaModal = ({ isDark, onClose }) => {
 };
 
 
-const ms = {
+const getModalStyles = (isDark) => ({
   overlay: {
     position: 'fixed', inset: 0, zIndex: 1000,
-    background: 'rgba(0,0,0,0.70)',
+    background: 'rgba(0,0,0,0.65)',
     backdropFilter: 'blur(4px)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     padding: 20,
   },
   modal: {
-    background: '#1A1A1F',
-    border: '1px solid rgba(255,255,255,0.10)',
-    borderRadius: 20,
-    padding: '28px 30px',
+    background: isDark ? '#171717' : '#FFFFFF',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
+    borderRadius: 20, padding: '28px 30px',
     width: '100%', maxWidth: 560,
-    boxShadow: '0 24px 60px rgba(0,0,0,0.60)',
+    boxShadow: isDark ? '0 24px 60px rgba(0,0,0,0.60)' : '0 24px 60px rgba(253,214,189,0.50)',
   },
-  modalHeader: {
-    display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 20,
-  },
+  modalHeader: { display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 20 },
   modalIconWrap: {
     width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-    background: 'linear-gradient(135deg, #C4107A, #FF5B2E)',
+    background: isDark ? 'linear-gradient(135deg,#C4107A,#FF5B2E)' : 'linear-gradient(135deg,#FF8430,#F7306D)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    boxShadow: '0 4px 16px rgba(196,16,122,0.40)',
+    boxShadow: isDark ? '0 4px 16px rgba(196,16,122,0.40)' : '0 4px 16px rgba(255,132,48,0.35)',
   },
   modalTitleGroup: { flex: 1 },
   modalTitle: {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
     fontSize: 18, fontWeight: 800, margin: '0 0 4px 0',
-    color: '#FFFFFF',
+    background: isDark ? 'linear-gradient(90deg,#FF5B2E,#C4107A)' : 'linear-gradient(90deg,#FF8430,#F7306D)',
+    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
   },
   modalSubtitle: {
     fontSize: 12, margin: 0,
-    color: 'rgba(255,255,255,0.45)',
+    color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.50)',
     fontFamily: "'Poppins', sans-serif",
   },
   closeBtn: {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.10)',
+    background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
     borderRadius: 8, width: 34, height: 34,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: 'pointer', flexShrink: 0,
   },
   divider: {
     height: 1,
-    background: 'rgba(255,255,255,0.07)',
+    background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
     marginBottom: 22,
   },
   fieldGroup: { display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 },
   labelRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   label: {
     fontSize: 12, fontWeight: 600,
-    color: 'rgba(255,255,255,0.70)',
+    color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.70)',
     fontFamily: "'Poppins', sans-serif",
   },
-  opcional: { color: 'rgba(255,255,255,0.35)', fontWeight: 400 },
-  charCount: { fontSize: 10, color: 'rgba(255,255,255,0.28)', fontFamily: "'Poppins', sans-serif" },
-  input: {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    borderRadius: 10, padding: '11px 14px',
-    color: '#FFFFFF', fontSize: 13,
+  opcional: { color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)', fontWeight: 400 },
+  charCount: {
+    fontSize: 10, color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.30)',
     fontFamily: "'Poppins', sans-serif",
+  },
+  input: {
+    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
+    borderRadius: 10, padding: '11px 14px',
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    fontSize: 13, fontFamily: "'Poppins', sans-serif",
     outline: 'none', width: '100%', boxSizing: 'border-box',
   },
   inputError: {
@@ -303,28 +305,33 @@ const ms = {
   },
   errorRow: { display: 'flex', justifyContent: 'space-between' },
   errorText: { fontSize: 10, color: '#F00707', fontFamily: "'Poppins', sans-serif" },
-  errorTextRight: { fontSize: 10, color: 'rgba(255,255,255,0.30)', fontFamily: "'Poppins', sans-serif" },
-  helperText: { fontSize: 10, color: 'rgba(255,255,255,0.28)', fontFamily: "'Poppins', sans-serif" },
+  errorTextRight: {
+    fontSize: 10, color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.35)',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  helperText: {
+    fontSize: 10, color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.35)',
+    fontFamily: "'Poppins', sans-serif",
+  },
   row2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 4 },
   selectWrap: { position: 'relative' },
   select: {
     width: '100%', appearance: 'none',
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.12)',
+    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
     borderRadius: 10, padding: '11px 36px 11px 14px',
-    color: 'rgba(255,255,255,0.55)', fontSize: 13,
-    fontFamily: "'Poppins', sans-serif",
-    outline: 'none', cursor: 'pointer',
-    boxSizing: 'border-box',
+    color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
+    fontSize: 13, fontFamily: "'Poppins', sans-serif",
+    outline: 'none', cursor: 'pointer', boxSizing: 'border-box',
   },
   selectChevron: {
-    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-    pointerEvents: 'none',
+    position: 'absolute', right: 12, top: '50%',
+    transform: 'translateY(-50%)', pointerEvents: 'none',
   },
   sugerenciaBox: {
     display: 'flex', gap: 14, alignItems: 'center',
-    background: 'rgba(196,16,122,0.08)',
-    border: '1px solid rgba(196,16,122,0.20)',
+    background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.07)',
+    border: `1px solid ${isDark ? 'rgba(196,16,122,0.20)' : 'rgba(255,132,48,0.20)'}`,
     borderRadius: 12, padding: '14px 16px', marginBottom: 22,
   },
   sugerenciaLeft: { flexShrink: 0 },
@@ -333,42 +340,44 @@ const ms = {
   sugerenciaHeader: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 },
   sugerenciaTag: {
     fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
-    color: '#FF5B2E', fontFamily: "'Poppins', sans-serif",
+    color: isDark ? '#FF5B2E' : '#FF8430',
+    fontFamily: "'Poppins', sans-serif",
   },
   sugerenciaText: {
     fontSize: 11, lineHeight: 1.55, margin: 0,
-    color: 'rgba(255,255,255,0.55)',
+    color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
     fontFamily: "'Poppins', sans-serif",
   },
   modalFooter: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    paddingTop: 4,
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 4,
   },
   autoSaveNote: { display: 'flex', alignItems: 'flex-start', gap: 7 },
+  autoSaveIconColor: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)',
   autoSaveText: {
     fontSize: 10, lineHeight: 1.5,
-    color: 'rgba(255,255,255,0.28)',
+    color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.35)',
     fontFamily: "'Poppins', sans-serif",
   },
   footerBtns: { display: 'flex', gap: 10 },
   cancelBtn: {
     padding: '10px 20px',
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.10)',
-    borderRadius: 10, color: 'rgba(255,255,255,0.60)',
+    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : '#E0E0E8'}`,
+    borderRadius: 10,
+    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.60)',
     fontFamily: "'Poppins', sans-serif",
     fontSize: 13, fontWeight: 600, cursor: 'pointer',
   },
   guardarBtn: {
     padding: '10px 20px',
-    background: 'linear-gradient(90deg, #C4107A, #FF5B2E)',
+    background: isDark ? 'linear-gradient(90deg,#C4107A,#FF5B2E)' : 'linear-gradient(90deg,#FF8430,#F7306D)',
     border: 'none', borderRadius: 10, color: '#fff',
     fontFamily: "'Plus Jakarta Sans', sans-serif",
     fontSize: 13, fontWeight: 700, cursor: 'pointer',
     display: 'flex', alignItems: 'center', gap: 7,
-    boxShadow: '0 4px 16px rgba(196,16,122,0.40)',
+    boxShadow: isDark ? '0 4px 16px rgba(196,16,122,0.40)' : '0 4px 16px rgba(247,48,109,0.35)',
   },
-};
+});
 
 
 const AcademicGoals = ({ theme = 'light', onToggleTheme }) => {
@@ -487,7 +496,7 @@ const AcademicGoals = ({ theme = 'light', onToggleTheme }) => {
               </div>
             </div>
 
-            {/* IA */}
+
             <div style={s.iaCard}>
               <div style={s.iaImgWrap}>
                 <img src={MascotaGif} alt="ALBERT" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
