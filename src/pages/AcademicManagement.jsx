@@ -1,7 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import GridBackground from '../components/GridBackground';
 
+/* ── Icons específicos de esta pantalla ── */
 const DashboardIcon = ({ isDark }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
     stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2"
@@ -45,31 +48,6 @@ const PreferenciasIcon = ({ isDark }) => (
     <line x1="3" y1="6" x2="3.01" y2="6"/>
     <line x1="3" y1="12" x2="3.01" y2="12"/>
     <line x1="3" y1="18" x2="3.01" y2="18"/>
-  </svg>
-);
-
-/* ── Campana y Social para topbar ── */
-const BellIcon = ({ isDark }) => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round">
-    <defs>
-      <linearGradient id="bellGradAM" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor={isDark ? '#FF5B2E' : '#FF8430'}/>
-        <stop offset="100%" stopColor={isDark ? '#C4107A' : '#F7306D'}/>
-      </linearGradient>
-    </defs>
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="url(#bellGradAM)"/>
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="url(#bellGradAM)"/>
-  </svg>
-);
-
-const SocialIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-    stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-    <circle cx="9" cy="7" r="4"/>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
   </svg>
 );
 
@@ -185,26 +163,19 @@ const AcademicManagement = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
+      {/* ── Componente reutilizable de fondo ── */}
+      <GridBackground isDark={isDark} />
+
       <Sidebar
         theme={theme}
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(p => !p)}
       />
-      <div style={s.main}>
-        {/* TOPBAR */}
-        <div style={s.topbar}>
-          <div />
-          <div style={s.topbarRight}>
-            <button style={s.themeBtn} onClick={onToggleTheme}>
-              <span style={{ fontSize: 15 }}>{isDark ? '☀️' : '🌙'}</span>
-              <span style={{ fontSize: 12 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-            </button>
-            <button style={s.iconBtn}><BellIcon isDark={isDark} /></button>
-            <button style={s.socialBtn}><SocialIcon /> Social</button>
-          </div>
-        </div>
 
-        {/* CONTENT */}
+      <div style={s.main}>
+        {/* ── Componente reutilizable de header ── */}
+        <Header theme={theme} onToggleTheme={onToggleTheme} />
+
         <div style={s.scrollArea}>
           <div style={s.content}>
             {!isDark && <h1 style={s.pageTitle}>Gestión Académica</h1>}
@@ -275,61 +246,18 @@ const CircleProgress = ({ pct, isDark, label }) => {
 };
 
 const getStyles = (isDark) => ({
-root: {
-  display: 'flex',
-  minHeight: '100vh',
-  width: '100%',
-  fontFamily: "'Poppins', sans-serif",
-  position: 'relative',
-  boxSizing: 'border-box',
-  backgroundColor: isDark ? '#050208' : '#FDF2EB',
-  backgroundImage: isDark
-    ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
-    : `linear-gradient(rgba(210,140,100,0.30) 1px, transparent 1px), linear-gradient(90deg, rgba(210,140,100,0.30) 1px, transparent 1px)`,
-  backgroundSize: '36px 36px',
-},
-  grid: {
-    position: 'fixed', inset: 0,
+  root: {
+    display: 'flex',
+    minHeight: '100vh',
+    width: '100%',
+    fontFamily: "'Poppins', sans-serif",
+    position: 'relative',
+    boxSizing: 'border-box',
     backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    backgroundImage: isDark
-      ? `linear-gradient(rgba(30,80,160,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(30,80,160,0.35) 1px, transparent 1px)`
-      : `linear-gradient(rgba(220,150,120,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(220,150,120,0.25) 1px, transparent 1px)`,
-    backgroundSize: '36px 36px',
-    pointerEvents: 'none', zIndex: 0,
   },
   main: {
     flex: 1, display: 'flex', flexDirection: 'column',
     position: 'relative', zIndex: 1, minWidth: 0,
-    backgroundColor: 'transparent',
-  },
-  topbar: {
-    height: 56, display: 'flex', alignItems: 'center',
-    justifyContent: 'space-between', padding: '0 28px',
-    borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-    backgroundColor: isDark ? '#0F0E0F' : '#FEFBF9',
-    position: 'sticky', top: 0, zIndex: 5,
-  },
-  topbarRight: { display: 'flex', alignItems: 'center', gap: 10 },
-  themeBtn: {
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 50, padding: '5px 14px', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', gap: 6,
-    fontFamily: "'Poppins', sans-serif",
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)', fontSize: 12,
-  },
-  iconBtn: {
-    background: 'none', border: 'none', cursor: 'pointer',
-    padding: '4px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-  },
-  socialBtn: {
-    background: isDark
-      ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    border: 'none', borderRadius: 20, padding: '7px 16px',
-    color: '#fff', fontFamily: "'Poppins', sans-serif",
-    fontSize: 12, fontWeight: 600, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', gap: 6,
   },
   scrollArea: { flex: 1, overflowY: 'auto', overflowX: 'hidden' },
   content: { padding: '28px 32px', width: '100%', boxSizing: 'border-box' },

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../assets/LOGO.png';
+import GridBackground from '../components/GridBackground';
 
 const VerifyEmail = ({ theme = 'light', onToggleTheme }) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
@@ -43,6 +44,9 @@ const VerifyEmail = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
+      {/* ── Componente reutilizable de fondo ── */}
+      <GridBackground isDark={isDark} />
+
       <button style={s.themeBtn} onClick={onToggleTheme}>
         <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
         <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
@@ -96,10 +100,6 @@ const getStyles = (isDark) => ({
   root: {
     position: 'relative', minHeight: '100vh',
     backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    backgroundImage: isDark
-      ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
-      : `linear-gradient(rgba(210,140,100,0.30) 1px, transparent 1px), linear-gradient(90deg, rgba(210,140,100,0.30) 1px, transparent 1px)`,
-    backgroundSize: '36px 36px',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     overflow: 'hidden', fontFamily: "'Poppins', sans-serif",
   },
