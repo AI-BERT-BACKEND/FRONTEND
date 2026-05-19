@@ -20,7 +20,6 @@ const ForgotPassword = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      {/* ── Componente reutilizable de fondo ── */}
       <GridBackground isDark={isDark} />
 
       <button style={s.themeBtn} onClick={onToggleTheme}>

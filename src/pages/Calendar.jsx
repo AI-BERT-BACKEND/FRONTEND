@@ -100,19 +100,16 @@ const Calendar = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      {/* ── Componente reutilizable de fondo ── */}
       <GridBackground isDark={isDark} />
 
       <Sidebar theme={theme} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(p => !p)} />
 
       <div style={s.main}>
-        {/* ── Componente reutilizable de header ── */}
         <Header theme={theme} onToggleTheme={onToggleTheme} />
 
         <div style={s.scrollArea}>
           <div style={s.content}>
 
-            {/* CONTROLS */}
             <div style={s.controls}>
               <div style={s.navGroup}>
                 <button style={s.navBtn} onClick={() => setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}>
@@ -155,7 +152,6 @@ const Calendar = ({ theme = 'light', onToggleTheme }) => {
               </div>
             </div>
 
-            {/* LAYOUT */}
             <div style={s.calLayout}>
 
               {/* MONTH VIEW */}
@@ -197,7 +193,6 @@ const Calendar = ({ theme = 'light', onToggleTheme }) => {
                 </div>
               )}
 
-              {/* WEEK VIEW */}
               {view === 'week' && (
                 <div style={s.calMain}>
                   <div style={s.weekViewHeader}>
@@ -237,7 +232,7 @@ const Calendar = ({ theme = 'light', onToggleTheme }) => {
                 </div>
               )}
 
-              {/* KANBAN VIEW */}
+
               {view === 'kanban' && (
                 <div style={s.calMain}>
                   <div style={s.kanbanWrap}>
@@ -263,7 +258,7 @@ const Calendar = ({ theme = 'light', onToggleTheme }) => {
                 </div>
               )}
 
-              {/* UPCOMING EVENTS PANEL */}
+
               <div style={s.upcomingPanel}>
                 <div style={s.upcomingHeader}>
                   <span style={{ color: isDark ? '#FF5B2E' : '#FF8430' }}><IconEventSmall /></span>
@@ -294,7 +289,7 @@ const Calendar = ({ theme = 'light', onToggleTheme }) => {
         </div>
       </div>
 
-      {/* EVENT DETAIL MODAL */}
+
       {eventDetail && (
         <div style={s.modalOverlay} onClick={() => setEventDetail(null)}>
           <div style={s.modalCard} onClick={e => e.stopPropagation()}>

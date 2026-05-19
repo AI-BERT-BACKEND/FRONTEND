@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import GridBackground from '../components/GridBackground';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 
-/* ── Icon específico de esta pantalla ── */
+
 const AlertIcon = ({ isDark }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="2"
     strokeLinecap="round" strokeLinejoin="round">
@@ -35,13 +35,11 @@ const Dashboard = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      {/* ── Componente reutilizable de fondo ── */}
       <GridBackground isDark={isDark} />
 
       <Sidebar theme={theme} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(p => !p)} />
 
       <div style={s.main}>
-        {/* ── Componente reutilizable de header ── */}
         <Header theme={theme} onToggleTheme={onToggleTheme} />
 
         <div style={s.scrollArea}>
@@ -69,7 +67,7 @@ const Dashboard = ({ theme = 'light', onToggleTheme }) => {
               </div>
             </div>
 
-            {/* ROW: Resumen + Circular */}
+
             <div style={s.row}>
               <div style={{ ...s.card, flex: 1, marginBottom: 0 }}>
                 <div style={s.cardTitle}>Resumen Diario</div>
