@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import GridBackground from '../components/GridBackground';
 
 
+
 const ModalidadIcon = ({ isDark }) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
     stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2"
@@ -58,6 +59,7 @@ const ClockIcon = () => (
     <polyline points="12 6 12 12 16 14"/>
   </svg>
 );
+
 
 const PomodoroIcon = ({ active, isDark }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
@@ -152,6 +154,7 @@ const AireLibreIcon = ({ active, isDark }) => (
 );
 
 
+
 const METODOS = [
   {
     id: 'pomodoro',
@@ -189,6 +192,51 @@ const AMBIENTES = [
 ];
 
 
+
+
+const SuccessToast = ({ onClose }) => (
+  <div style={{
+    position: 'fixed', bottom: 32, right: 32, zIndex: 2000,
+    background: '#1A1A1F',
+    border: '1px solid rgba(255,255,255,0.10)',
+    borderRadius: 14, padding: '16px 20px',
+    display: 'flex', alignItems: 'center', gap: 14,
+    boxShadow: '0 8px 32px rgba(0,0,0,0.50)',
+    minWidth: 320, maxWidth: 400,
+    animation: 'slideInToast 0.3s ease',
+  }}>
+    <style>{`@keyframes slideInToast { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }`}</style>
+    <div style={{
+      width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+      background: 'linear-gradient(135deg, #C4107A, #FF5B2E)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: '0 4px 14px rgba(196,16,122,0.40)',
+    }}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <div style={{ flex: 1 }}>
+      <div style={{
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        fontSize: 13, fontWeight: 700, color: '#FFFFFF', marginBottom: 3,
+      }}>¡Preferencias guardadas!</div>
+      <div style={{
+        fontSize: 11, color: 'rgba(255,255,255,0.45)',
+        fontFamily: "'Poppins', sans-serif",
+      }}>Tu configuración de estudio se ha guardado con éxito.</div>
+    </div>
+    <button onClick={onClose} style={{
+      background: 'none', border: 'none', cursor: 'pointer',
+      padding: 4, display: 'flex', alignItems: 'center',
+    }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2" strokeLinecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+);
+
 const StudyPreferences = ({ theme = 'light', onToggleTheme }) => {
   const isDark = theme === 'dark';
   const navigate = useNavigate();
@@ -197,6 +245,12 @@ const StudyPreferences = ({ theme = 'light', onToggleTheme }) => {
   const [modalidad, setModalidad] = useState('grupal');
   const [metodo, setMetodo] = useState('deepwork');
   const [ambiente, setAmbiente] = useState('silencio');
+  const [showToast, setShowToast] = useState(false);
+
+  const handleGuardar = () => {
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3500);
+  };
 
   const s = getStyles(isDark);
 
@@ -218,6 +272,7 @@ const StudyPreferences = ({ theme = 'light', onToggleTheme }) => {
 
 
             <div style={s.row2}>
+
 
               <div style={s.card}>
                 <div style={s.cardHeader}>
@@ -290,7 +345,7 @@ const StudyPreferences = ({ theme = 'light', onToggleTheme }) => {
                   </div>
                 </div>
 
-                {/* Progress bar */}
+
                 <div style={{ marginTop: 'auto', paddingTop: 20 }}>
                   <div style={s.progressTrack}>
                     <div style={{ ...s.progressFill, width: '72%' }} />
@@ -373,7 +428,7 @@ const StudyPreferences = ({ theme = 'light', onToggleTheme }) => {
 
 
             <div style={s.footerRow}>
-              <button style={s.saveBtn}>
+              <button style={s.saveBtn} onClick={handleGuardar}>
                 Guardar Preferencias →
               </button>
             </div>
@@ -381,6 +436,9 @@ const StudyPreferences = ({ theme = 'light', onToggleTheme }) => {
           </div>
         </div>
       </div>
+
+      {/* TOAST */}
+      {showToast && <SuccessToast onClose={() => setShowToast(false)} />}
     </div>
   );
 };
@@ -600,6 +658,7 @@ const getStyles = (isDark) => ({
     fontSize: 11, fontWeight: 600,
     fontFamily: "'Poppins', sans-serif",
   },
+
 
   footerRow: {
     display: 'flex',
