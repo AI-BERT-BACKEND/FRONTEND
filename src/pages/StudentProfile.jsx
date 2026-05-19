@@ -58,7 +58,6 @@ const StudentProfile = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      <div style={s.grid} />
 
       <Sidebar
         theme={theme}
@@ -240,18 +239,23 @@ const StudentProfile = ({ theme = 'light', onToggleTheme }) => {
 };
 
 const getStyles = (isDark) => ({
-  root: {
-    display: 'flex',
-    minHeight: '100vh',
-    width: '100%',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    fontFamily: "'Poppins', sans-serif",
-    position: 'relative',
-    boxSizing: 'border-box',
-  },
+root: {
+  display: 'flex',
+  minHeight: '100vh',
+  width: '100%',
+  fontFamily: "'Poppins', sans-serif",
+  position: 'relative',
+  boxSizing: 'border-box',
+  backgroundColor: isDark ? '#050208' : '#FDF2EB',
+  backgroundImage: isDark
+    ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
+    : `linear-gradient(rgba(210,140,100,0.30) 1px, transparent 1px), linear-gradient(90deg, rgba(210,140,100,0.30) 1px, transparent 1px)`,
+  backgroundSize: '36px 36px',
+},
   grid: {
     position: 'fixed',
     inset: 0,
+    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     backgroundImage: `
       linear-gradient(${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px),
       linear-gradient(90deg, ${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px)
@@ -267,7 +271,7 @@ const getStyles = (isDark) => ({
     position: 'relative',
     zIndex: 1,
     minWidth: 0,
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    backgroundColor: 'transparent',
   },
   topbar: {
     height: 56,
@@ -326,8 +330,11 @@ const getStyles = (isDark) => ({
   },
   content: {
     padding: '28px 32px',
-    maxWidth: 600,
+    width: '100%',
     boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   pageTitle: {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -335,12 +342,16 @@ const getStyles = (isDark) => ({
     fontWeight: 800,
     color: isDark ? '#FF5B2E' : '#FF8430',
     margin: '0 0 24px 0',
+    width: '100%',
+    maxWidth: 560
   },
   card: {
     background: isDark ? '#171717' : '#FEFAF9',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
     borderRadius: 16,
     padding: '28px 32px',
+    width: '100%',
+    maxWidth: 560,
     boxShadow: isDark
       ? '0 4px 24px rgba(196,16,122,0.10)'
       : '0 4px 24px rgba(253,214,189,0.50)',

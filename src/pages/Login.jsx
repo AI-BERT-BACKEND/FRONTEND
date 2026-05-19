@@ -8,7 +8,6 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
-
   const isDark = theme === 'dark';
   const navigate = useNavigate();
 
@@ -22,17 +21,13 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
   };
 
   const handleSubmit = () => {
-    if (validate()) {
-      navigate('/academic-profile');
-    }
+    if (validate()) navigate('/academic-profile');
   };
 
   const s = getStyles(isDark);
 
   return (
     <div style={s.root}>
-      <div style={s.grid} />
-
       <button style={s.themeBtn} onClick={onToggleTheme}>
         <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
         <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
@@ -50,22 +45,10 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
               type="email"
               placeholder="estudiante@mail.escuelang.edu.co"
               value={email}
-              onChange={e => {
-                setEmail(e.target.value);
-                if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
-              }}
-              onBlur={() => {
-                const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (email && !emailRx.test(email))
-                  setErrors(prev => ({ ...prev, email: 'Correo inválido' }));
-              }}
+              onChange={e => { setEmail(e.target.value); if (errors.email) setErrors(p => ({ ...p, email: '' })); }}
+              onBlur={() => { const rx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; if (email && !rx.test(email)) setErrors(p => ({ ...p, email: 'Correo inválido' })); }}
             />
-            {errors.email && (
-              <div style={s.errorRow}>
-                <ErrorIcon />
-                <span>{errors.email}</span>
-              </div>
-            )}
+            {errors.email && <div style={s.errorRow}><ErrorIcon /><span>{errors.email}</span></div>}
           </div>
 
           <div style={s.field}>
@@ -75,44 +58,25 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
               type="password"
               placeholder="Mínimo 8 caracteres"
               value={password}
-              onChange={e => {
-                setPassword(e.target.value);
-                if (e.target.value.length >= 8)
-                  setErrors(prev => ({ ...prev, password: '' }));
-              }}
+              onChange={e => { setPassword(e.target.value); if (e.target.value.length >= 8) setErrors(p => ({ ...p, password: '' })); }}
             />
-            {errors.password && (
-              <div style={s.errorRow}>
-                <ErrorIcon />
-                <span>{errors.password}</span>
-              </div>
-            )}
+            {errors.password && <div style={s.errorRow}><ErrorIcon /><span>{errors.password}</span></div>}
           </div>
 
           <div style={s.checkRow}>
             <label style={s.checkWrap}>
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={e => setRemember(e.target.checked)}
-                style={{ width: 14, height: 14, accentColor: isDark ? '#C4107A' : '#FF8430', cursor: 'pointer' }}
-              />
+              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
+                style={{ width: 14, height: 14, accentColor: isDark ? '#C4107A' : '#FF8430', cursor: 'pointer' }} />
               <span style={s.checkLabel}>Recordarme</span>
             </label>
-            <button style={s.link} onClick={() => navigate('/forgot-password')}>
-              ¿No recuerdas tu contraseña?
-            </button>
+            <button style={s.link} onClick={() => navigate('/forgot-password')}>¿No recuerdas tu contraseña?</button>
           </div>
 
-          <button style={s.btn} onClick={handleSubmit}>
-            Iniciar Sesión
-          </button>
+          <button style={s.btn} onClick={handleSubmit}>Iniciar Sesión</button>
 
           <p style={s.registerRow}>
             ¿No tienes una cuenta?{' '}
-            <button style={s.link} onClick={() => navigate('/register')}>
-              Regístrate
-            </button>
+            <button style={s.link} onClick={() => navigate('/register')}>Regístrate</button>
           </p>
         </div>
 
@@ -129,177 +93,75 @@ const getStyles = (isDark) => ({
     position: 'relative',
     minHeight: '100vh',
     backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    backgroundImage: isDark
+      ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
+      : `linear-gradient(rgba(210,140,100,0.30) 1px, transparent 1px), linear-gradient(90deg, rgba(210,140,100,0.30) 1px, transparent 1px)`,
+    backgroundSize: '36px 36px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
     fontFamily: "'Poppins', sans-serif",
-    transition: 'background-color 0.35s',
-  },
-  grid: {
-    position: 'fixed',
-    inset: 0,
-    backgroundImage: `
-      linear-gradient(${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px),
-      linear-gradient(90deg, ${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px)
-    `,
-    backgroundSize: '36px 36px',
-    opacity: 0.55,
-    pointerEvents: 'none',
-    zIndex: 0,
   },
   themeBtn: {
-    position: 'fixed',
-    top: 20,
-    right: 24,
-    zIndex: 100,
+    position: 'fixed', top: 20, right: 24, zIndex: 100,
     background: isDark ? '#171717' : '#FEFAF9',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 50,
-    padding: '6px 14px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    fontFamily: "'Poppins', sans-serif",
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    borderRadius: 50, padding: '6px 14px', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', gap: 8,
+    fontFamily: "'Poppins', sans-serif", color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
   },
   page: {
-    position: 'relative',
-    zIndex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 56,
-    padding: '32px 24px',
-    width: '100%',
-    maxWidth: 900,
-    flexWrap: 'wrap',
+    position: 'relative', zIndex: 1,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    gap: 56, padding: '32px 24px', width: '100%', maxWidth: 900, flexWrap: 'wrap',
   },
   card: {
     background: isDark ? '#171717' : '#FEFAF9',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 20,
-    padding: '40px 36px',
-    width: '100%',
-    maxWidth: 360,
+    borderRadius: 20, padding: '40px 36px', width: '100%', maxWidth: 360,
     boxShadow: isDark
       ? '0 0 0 1px rgba(196,16,122,0.35), 0 8px 48px rgba(196,16,122,0.22), 0 2px 16px rgba(0,0,0,0.60)'
       : '0 8px 40px rgba(253,214,189,0.60), 0 2px 12px rgba(196,16,122,0.08)',
     flexShrink: 0,
   },
   title: {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 26,
-    fontWeight: 800,
-    background: isDark
-      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    lineHeight: 1.2,
-    marginBottom: 6,
+    fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 26, fontWeight: 800,
+    background: isDark ? 'linear-gradient(90deg, #FF5B2E, #C4107A)' : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+    lineHeight: 1.2, marginBottom: 6,
   },
-  subtitle: {
-    fontSize: 14,
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-    fontWeight: 400,
-    marginBottom: 28,
-  },
+  subtitle: { fontSize: 14, color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)', fontWeight: 400, marginBottom: 28 },
   field: { marginBottom: 18 },
   label: {
-    display: 'block',
-    fontSize: 10,
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)',
-    marginBottom: 6,
+    display: 'block', fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase',
+    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)', marginBottom: 6,
   },
   input: {
-    width: '100%',
-    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
+    width: '100%', background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
-    borderRadius: 10,
-    padding: '11px 14px',
-    fontFamily: "'Poppins', sans-serif",
-    fontSize: 13,
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    boxSizing: 'border-box',
+    borderRadius: 10, padding: '11px 14px', fontFamily: "'Poppins', sans-serif",
+    fontSize: 13, color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)', outline: 'none',
+    transition: 'border-color 0.2s', boxSizing: 'border-box',
   },
-  inputError: {
-    borderColor: '#F00707',
-    boxShadow: '0 0 0 3px rgba(240,7,7,0.12)',
-  },
-  errorRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 5,
-    fontSize: 11.5,
-    color: '#F00707',
-    marginTop: 5,
-    fontWeight: 500,
-  },
-  checkRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 22,
-  },
-  checkWrap: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 7,
-    cursor: 'pointer',
-  },
-  checkLabel: {
-    fontSize: 12,
-    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
-  },
+  inputError: { borderColor: '#F00707', boxShadow: '0 0 0 3px rgba(240,7,7,0.12)' },
+  errorRow: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: '#F00707', marginTop: 5, fontWeight: 500 },
+  checkRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 },
+  checkWrap: { display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' },
+  checkLabel: { fontSize: 12, color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)' },
   link: {
-    fontSize: 12,
-    color: isDark ? '#FF5B2E' : '#F7306D',
-    textDecoration: 'none',
-    fontWeight: 500,
-    cursor: 'pointer',
-    background: 'none',
-    border: 'none',
-    padding: 0,
+    fontSize: 12, color: isDark ? '#FF5B2E' : '#F7306D', textDecoration: 'none',
+    fontWeight: 500, cursor: 'pointer', background: 'none', border: 'none', padding: 0,
     fontFamily: "'Poppins', sans-serif",
   },
   btn: {
-    width: '100%',
-    padding: 13,
-    border: 'none',
-    borderRadius: 10,
-    background: isDark
-      ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    color: '#fff',
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 14,
-    fontWeight: 700,
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-    cursor: 'pointer',
-    marginBottom: 18,
+    width: '100%', padding: 13, border: 'none', borderRadius: 10,
+    background: isDark ? 'linear-gradient(90deg, #C4107A, #FF5B2E)' : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    color: '#fff', fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 14,
+    fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer', marginBottom: 18,
   },
-  registerRow: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
-  },
-  mascotWrap: {
-    flexShrink: 0,
-    width: 300,
-    height: 300,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  registerRow: { textAlign: 'center', fontSize: 12, color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)' },
+  mascotWrap: { flexShrink: 0, width: 300, height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' },
 });
 
 export default Login;

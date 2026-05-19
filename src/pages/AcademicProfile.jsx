@@ -104,7 +104,6 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      <div style={s.grid} />
 
       <Sidebar
         theme={theme}
@@ -428,18 +427,23 @@ const AcademicProfile = ({ theme = 'light', onToggleTheme }) => {
 };
 
 const getStyles = (isDark) => ({
-  root: {
-    display: 'flex',
-    minHeight: '100vh',
-    width: '100%',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    fontFamily: "'Poppins', sans-serif",
-    position: 'relative',
-    boxSizing: 'border-box',
-  },
+root: {
+  display: 'flex',
+  minHeight: '100vh',
+  width: '100%',
+  fontFamily: "'Poppins', sans-serif",
+  position: 'relative',
+  boxSizing: 'border-box',
+  backgroundColor: isDark ? '#050208' : '#FDF2EB',
+  backgroundImage: isDark
+    ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
+    : `linear-gradient(rgba(210,140,100,0.30) 1px, transparent 1px), linear-gradient(90deg, rgba(210,140,100,0.30) 1px, transparent 1px)`,
+  backgroundSize: '36px 36px',
+},
   grid: {
     position: 'fixed',
     inset: 0,
+    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     backgroundImage: `
       linear-gradient(${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px),
       linear-gradient(90deg, ${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px)
@@ -455,7 +459,7 @@ const getStyles = (isDark) => ({
     position: 'relative',
     zIndex: 1,
     minWidth: 0,
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    backgroundColor: 'transparent',
   },
   topbar: {
     height: 56,
