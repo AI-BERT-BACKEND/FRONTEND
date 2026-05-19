@@ -334,7 +334,7 @@ const getStyles = (isDark) => ({
     fontFamily: "'Poppins', sans-serif", position: 'relative',
     boxSizing: 'border-box', backgroundColor: isDark ? '#050208' : '#FDF2EB',
   },
-  main: { flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1, minWidth: 0 },
+  main: { flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', width: '100%', zIndex: 1, minWidth: 0 },
   scrollArea: { flex: 1, overflowY: 'auto', overflowX: 'hidden' },
   content: { padding: '20px 24px', width: '100%', boxSizing: 'border-box' },
   controls: { display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20, flexWrap: 'wrap' },
