@@ -235,10 +235,9 @@ const getStyles = (isDark) => ({
   grid: {
     position: 'fixed',
     inset: 0,
-    backgroundImage: `
-      linear-gradient(${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px),
-      linear-gradient(90deg, ${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px)
-    `,
+    backgroundImage: isDark
+      ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
+      : `linear-gradient(#FDEEE6 1px, transparent 1px), linear-gradient(90deg, #FDEEE6 1px, transparent 1px)`,
     backgroundSize: '36px 36px',
     pointerEvents: 'none',
     zIndex: 0,
