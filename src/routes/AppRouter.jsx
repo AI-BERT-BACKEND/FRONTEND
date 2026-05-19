@@ -9,7 +9,8 @@ import VerifiedSuccess from '../pages/VerifiedSuccess';
 import AcademicProfile from '../pages/AcademicProfile';
 import Dashboard from '../pages/Dashboard';
 import StudentProfile from '../pages/StudentProfile';
-import Materias from '../pages/Subjects';
+import Subjects from '../pages/Subjects';
+import Calendar from '../pages/Calendar';
 
 const AppRouter = () => {
   const [theme, setTheme] = useState('light');
@@ -29,6 +30,7 @@ const AppRouter = () => {
         <Route path="/dashboard" element={<Dashboard theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/profile" element={<StudentProfile theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/Subjects" element={<Subjects theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/calendario" element={<Calendar theme={theme} onToggleTheme={toggleTheme} />} />
       </Routes>
     </BrowserRouter>
   );
