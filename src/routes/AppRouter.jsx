@@ -11,6 +11,7 @@ import Dashboard from '../pages/Dashboard';
 import StudentProfile from '../pages/StudentProfile';
 import Subjects from '../pages/Subjects';
 import AcademicManagement from '../pages/AcademicManagement';
+import AcademicDashboard from '../pages/AcademicDashboard';
 
 const AppRouter = () => {
   const [theme, setTheme] = useState('light');
@@ -31,6 +32,8 @@ const AppRouter = () => {
         <Route path="/profile" element={<StudentProfile theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/Subjects" element={<Subjects theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/gestion" element={<AcademicManagement theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/gestion/dashboard" element={<AcademicDashboard theme={theme} onToggleTheme={toggleTheme} />} />
+
       </Routes>
     </BrowserRouter>
   );
