@@ -31,7 +31,7 @@ const AppRouter = () => {
         <Route path="/academic-profile" element={<AcademicProfile theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/dashboard" element={<Dashboard theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/profile" element={<StudentProfile theme={theme} onToggleTheme={toggleTheme} />} />
-        <Route path="/Subjects" element={<Subjects theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/materias" element={<Subjects theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/calendario" element={<Calendar theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/gestion" element={<AcademicManagement theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/gestion/dashboard" element={<AcademicDashboard theme={theme} onToggleTheme={toggleTheme} />} />

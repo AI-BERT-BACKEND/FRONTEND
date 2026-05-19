@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LogoImg from '../assets/LOGO.png';
 
-/* ── SVG Icons ── */
 const Icon = ({ children, size = 17, color }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
     stroke={color || 'currentColor'} strokeWidth="2"
