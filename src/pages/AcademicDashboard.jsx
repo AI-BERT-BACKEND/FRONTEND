@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import GridBackground from '../components/GridBackground';
 
+/* ── Icons específicos de esta pantalla ── */
 const StarIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="#F9A825" stroke="#F9A825" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
   </svg>
 );
 
-const BookIcon = ({ isDark }) => (
+const BookIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
     stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -16,7 +19,7 @@ const BookIcon = ({ isDark }) => (
   </svg>
 );
 
-const ClockIcon = ({ isDark }) => (
+const ClockIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
     stroke="#FB923C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10"/>
@@ -24,7 +27,7 @@ const ClockIcon = ({ isDark }) => (
   </svg>
 );
 
-const PinIcon = ({ isDark }) => (
+const PinIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
     stroke="#F472B6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -40,7 +43,7 @@ const EditIcon = ({ isDark }) => (
   </svg>
 );
 
-const CalendarAccesoIcon = ({ isDark }) => (
+const CalendarAccesoIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
     stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -50,7 +53,7 @@ const CalendarAccesoIcon = ({ isDark }) => (
   </svg>
 );
 
-const MetaAccesoIcon = ({ isDark }) => (
+const MetaAccesoIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
     stroke="#F7306D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10"/>
@@ -65,30 +68,7 @@ const PlayIcon = () => (
   </svg>
 );
 
-const BellIcon = ({ isDark }) => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round">
-    <defs>
-      <linearGradient id="bellGradAD" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor={isDark ? '#FF5B2E' : '#FF8430'}/>
-        <stop offset="100%" stopColor={isDark ? '#C4107A' : '#F7306D'}/>
-      </linearGradient>
-    </defs>
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="url(#bellGradAD)"/>
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="url(#bellGradAD)"/>
-  </svg>
-);
-
-const SocialIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-    stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-    <circle cx="9" cy="7" r="4"/>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-  </svg>
-);
-
+/* ── Data ── */
 const ESTADO_COLORS = {
   ESTABLE:   { bg: 'rgba(76,175,80,0.18)',  text: '#4CAF50' },
   MEJORANDO: { bg: 'rgba(33,150,243,0.18)', text: '#2196F3' },
@@ -102,10 +82,10 @@ const AcademicDashboard = ({ theme = 'light', onToggleTheme }) => {
   const s = getStyles(isDark);
 
   const stats = [
-    { id: 1, IconComp: StarIcon,                    label: 'Promedio general',  value: '4.8', badge: '+0.3 este mes', badgeColor: '#4CAF50' },
-    { id: 2, IconComp: (p) => <BookIcon {...p} isDark={isDark} />,  label: 'Materias activas',  value: '6',    badge: null },
-    { id: 3, IconComp: (p) => <ClockIcon {...p} isDark={isDark} />, label: 'Horas estudiadas',  value: '124h', badge: null },
-    { id: 4, IconComp: (p) => <PinIcon {...p} isDark={isDark} />,   label: 'Tareas pendientes', value: '12',   badge: null },
+    { id: 1, IconComp: StarIcon, label: 'Promedio general',  value: '4.8', badge: '+0.3 este mes', badgeColor: '#4CAF50' },
+    { id: 2, IconComp: BookIcon, label: 'Materias activas',  value: '6',    badge: null },
+    { id: 3, IconComp: ClockIcon,label: 'Horas estudiadas',  value: '124h', badge: null },
+    { id: 4, IconComp: PinIcon,  label: 'Tareas pendientes', value: '12',   badge: null },
   ];
 
   const rendimiento = [
@@ -122,21 +102,14 @@ const AcademicDashboard = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
+      {/* ── Componente reutilizable de fondo ── */}
+      <GridBackground isDark={isDark} />
+
       <Sidebar theme={theme} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(p => !p)} />
 
       <div style={s.main}>
-        {/* TOPBAR */}
-        <div style={s.topbar}>
-          <div />
-          <div style={s.topbarRight}>
-            <button style={s.themeBtn} onClick={onToggleTheme}>
-              <span style={{ fontSize: 15 }}>{isDark ? '☀️' : '🌙'}</span>
-              <span style={{ fontSize: 12 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-            </button>
-            <button style={s.iconBtn}><BellIcon isDark={isDark} /></button>
-            <button style={s.socialBtn}><SocialIcon /> Social</button>
-          </div>
-        </div>
+        {/* ── Componente reutilizable de header ── */}
+        <Header theme={theme} onToggleTheme={onToggleTheme} />
 
         <div style={s.scrollArea}>
           <div style={s.content}>
@@ -161,7 +134,6 @@ const AcademicDashboard = ({ theme = 'light', onToggleTheme }) => {
 
             {/* MIDDLE ROW */}
             <div style={s.midRow}>
-              {/* RENDIMIENTO */}
               <div style={{ ...s.card, flex: 1 }}>
                 <div style={s.cardHeader}>
                   <span style={s.cardTitle}>Rendimiento Académico</span>
@@ -199,11 +171,11 @@ const AcademicDashboard = ({ theme = 'light', onToggleTheme }) => {
               <div style={{ ...s.card, ...s.accesosCard }}>
                 <span style={s.cardTitle}>Accesos Rápidos</span>
                 <button style={s.accesoBtn} onClick={() => navigate('/calendario')}>
-                  <CalendarAccesoIcon isDark={isDark} />
+                  <CalendarAccesoIcon />
                   <span>Configurar horario</span>
                 </button>
                 <button style={s.accesoBtn} onClick={() => navigate('/gestion/metas')}>
-                  <MetaAccesoIcon isDark={isDark} />
+                  <MetaAccesoIcon />
                   <span>Crear meta</span>
                 </button>
                 <button style={s.accesoSesionBtn} onClick={() => navigate('/sesion')}>
@@ -248,7 +220,7 @@ const AcademicDashboard = ({ theme = 'light', onToggleTheme }) => {
   );
 };
 
-/* Circular Progress */
+/* ── Circular Progress ── */
 const CircleProgress = ({ pct, isDark }) => {
   const r = 52;
   const circ = 2 * Math.PI * r;
@@ -291,61 +263,18 @@ const CircleProgress = ({ pct, isDark }) => {
 };
 
 const getStyles = (isDark) => ({
-root: {
-  display: 'flex',
-  minHeight: '100vh',
-  width: '100%',
-  fontFamily: "'Poppins', sans-serif",
-  position: 'relative',
-  boxSizing: 'border-box',
-  backgroundColor: isDark ? '#050208' : '#FDF2EB',
-  backgroundImage: isDark
-    ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
-    : `linear-gradient(rgba(210,140,100,0.30) 1px, transparent 1px), linear-gradient(90deg, rgba(210,140,100,0.30) 1px, transparent 1px)`,
-  backgroundSize: '36px 36px',
-},
-  grid: {
-      backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    position: 'fixed', inset: 0,
-    backgroundImage: isDark
-      ? `linear-gradient(rgba(30,80,160,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(30,80,160,0.35) 1px, transparent 1px)`
-      : `linear-gradient(rgba(220,150,120,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(220,150,120,0.25) 1px, transparent 1px)`,
-    backgroundSize: '36px 36px',
-    pointerEvents: 'none', zIndex: 0,
+  root: {
+    display: 'flex',
+    minHeight: '100vh',
+    width: '100%',
+    fontFamily: "'Poppins', sans-serif",
+    position: 'relative',
+    boxSizing: 'border-box',
+    backgroundColor: isDark ? '#050208' : '#FDF2EB',
   },
   main: {
     flex: 1, display: 'flex', flexDirection: 'column',
     position: 'relative', zIndex: 1, minWidth: 0,
-    backgroundColor: 'transparent',
-  },
-  topbar: {
-    height: 56, display: 'flex', alignItems: 'center',
-    justifyContent: 'space-between', padding: '0 28px',
-    borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-    backgroundColor: isDark ? '#0F0E0F' : '#FEFBF9',
-    position: 'sticky', top: 0, zIndex: 5,
-  },
-  topbarRight: { display: 'flex', alignItems: 'center', gap: 10 },
-  themeBtn: {
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 50, padding: '5px 14px', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', gap: 6,
-    fontFamily: "'Poppins', sans-serif",
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)', fontSize: 12,
-  },
-  iconBtn: {
-    background: 'none', border: 'none', cursor: 'pointer',
-    padding: '4px 6px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-  },
-  socialBtn: {
-    background: isDark
-      ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    border: 'none', borderRadius: 20, padding: '7px 16px',
-    color: '#fff', fontFamily: "'Poppins', sans-serif",
-    fontSize: 12, fontWeight: 600, cursor: 'pointer',
-    display: 'flex', alignItems: 'center', gap: 6,
   },
   scrollArea: { flex: 1, overflowY: 'auto', overflowX: 'hidden' },
   content: { padding: '24px 28px', width: '100%', boxSizing: 'border-box' },
@@ -365,7 +294,6 @@ root: {
     fontWeight: 800, fontSize: 26,
     color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
   },
-
   midRow: { display: 'flex', gap: 14, marginBottom: 16, alignItems: 'stretch' },
   card: {
     background: isDark ? '#171717' : '#FEFAF9',
@@ -381,8 +309,7 @@ root: {
   },
   editBtn: {
     background: 'none', border: 'none', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    padding: 2,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 2,
   },
   rendimientoBody: { display: 'flex', gap: 20, alignItems: 'center' },
   circleWrap: { flexShrink: 0 },
@@ -397,7 +324,6 @@ root: {
     overflow: 'hidden',
   },
   barFill: { height: '100%', borderRadius: 3 },
-
   accesosCard: { width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10 },
   accesoBtn: {
     display: 'flex', alignItems: 'center', gap: 10,
@@ -420,7 +346,6 @@ root: {
     fontFamily: "'Poppins', sans-serif",
     fontSize: 12, fontWeight: 700, color: '#fff', marginTop: 4,
   },
-
   materiasRow: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 },
   materiaCard: {
     background: isDark ? '#171717' : '#FEFAF9',
