@@ -134,7 +134,7 @@ const Dashboard = ({ theme = 'light', onToggleTheme }) => {
                 ))}
               </div>
 
-              {/* AI ASSISTANT */}
+
               <div style={{ ...s.card, ...s.aiCard, marginBottom: 0 }}>
                 <div style={s.aiLabel}>AI ASSISTANT</div>
                 <div style={s.aiBody}>
@@ -190,7 +190,7 @@ const getStyles = (isDark) => ({
     fontFamily: "'Poppins', sans-serif", position: 'relative',
     boxSizing: 'border-box', backgroundColor: isDark ? '#050208' : '#FDF2EB',
   },
-  main: { flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1, minWidth: 0 },
+  main: { flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1, width: '100%', minWidth: 0 },
   scrollArea: { flex: 1, overflowY: 'auto', overflowX: 'hidden' },
   content: { padding: '28px 32px', width: '100%', boxSizing: 'border-box' },
   greeting: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 36, fontWeight: 800, margin: '0 0 24px 0', padding: 0, color: isDark ? '#FF5B2E' : '#FF8430' },

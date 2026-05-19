@@ -13,6 +13,8 @@ import Subjects from '../pages/Subjects';
 import AcademicManagement from '../pages/AcademicManagement';
 import AcademicDashboard from '../pages/AcademicDashboard';
 import Calendar from '../pages/Calendar';
+import AcademicGoals from '../pages/AcademicGoals';
+import StudyPreferences from '../pages/StudyPreferences';
 
 const AppRouter = () => {
   const [theme, setTheme] = useState('light');
@@ -35,6 +37,8 @@ const AppRouter = () => {
         <Route path="/calendario" element={<Calendar theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/gestion" element={<AcademicManagement theme={theme} onToggleTheme={toggleTheme} />} />
         <Route path="/gestion/dashboard" element={<AcademicDashboard theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/gestion/metas" element={<AcademicGoals theme={theme} onToggleTheme={toggleTheme} />} />
+        <Route path="/gestion/preferencias" element={<StudyPreferences theme={theme} onToggleTheme={toggleTheme} />} />
 
       </Routes>
     </BrowserRouter>

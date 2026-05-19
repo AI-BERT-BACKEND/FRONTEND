@@ -254,7 +254,7 @@ const getStyles = (isDark) => ({
   },
   main: {
     flex: 1, display: 'flex', flexDirection: 'column',
-    position: 'relative', zIndex: 1, minWidth: 0,
+    position: 'relative', zIndex: 1, minWidth: 0, width: '100%',
   },
   scrollArea: { flex: 1, overflowY: 'auto', overflowX: 'hidden' },
   content: { padding: '28px 32px', width: '100%', boxSizing: 'border-box' },
