@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 
-/* ── SVG Icons ── */
 const BellIcon = ({ isDark }) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
     stroke="url(#bellGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -57,7 +56,6 @@ const Dashboard = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      <div style={s.grid} />
 
       <Sidebar
         theme={theme}
@@ -264,7 +262,6 @@ const getStyles = (isDark) => ({
     display: 'flex',
     minHeight: '100vh',
     width: '100%',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     fontFamily: "'Poppins', sans-serif",
     position: 'relative',
     margin: 0,
@@ -274,6 +271,7 @@ const getStyles = (isDark) => ({
   grid: {
     position: 'fixed',
     inset: 0,
+    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     backgroundImage: isDark
       ? `linear-gradient(rgba(30,80,160,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(30,80,160,0.35) 1px, transparent 1px)`
       : `linear-gradient(rgba(220,150,120,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(220,150,120,0.25) 1px, transparent 1px)`,
@@ -288,7 +286,7 @@ const getStyles = (isDark) => ({
     position: 'relative',
     zIndex: 1,
     minWidth: 0,
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    backgroundColor: 'transparent',
   },
   topbar: {
     height: 56,

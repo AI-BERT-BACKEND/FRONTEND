@@ -104,7 +104,6 @@ const Subjects = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      <div style={s.grid} />
 
       <Sidebar theme={theme} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(p => !p)} />
 
@@ -411,7 +410,6 @@ const getStyles = (isDark) => ({
     display: 'flex',
     minHeight: '100vh',
     width: '100%',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     fontFamily: "'Poppins', sans-serif",
     position: 'relative',
     boxSizing: 'border-box',
@@ -419,6 +417,7 @@ const getStyles = (isDark) => ({
   grid: {
     position: 'fixed',
     inset: 0,
+    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     backgroundImage: `
       linear-gradient(${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px),
       linear-gradient(90deg, ${isDark ? 'rgba(4,27,54,0.7)' : 'rgba(253,238,230,0.9)'} 1px, transparent 1px)
@@ -434,7 +433,7 @@ const getStyles = (isDark) => ({
     position: 'relative',
     zIndex: 1,
     minWidth: 0,
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    backgroundColor: 'transparent',
   },
   topbar: {
     height: 56,
@@ -812,7 +811,6 @@ const getStyles = (isDark) => ({
     marginTop: 4,
     fontWeight: 500,
   },
-  // MODAL
   modalOverlay: {
     position: 'fixed',
     inset: 0,

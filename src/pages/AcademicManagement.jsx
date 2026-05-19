@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 
-/* ── SVG Icons para cada tarjeta ── */
 const DashboardIcon = ({ isDark }) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
     stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2"
@@ -186,7 +185,6 @@ const AcademicManagement = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      <div style={s.grid} />
       <Sidebar
         theme={theme}
         collapsed={sidebarCollapsed}
@@ -236,7 +234,6 @@ const AcademicManagement = ({ theme = 'light', onToggleTheme }) => {
   );
 };
 
-/* Circular Progress */
 const CircleProgress = ({ pct, isDark, label }) => {
   const r = 40;
   const circ = 2 * Math.PI * r;
@@ -280,12 +277,12 @@ const CircleProgress = ({ pct, isDark, label }) => {
 const getStyles = (isDark) => ({
   root: {
     display: 'flex', minHeight: '100vh', width: '100%',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     fontFamily: "'Poppins', sans-serif",
     position: 'relative', margin: 0, padding: 0, boxSizing: 'border-box',
   },
   grid: {
     position: 'fixed', inset: 0,
+    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     backgroundImage: isDark
       ? `linear-gradient(rgba(30,80,160,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(30,80,160,0.35) 1px, transparent 1px)`
       : `linear-gradient(rgba(220,150,120,0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(220,150,120,0.25) 1px, transparent 1px)`,
@@ -295,7 +292,7 @@ const getStyles = (isDark) => ({
   main: {
     flex: 1, display: 'flex', flexDirection: 'column',
     position: 'relative', zIndex: 1, minWidth: 0,
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    backgroundColor: 'transparent',
   },
   topbar: {
     height: 56, display: 'flex', alignItems: 'center',

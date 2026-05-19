@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 
-/* ── SVG Icons ── */
 const StarIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="#F9A825" stroke="#F9A825" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -90,7 +89,6 @@ const SocialIcon = () => (
   </svg>
 );
 
-/* ── Data ── */
 const ESTADO_COLORS = {
   ESTABLE:   { bg: 'rgba(76,175,80,0.18)',  text: '#4CAF50' },
   MEJORANDO: { bg: 'rgba(33,150,243,0.18)', text: '#2196F3' },
@@ -124,7 +122,6 @@ const AcademicDashboard = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      <div style={s.grid} />
       <Sidebar theme={theme} collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(p => !p)} />
 
       <div style={s.main}>
@@ -296,11 +293,11 @@ const CircleProgress = ({ pct, isDark }) => {
 const getStyles = (isDark) => ({
   root: {
     display: 'flex', minHeight: '100vh', width: '100%',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     fontFamily: "'Poppins', sans-serif",
     position: 'relative', margin: 0, padding: 0, boxSizing: 'border-box',
   },
   grid: {
+      backgroundColor: isDark ? '#050208' : '#FDF2EB',
     position: 'fixed', inset: 0,
     backgroundImage: isDark
       ? `linear-gradient(rgba(30,80,160,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(30,80,160,0.35) 1px, transparent 1px)`
@@ -311,7 +308,7 @@ const getStyles = (isDark) => ({
   main: {
     flex: 1, display: 'flex', flexDirection: 'column',
     position: 'relative', zIndex: 1, minWidth: 0,
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
+    backgroundColor: 'transparent',
   },
   topbar: {
     height: 56, display: 'flex', alignItems: 'center',

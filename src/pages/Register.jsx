@@ -77,7 +77,6 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
 
   return (
     <div style={s.root}>
-      <div style={s.grid} />
 
       <button style={s.themeBtn} onClick={onToggleTheme}>
         <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
@@ -145,7 +144,6 @@ const getStyles = (isDark) => ({
   root: {
     position: 'relative',
     minHeight: '100vh',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -156,6 +154,7 @@ const getStyles = (isDark) => ({
   grid: {
     position: 'fixed',
     inset: 0,
+    backgroundColor: isDark ? '#050208' : '#FDF2EB',
     backgroundImage: `
       linear-gradient(${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px),
       linear-gradient(90deg, ${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px)
@@ -170,7 +169,7 @@ const getStyles = (isDark) => ({
     top: 20,
     right: 24,
     zIndex: 100,
-    background: isDark ? '#171717' : '#FEFAF9',
+    backgroundColor: 'transparent',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
     borderRadius: 50,
     padding: '6px 14px',
