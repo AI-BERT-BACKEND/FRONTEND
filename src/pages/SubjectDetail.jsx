@@ -97,7 +97,6 @@ const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
   return (
     <div style={s.overlay} onClick={onClose}>
       <div style={s.card} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div style={s.header}>
           <div style={s.headerIcon}>
             <IconPin color={isDark ? '#FF5B2E' : '#FF8430'} />
@@ -109,7 +108,6 @@ const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
           </div>
         </div>
 
-        {/* Stats row */}
         <div style={s.statsRow}>
           <div style={s.statBox}>
             <div style={s.statLabel}>PROMEDIO ACTUAL</div>
@@ -123,15 +121,11 @@ const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
           </div>
         </div>
 
-        {/* Input nota objetivo */}
         <div style={s.fieldWrap}>
           <label style={s.fieldLabel}>Define tu Nota Objetivo</label>
           <div style={s.inputWrap}>
             <input
-              type="number"
-              min="0"
-              max="5"
-              step="0.1"
+              type="number" min="0" max="5" step="0.1"
               value={notaObjetivo}
               onChange={(e) => setNotaObjetivo(e.target.value)}
               style={s.input}
@@ -139,7 +133,6 @@ const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
           </div>
         </div>
 
-        {/* Resultado */}
         <div style={{
           ...s.resultBox,
           background: alcanzable
@@ -150,26 +143,18 @@ const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
             : 'rgba(240,7,7,0.25)'}`,
         }}>
           <div style={s.resultLabel}>Para alcanzar el objetivo, necesitas sacar:</div>
-          <div style={{
-            ...s.resultNum,
-            color: alcanzable
-              ? isDark ? '#FF5B2E' : '#FF8430'
-              : '#F00707',
-          }}>
+          <div style={{ ...s.resultNum, color: alcanzable ? isDark ? '#FF5B2E' : '#FF8430' : '#F00707' }}>
             {necesita}
           </div>
           <div style={{
             ...s.badge,
-            background: alcanzable
-              ? isDark ? 'rgba(34,197,94,0.20)' : 'rgba(34,197,94,0.15)'
-              : 'rgba(240,7,7,0.15)',
+            background: alcanzable ? isDark ? 'rgba(34,197,94,0.20)' : 'rgba(34,197,94,0.15)' : 'rgba(240,7,7,0.15)',
             color: alcanzable ? '#22C55E' : '#F00707',
           }}>
             {alcanzable ? '● ALCANZABLE' : '● DIFÍCIL'}
           </div>
         </div>
 
-        {/* Footer */}
         <div style={s.footer}>
           <button style={s.cancelBtn} onClick={onClose}>Cerrar</button>
           <button style={s.simBtn}>Simular escenario</button>
@@ -180,6 +165,7 @@ const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
 };
 
 const SubjectDetail = () => {
+  const { isDark } = useTheme();           // ✅ ESTE ERA EL QUE FALTABA
   const { id } = useParams();
   const navigate = useNavigate();
   const [simuladorCorte, setSimuladorCorte] = useState(null);
@@ -194,7 +180,6 @@ const SubjectDetail = () => {
 
   return (
     <AppLayout>
-      {/* ── PAGE HEADER ── */}
       <div style={s.pageHeader}>
         <div style={{ flex: 1 }}>
           <h1 style={s.pageTitle}>{m.nombre}</h1>
@@ -208,15 +193,11 @@ const SubjectDetail = () => {
             <IconExport color={isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.55)'} />
             <span>Exportar</span>
           </button>
-          <button style={s.detalleBtn}>
-            Detalle notas
-          </button>
+          <button style={s.detalleBtn}>Detalle notas</button>
         </div>
       </div>
 
-      {/* ── TOP ROW: Promedio + Desempeño ── */}
       <div style={s.topRow}>
-        {/* Promedio */}
         <div style={s.promedioCard}>
           <div style={s.promedioLabel}>PROMEDIO ACTUAL</div>
           <div style={s.promedioNum}>
@@ -238,7 +219,6 @@ const SubjectDetail = () => {
           </div>
         </div>
 
-        {/* Desempeño */}
         <div style={s.desempenoCard}>
           <div style={s.desempenoTop}>
             <div>
@@ -268,14 +248,12 @@ const SubjectDetail = () => {
         </div>
       </div>
 
-      {/* ── GESTIÓN DE CORTES ── */}
       <div style={s.sectionTitle}>Gestión de Cortes</div>
 
       <div style={s.cortesWrap}>
         {m.cortes.map((corte) => {
           const completado = corte.estado === 'completado';
           const enProgreso = corte.estado === 'en_progreso';
-
           return (
             <div key={corte.id} style={{
               ...s.corteCard,
@@ -286,21 +264,13 @@ const SubjectDetail = () => {
                   : isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
               opacity: enProgreso ? 0.85 : 1,
             }}>
-              {/* Corte header */}
               <div style={s.corteHeader}>
                 <div style={s.corteLeft}>
-                  <div style={{
-                    ...s.corteNum,
-                    color: completado
-                      ? isDark ? '#FF5B2E' : '#FF8430'
-                      : s.corteNum.color,
-                  }}>
+                  <div style={{ ...s.corteNum, color: completado ? isDark ? '#FF5B2E' : '#FF8430' : s.corteNum.color }}>
                     {corte.id}
                   </div>
                   <div>
-                    <div style={s.corteNombre}>
-                      {corte.nombre} ({corte.porcentaje}%)
-                    </div>
+                    <div style={s.corteNombre}>{corte.nombre} ({corte.porcentaje}%)</div>
                     <div style={s.corteFecha}>{corte.fecha}</div>
                   </div>
                 </div>
@@ -309,16 +279,11 @@ const SubjectDetail = () => {
                     <>
                       <div style={s.puntajeWrap}>
                         <div style={s.puntajeLabel}>PUNTAJE</div>
-                        <div style={{
-                          ...s.puntajeVal,
-                          color: corte.puntaje >= 3.0
-                            ? isDark ? '#FF5B2E' : '#FF8430'
-                            : '#F00707',
-                        }}>
+                        <div style={{ ...s.puntajeVal, color: corte.puntaje >= 3.0 ? isDark ? '#FF5B2E' : '#FF8430' : '#F00707' }}>
                           {corte.puntaje}
                         </div>
                       </div>
-                      <button style={s.editBtn} title="Editar" onClick={() => navigate(`/materias/1/cortes`)}>
+                      <button style={s.editBtn} title="Editar" onClick={() => navigate(`/materias/${id}/cortes`)}>
                         <IconEdit color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
                       </button>
                       <button style={s.simularBtn} onClick={() => setSimuladorCorte(corte)}>
@@ -329,9 +294,7 @@ const SubjectDetail = () => {
                     <>
                       <div style={s.puntajeWrap}>
                         <div style={s.puntajeLabel}>ESTIMADO</div>
-                        <div style={{ ...s.puntajeVal, color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.25)' }}>
-                          —
-                        </div>
+                        <div style={{ ...s.puntajeVal, color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.25)' }}>—</div>
                       </div>
                       <button style={{ ...s.simularBtn, opacity: 0.6 }} onClick={() => setSimuladorCorte(corte)}>
                         Simular Notas
@@ -341,7 +304,6 @@ const SubjectDetail = () => {
                 </div>
               </div>
 
-              {/* Actividades */}
               <div style={s.actividadesRow}>
                 {corte.actividades.map((act, i) => (
                   <div key={i} style={s.actividadItem}>
@@ -349,12 +311,8 @@ const SubjectDetail = () => {
                     {act.nota !== null ? (
                       <span style={{
                         ...s.actividadNota,
-                        color: act.nota >= 3.0
-                          ? isDark ? '#FF5B2E' : '#FF8430'
-                          : '#F00707',
-                        background: act.nota >= 3.0
-                          ? isDark ? 'rgba(255,91,46,0.12)' : 'rgba(255,132,48,0.10)'
-                          : 'rgba(240,7,7,0.10)',
+                        color: act.nota >= 3.0 ? isDark ? '#FF5B2E' : '#FF8430' : '#F00707',
+                        background: act.nota >= 3.0 ? isDark ? 'rgba(255,91,46,0.12)' : 'rgba(255,132,48,0.10)' : 'rgba(240,7,7,0.10)',
                       }}>
                         {act.nota}
                       </span>
@@ -369,7 +327,6 @@ const SubjectDetail = () => {
         })}
       </div>
 
-      {/* ── RECOMENDACIÓN AI.BERT ── */}
       <div style={s.recomendacionCard}>
         <div style={s.recomendacionIcon}>
           <IconPin color={isDark ? '#FF5B2E' : '#FF8430'} />
@@ -381,7 +338,6 @@ const SubjectDetail = () => {
         <button style={s.guiaBtn}>Ver Guía de Estudio</button>
       </div>
 
-      {/* ── MODAL SIMULADOR ── */}
       {simuladorCorte && (
         <SimuladorModal
           corte={simuladorCorte}
@@ -396,334 +352,117 @@ const SubjectDetail = () => {
 
 const getModalStyles = (isDark, t) => ({
   overlay: {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(0,0,0,0.70)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 200,
-    backdropFilter: 'blur(2px)',
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.70)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: 200, backdropFilter: 'blur(2px)',
   },
   card: {
-    background: t.cardBg,
-    border: `1px solid ${t.cardBorder}`,
-    borderRadius: 16,
-    width: '100%',
-    maxWidth: 420,
-    margin: '0 20px',
-    boxShadow: t.modalShadow,
-    padding: '24px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 16,
+    background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+    borderRadius: 16, width: '100%', maxWidth: 420, margin: '0 20px',
+    boxShadow: t.modalShadow, padding: '24px',
+    display: 'flex', flexDirection: 'column', gap: 16,
   },
   header: { display: 'flex', alignItems: 'flex-start', gap: 12 },
   headerIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 36, height: 36, borderRadius: 10,
     background: isDark ? 'rgba(255,91,46,0.15)' : 'rgba(255,132,48,0.12)',
     border: `1px solid ${isDark ? 'rgba(255,91,46,0.30)' : 'rgba(255,132,48,0.30)'}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
   title: {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 16,
-    fontWeight: 800,
-    backgroundImage: isDark
-      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    width: 'fit-content',
-    lineHeight: 1.2,
+    fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 16, fontWeight: 800,
+    backgroundImage: isDark ? 'linear-gradient(90deg, #FF5B2E, #C4107A)' : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+    width: 'fit-content', lineHeight: 1.2,
   },
-  titleBrand: {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 13,
-    fontWeight: 700,
-    color: t.textPrimary,
-    lineHeight: 1.2,
-  },
-  subtitle: {
-    fontSize: 11,
-    color: t.textMuted,
-    fontFamily: "'Poppins', sans-serif",
-  },
+  titleBrand: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 700, color: t.textPrimary, lineHeight: 1.2 },
+  subtitle: { fontSize: 11, color: t.textMuted, fontFamily: "'Poppins', sans-serif" },
   statsRow: { display: 'flex', gap: 10 },
-  statBox: {
-    flex: 1,
-    background: t.inputBg,
-    border: `1px solid ${t.inputBorder}`,
-    borderRadius: 10,
-    padding: '10px 14px',
-  },
-  statLabel: {
-    fontSize: 9,
-    letterSpacing: '0.08em',
-    color: t.textMuted,
-    fontWeight: 600,
-    fontFamily: "'Poppins', sans-serif",
-    marginBottom: 4,
-  },
-  statVal: {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 22,
-    fontWeight: 800,
-    color: isDark ? '#FF5B2E' : '#FF8430',
-  },
+  statBox: { flex: 1, background: t.inputBg, border: `1px solid ${t.inputBorder}`, borderRadius: 10, padding: '10px 14px' },
+  statLabel: { fontSize: 9, letterSpacing: '0.08em', color: t.textMuted, fontWeight: 600, fontFamily: "'Poppins', sans-serif", marginBottom: 4 },
+  statVal: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, fontWeight: 800, color: isDark ? '#FF5B2E' : '#FF8430' },
   fieldWrap: {},
-  fieldLabel: {
-    display: 'block',
-    fontSize: 12,
-    fontWeight: 600,
-    color: t.textPrimary,
-    fontFamily: "'Poppins', sans-serif",
-    marginBottom: 8,
-  },
+  fieldLabel: { display: 'block', fontSize: 12, fontWeight: 600, color: t.textPrimary, fontFamily: "'Poppins', sans-serif", marginBottom: 8 },
   inputWrap: { position: 'relative' },
   input: {
-    width: '100%',
-    background: t.inputBg,
-    border: `1px solid ${t.inputBorder}`,
-    borderRadius: 10,
-    padding: '12px 16px',
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 22,
-    fontWeight: 700,
-    color: t.textPrimary,
-    outline: 'none',
-    boxSizing: 'border-box',
-    textAlign: 'center',
+    width: '100%', background: t.inputBg, border: `1px solid ${t.inputBorder}`,
+    borderRadius: 10, padding: '12px 16px',
+    fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 22, fontWeight: 700,
+    color: t.textPrimary, outline: 'none', boxSizing: 'border-box', textAlign: 'center',
   },
-  resultBox: {
-    borderRadius: 12,
-    padding: '16px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 8,
-  },
-  resultLabel: {
-    fontSize: 11,
-    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.50)',
-    fontFamily: "'Poppins', sans-serif",
-  },
-  resultNum: {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 40,
-    fontWeight: 800,
-  },
-  badge: {
-    fontSize: 10,
-    fontWeight: 700,
-    padding: '3px 12px',
-    borderRadius: 20,
-    letterSpacing: '0.05em',
-    fontFamily: "'Poppins', sans-serif",
-  },
-  footer: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: 12,
-    paddingTop: 4,
-  },
+  resultBox: { borderRadius: 12, padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 },
+  resultLabel: { fontSize: 11, color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.50)', fontFamily: "'Poppins', sans-serif" },
+  resultNum: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 40, fontWeight: 800 },
+  badge: { fontSize: 10, fontWeight: 700, padding: '3px 12px', borderRadius: 20, letterSpacing: '0.05em', fontFamily: "'Poppins', sans-serif" },
+  footer: { display: 'flex', justifyContent: 'flex-end', gap: 12, paddingTop: 4 },
   cancelBtn: {
-    padding: '9px 20px',
-    borderRadius: 8,
-    border: `1px solid ${t.inputBorder}`,
-    background: 'transparent',
-    cursor: 'pointer',
-    fontFamily: "'Poppins', sans-serif",
-    fontSize: 13,
-    fontWeight: 500,
-    color: t.textSecondary,
+    padding: '9px 20px', borderRadius: 8, border: `1px solid ${t.inputBorder}`,
+    background: 'transparent', cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+    fontSize: 13, fontWeight: 500, color: t.textSecondary,
   },
   simBtn: {
-    padding: '9px 20px',
-    borderRadius: 8,
-    border: 'none',
-    background: isDark
-      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    cursor: 'pointer',
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 13,
-    fontWeight: 700,
-    color: '#fff',
+    padding: '9px 20px', borderRadius: 8, border: 'none',
+    background: isDark ? 'linear-gradient(90deg, #FF5B2E, #C4107A)' : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    cursor: 'pointer', fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 700, color: '#fff',
   },
 });
 
 const getStyles = (isDark) => {
   const t = createStyles(isDark);
   return {
-    pageHeader: {
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-      marginBottom: 24,
-      gap: 16,
-    },
+    pageHeader: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, gap: 16 },
     pageTitle: {
-      fontFamily: t.fontPrimary,
-      fontSize: 28,
-      fontWeight: 800,
-      backgroundImage: t.primaryGradient,
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      backgroundClip: 'text',
-      width: 'fit-content',
-      margin: '0 0 6px 0',
+      fontFamily: t.fontPrimary, fontSize: 28, fontWeight: 800,
+      backgroundImage: t.primaryGradient, WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+      width: 'fit-content', margin: '0 0 6px 0',
     },
     profRow: { display: 'flex', alignItems: 'center', gap: 6 },
-    profText: {
-      fontSize: 12,
-      color: t.textSecondary,
-      fontFamily: t.fontSecondary,
-    },
+    profText: { fontSize: 12, color: t.textSecondary, fontFamily: t.fontSecondary },
     headerBtns: { display: 'flex', gap: 10, alignItems: 'center', flexShrink: 0 },
     exportBtn: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      background: 'transparent',
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 8,
-      padding: '8px 14px',
-      cursor: 'pointer',
-      fontFamily: t.fontSecondary,
-      fontSize: 12,
-      fontWeight: 500,
-      color: t.textSecondary,
+      display: 'flex', alignItems: 'center', gap: 6, background: 'transparent',
+      border: `1px solid ${t.cardBorder}`, borderRadius: 8, padding: '8px 14px',
+      cursor: 'pointer', fontFamily: t.fontSecondary, fontSize: 12, fontWeight: 500, color: t.textSecondary,
     },
     detalleBtn: {
-      background: t.primaryGradient,
-      border: 'none',
-      borderRadius: 8,
-      padding: '8px 16px',
-      color: '#fff',
-      fontFamily: t.fontPrimary,
-      fontSize: 12,
-      fontWeight: 700,
-      cursor: 'pointer',
+      background: t.primaryGradient, border: 'none', borderRadius: 8, padding: '8px 16px',
+      color: '#fff', fontFamily: t.fontPrimary, fontSize: 12, fontWeight: 700, cursor: 'pointer',
     },
-    topRow: {
-      display: 'flex',
-      gap: 16,
-      marginBottom: 28,
-      alignItems: 'stretch',
-    },
+    topRow: { display: 'flex', gap: 16, marginBottom: 28, alignItems: 'stretch' },
     promedioCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      padding: '20px 22px',
-      boxShadow: t.cardShadow,
-      width: 280,
-      flexShrink: 0,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: 16,
+      padding: '20px 22px', boxShadow: t.cardShadow, width: 280, flexShrink: 0,
+      display: 'flex', flexDirection: 'column', gap: 10,
     },
-    promedioLabel: {
-      fontSize: 10,
-      letterSpacing: '0.08em',
-      fontWeight: 700,
-      color: t.textSecondary,
-      fontFamily: t.fontSecondary,
-    },
+    promedioLabel: { fontSize: 10, letterSpacing: '0.08em', fontWeight: 700, color: t.textSecondary, fontFamily: t.fontSecondary },
     promedioNum: { lineHeight: 1 },
-    promedioBig: {
-      fontFamily: t.fontPrimary,
-      fontSize: 48,
-      fontWeight: 800,
-      color: isDark ? '#FF5B2E' : '#FF8430',
-    },
-    promedioMax: {
-      fontSize: 20,
-      color: t.textMuted,
-      fontWeight: 500,
-    },
-    progLabelRow: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      marginBottom: 6,
-    },
+    promedioBig: { fontFamily: t.fontPrimary, fontSize: 48, fontWeight: 800, color: isDark ? '#FF5B2E' : '#FF8430' },
+    promedioMax: { fontSize: 20, color: t.textMuted, fontWeight: 500 },
+    progLabelRow: { display: 'flex', justifyContent: 'space-between', marginBottom: 6 },
     progLabel: { fontSize: 11, color: t.textSecondary },
     notaHint: {
-      display: 'flex',
-      alignItems: 'flex-start',
-      gap: 6,
+      display: 'flex', alignItems: 'flex-start', gap: 6,
       background: isDark ? 'rgba(255,91,46,0.08)' : 'rgba(255,132,48,0.07)',
-      borderRadius: 8,
-      padding: '8px 12px',
-      marginTop: 4,
+      borderRadius: 8, padding: '8px 12px', marginTop: 4,
     },
     notaHintDot: { fontSize: 13, color: isDark ? '#FF5B2E' : '#FF8430', flexShrink: 0 },
     notaHintText: { fontSize: 11, color: t.textSecondary, lineHeight: 1.4 },
     desempenoCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      padding: '20px 22px',
-      boxShadow: t.cardShadow,
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: 16,
+      padding: '20px 22px', boxShadow: t.cardShadow, flex: 1,
+      display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
     },
-    desempenoTop: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: 20,
-    },
-    desempenoTitle: {
-      fontFamily: t.fontPrimary,
-      fontSize: 16,
-      fontWeight: 700,
-      color: t.textPrimary,
-      marginBottom: 4,
-    },
+    desempenoTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
+    desempenoTitle: { fontFamily: t.fontPrimary, fontSize: 16, fontWeight: 700, color: t.textPrimary, marginBottom: 4 },
     desempenoSubtitle: { fontSize: 12, color: t.textSecondary },
-    estadoBadge: {
-      fontSize: 10,
-      fontWeight: 600,
-      padding: '4px 10px',
-      borderRadius: 20,
-      fontFamily: t.fontSecondary,
-      whiteSpace: 'nowrap',
-      flexShrink: 0,
-      marginLeft: 12,
-    },
+    estadoBadge: { fontSize: 10, fontWeight: 600, padding: '4px 10px', borderRadius: 20, fontFamily: t.fontSecondary, whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 12 },
     statsRow: { display: 'flex', gap: 0, alignItems: 'center' },
     statItem: { flex: 1 },
     statLabel: { fontSize: 10, color: t.textMuted, fontFamily: t.fontSecondary, marginBottom: 4 },
-    statVal: {
-      fontFamily: t.fontPrimary,
-      fontSize: 26,
-      fontWeight: 800,
-      color: isDark ? '#FF5B2E' : '#FF8430',
-    },
-    statDivider: {
-      width: 1,
-      height: 40,
-      background: t.cardBorder,
-      margin: '0 20px',
-      flexShrink: 0,
-    },
-    sectionTitle: {
-      fontFamily: t.fontPrimary,
-      fontSize: 18,
-      fontWeight: 700,
-      color: t.textPrimary,
-      marginBottom: 14,
-    },
+    statVal: { fontFamily: t.fontPrimary, fontSize: 26, fontWeight: 800, color: isDark ? '#FF5B2E' : '#FF8430' },
+    statDivider: { width: 1, height: 40, background: t.cardBorder, margin: '0 20px', flexShrink: 0 },
+    sectionTitle: { fontFamily: t.fontPrimary, fontSize: 18, fontWeight: 700, color: t.textPrimary, marginBottom: 14 },
     cortesWrap: { display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 },
     corteCard: {
       background: t.cardBg,
@@ -732,143 +471,53 @@ const getStyles = (isDark) => {
       padding: '16px 18px',
       boxShadow: t.cardShadow,
     },
-    corteHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 14,
-    },
+    corteHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
     corteLeft: { display: 'flex', alignItems: 'center', gap: 14 },
-    corteNum: {
-      fontFamily: t.fontPrimary,
-      fontSize: 28,
-      fontWeight: 800,
-      color: t.textMuted,
-      lineHeight: 1,
-      minWidth: 24,
-    },
-    corteNombre: {
-      fontFamily: t.fontSecondary,
-      fontSize: 13,
-      fontWeight: 600,
-      color: t.textPrimary,
-    },
+    corteNum: { fontFamily: t.fontPrimary, fontSize: 28, fontWeight: 800, color: t.textMuted, lineHeight: 1, minWidth: 24 },
+    corteNombre: { fontFamily: t.fontSecondary, fontSize: 13, fontWeight: 600, color: t.textPrimary },
     corteFecha: { fontSize: 11, color: t.textMuted, marginTop: 2 },
     corteRight: { display: 'flex', alignItems: 'center', gap: 10 },
     puntajeWrap: { textAlign: 'right' },
-    puntajeLabel: {
-      fontSize: 9,
-      letterSpacing: '0.08em',
-      color: t.textMuted,
-      fontWeight: 600,
-      fontFamily: t.fontSecondary,
-    },
-    puntajeVal: {
-      fontFamily: t.fontPrimary,
-      fontSize: 22,
-      fontWeight: 800,
-    },
+    puntajeLabel: { fontSize: 9, letterSpacing: '0.08em', color: t.textMuted, fontWeight: 600, fontFamily: t.fontSecondary },
+    puntajeVal: { fontFamily: t.fontPrimary, fontSize: 22, fontWeight: 800 },
     editBtn: {
-      background: 'transparent',
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 6,
-      width: 30,
-      height: 30,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
+      background: 'transparent', border: `1px solid ${t.cardBorder}`, borderRadius: 6,
+      width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
     },
     simularBtn: {
-      background: t.primaryGradient,
-      border: 'none',
-      borderRadius: 8,
-      padding: '7px 16px',
-      color: '#fff',
-      fontFamily: t.fontSecondary,
-      fontSize: 12,
-      fontWeight: 600,
-      cursor: 'pointer',
-      whiteSpace: 'nowrap',
+      background: t.primaryGradient, border: 'none', borderRadius: 8,
+      padding: '7px 16px', color: '#fff', fontFamily: t.fontSecondary,
+      fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
     },
-    actividadesRow: {
-      display: 'flex',
-      gap: 10,
-      paddingTop: 12,
-      borderTop: `1px solid ${t.cardBorder}`,
-    },
+    actividadesRow: { display: 'flex', gap: 10, paddingTop: 12, borderTop: `1px solid ${t.cardBorder}` },
     actividadItem: {
-      flex: 1,
-      background: t.inputBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 8,
-      padding: '8px 12px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: 8,
+      flex: 1, background: t.inputBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 8, padding: '8px 12px',
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8,
     },
     actividadNombre: { fontSize: 12, color: t.textSecondary, fontFamily: t.fontSecondary },
-    actividadNota: {
-      fontSize: 13,
-      fontWeight: 700,
-      fontFamily: t.fontPrimary,
-      padding: '2px 10px',
-      borderRadius: 8,
-    },
-    actividadPendiente: {
-      fontSize: 11,
-      color: t.textMuted,
-      fontFamily: t.fontSecondary,
-    },
+    actividadNota: { fontSize: 13, fontWeight: 700, fontFamily: t.fontPrimary, padding: '2px 10px', borderRadius: 8 },
+    actividadPendiente: { fontSize: 11, color: t.textMuted, fontFamily: t.fontSecondary },
     recomendacionCard: {
       background: isDark
         ? 'linear-gradient(135deg, rgba(196,16,122,0.15), rgba(255,91,46,0.10))'
         : 'linear-gradient(135deg, rgba(255,132,48,0.10), rgba(247,48,109,0.07))',
       border: `1px solid ${isDark ? 'rgba(196,16,122,0.25)' : 'rgba(255,132,48,0.25)'}`,
-      borderRadius: 14,
-      padding: '18px 20px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 16,
-      boxShadow: t.cardShadow,
+      borderRadius: 14, padding: '18px 20px',
+      display: 'flex', alignItems: 'center', gap: 16, boxShadow: t.cardShadow,
     },
     recomendacionIcon: {
-      width: 38,
-      height: 38,
-      borderRadius: 10,
+      width: 38, height: 38, borderRadius: 10,
       background: isDark ? 'rgba(255,91,46,0.20)' : 'rgba(255,132,48,0.15)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
     },
     recomendacionBody: { flex: 1 },
-    recomendacionTitle: {
-      fontFamily: t.fontPrimary,
-      fontSize: 13,
-      fontWeight: 700,
-      color: isDark ? '#FF5B2E' : '#FF8430',
-      marginBottom: 4,
-    },
-    recomendacionText: {
-      fontSize: 12,
-      color: t.textSecondary,
-      lineHeight: 1.5,
-      margin: 0,
-    },
+    recomendacionTitle: { fontFamily: t.fontPrimary, fontSize: 13, fontWeight: 700, color: isDark ? '#FF5B2E' : '#FF8430', marginBottom: 4 },
+    recomendacionText: { fontSize: 12, color: t.textSecondary, lineHeight: 1.5, margin: 0 },
     guiaBtn: {
-      background: t.primaryGradient,
-      border: 'none',
-      borderRadius: 8,
-      padding: '9px 18px',
-      color: '#fff',
-      fontFamily: t.fontPrimary,
-      fontSize: 12,
-      fontWeight: 700,
-      cursor: 'pointer',
-      whiteSpace: 'nowrap',
-      flexShrink: 0,
+      background: t.primaryGradient, border: 'none', borderRadius: 8,
+      padding: '9px 18px', color: '#fff', fontFamily: t.fontPrimary,
+      fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
     },
   };
 };
