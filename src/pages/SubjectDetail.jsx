@@ -4,7 +4,6 @@ import AppLayout from '../components/Layout/AppLayout';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
-import { useNavigate, useParams } from 'react-router-dom';
 
 const IconUser = ({ color }) => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
