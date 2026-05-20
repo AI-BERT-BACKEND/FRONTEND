@@ -20,6 +20,7 @@ import SubjectDetail from '../pages/SubjectDetail';
 import CourseGrades from '../pages/CourseGrades';
 import Tasks from '../pages/Tasks';
 import Prioritization from '../pages/Prioritization';
+import Statistics from '../pages/Statistics';
 
 const AppRouter = () => {
   return (
@@ -45,6 +46,7 @@ const AppRouter = () => {
         <Route path="/materias/:id/cortes" element={<CourseGrades />} />
         <Route path="/tareas" element={<Tasks />} />
         <Route path="/priorizacion" element={<Prioritization />} />
+        <Route path="/estadisticas" element={<Statistics />} />
       </Routes>
     </BrowserRouter>
   );
