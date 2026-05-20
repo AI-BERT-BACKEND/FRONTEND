@@ -18,6 +18,8 @@ import AcademicGoals from '../pages/AcademicGoals';
 import StudyPreferences from '../pages/StudyPreferences';
 import SubjectDetail from '../pages/SubjectDetail';
 import CourseGrades from '../pages/CourseGrades';
+import Tasks from '../pages/Tasks';
+import Prioritization from '../pages/Prioritization';
 
 const AppRouter = () => {
   return (
@@ -41,6 +43,8 @@ const AppRouter = () => {
         <Route path="/gestion/preferencias" element={<StudyPreferences />} />
         <Route path="/materias/:id" element={<SubjectDetail />} />
         <Route path="/materias/:id/cortes" element={<CourseGrades />} />
+        <Route path="/tareas" element={<Tasks />} />
+        <Route path="/priorizacion" element={<Prioritization />} />
       </Routes>
     </BrowserRouter>
   );
