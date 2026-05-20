@@ -8,7 +8,7 @@ import ProgressBar from '../components/ProgressBar';
 import AibertGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 import { ArrowRight, Plus, Clock, AlertTriangle, TrendingDown, X } from 'lucide-react';
 
-/* ── datos de ejemplo ── */
+
 const ALERTAS_INIT = [
   {
     id: 1,
@@ -264,6 +264,9 @@ const Dashboard = () => {
 
           <button style={s.aiBtn(isDark)} onClick={() => navigate('/horario-inteligente')}>
             Ver recomendación
+          </button>
+          <button style={s.aiBtn(isDark)} onClick={() => navigate('/sesion/iniciar')}>
+            Iniciar Sesión de Estudio
           </button>
         </section>
 

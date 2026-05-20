@@ -4,7 +4,7 @@ import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
-// ── DATOS ─────────────────────────────────────────────────────────────────────
+
 
 const DURACIONES = [60, 90, 120];
 
@@ -23,7 +23,7 @@ const SUGERENCIA_IA = {
   compatibilidad: 100,
 };
 
-// ── COMPONENTE PRINCIPAL ──────────────────────────────────────────────────────
+
 
 const CreateStudySession = () => {
   const { isDark } = useTheme();
@@ -58,10 +58,10 @@ const CreateStudySession = () => {
       <h1 style={s.pageTitle}>Crear sesion de estudio</h1>
       <p style={s.subtitle}>Encuentra automáticamente quién puede unirse.</p>
 
-      {/* LAYOUT DOS COLUMNAS */}
+
       <div style={s.layout}>
 
-        {/* ── IZQUIERDA: FORMULARIO ─────────────────────────── */}
+
         <div style={s.formPanel}>
 
           {/* Campo tema */}
@@ -76,7 +76,7 @@ const CreateStudySession = () => {
             />
           </div>
 
-          {/* Fecha + Hora lado a lado */}
+
           <div style={s.row2}>
             <div style={s.fieldGroup}>
               <label style={s.fieldLabel}>FECHA</label>
@@ -248,7 +248,7 @@ const CreateStudySession = () => {
           {/* Botón continuar */}
           <button
             style={{ ...s.continuarBtn, ...(totalSeleccionados === 0 ? s.continuarBtnDisabled : {}) }}
-            onClick={() => totalSeleccionados > 0 && navigate('/sesion')}
+            onClick={() => totalSeleccionados > 0 && navigate('/sesion/iniciar')}
           >
             Continuar con {totalSeleccionados} participante{totalSeleccionados !== 1 ? 's' : ''} →
           </button>
