@@ -1,39 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import LogoImg from '../assets/LOGO.png';
 import {
-  Home,
-  Calendar,
-  BookOpen,
-  Zap,
-  Trophy,
-  GraduationCap,
-  CheckSquare,
-  BarChart3,
-  Settings,
-  LogOut,
+  Home, Calendar, BookOpen, Zap, Trophy,
+  GraduationCap, CheckSquare, BarChart3, Settings, LogOut,
 } from 'lucide-react';
 
 const NAV_ACADEMIC = [
-  { label: 'Inicio', IconComp: Home, path: '/dashboard' },
-  { label: 'Gestión Académica', IconComp: GraduationCap, path: '/gestion' },
-  { label: 'Materias', IconComp: BookOpen, path: '/materias' },
-  { label: 'Tareas', IconComp: CheckSquare, path: '/tareas' },
+  { label: 'Inicio',            IconComp: Home,          path: '/dashboard'   },
+  { label: 'Gestión Académica', IconComp: GraduationCap, path: '/gestion'     },
+  { label: 'Materias',          IconComp: BookOpen,       path: '/materias'    },
+  { label: 'Tareas',            IconComp: CheckSquare,    path: '/tareas'      },
 ];
 
 const NAV_PERSONAL = [
-  { label: 'Calendario', IconComp: Calendar, path: '/calendario' },
-  { label: 'Estadísticas', IconComp: BarChart3, path: '/estadisticas' },
-  { label: 'Motor de Priorización', IconComp: Zap, path: '/priorizacion' },
-  { label: 'Gamificación', IconComp: Trophy, path: '/gamificacion' },
-  { label: 'Sesión de Estudio', IconComp: BookOpen, path: '/sesion' },
+  { label: 'Calendario',            IconComp: Calendar,  path: '/calendario'   },
+  { label: 'Estadísticas',          IconComp: BarChart3,  path: '/estadisticas' },
+  { label: 'Motor de Priorización', IconComp: Zap,        path: '/priorizacion' },
+  { label: 'Gamificación',          IconComp: Trophy,     path: '/gamificacion' },
+  { label: 'Sesión de Estudio',     IconComp: BookOpen,   path: '/sesion'       },
 ];
 
 const Sidebar = ({ collapsed, onToggle }) => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showLogout, setShowLogout] = useState(false);
   const s = getStyles(isDark, collapsed);
 
   const iconColor = (active) => {
@@ -41,106 +34,131 @@ const Sidebar = ({ collapsed, onToggle }) => {
     return isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)';
   };
 
+  const handleLogout = () => {
+    setShowLogout(false);
+    navigate('/login');
+  };
+
   return (
-    <aside style={s.sidebar}>
-      {/* LOGO */}
-      <div style={s.logoRow} onClick={onToggle}>
-        <div style={s.logoCircle}>
-          <img
-            src={LogoImg}
-            alt="AI.BERT"
-            style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 10 }}
-          />
-        </div>
-        {!collapsed && <span style={s.logoText}>AI.BERT</span>}
-      </div>
+    <>
+      <aside style={s.sidebar}>
 
-      {/* USER BLOCK */}
-      {!collapsed && (
-        <div style={s.userBlock} onClick={() => navigate('/profile')}>
-          <div style={s.avatar}>—</div>
-          <div>
-            <div style={s.userName}>—</div>
-            <div style={s.userRole}>ESTUDIANTE</div>
+        {/* LOGO */}
+        <div style={s.logoRow} onClick={onToggle}>
+          <div style={s.logoCircle}>
+            <img
+              src={LogoImg}
+              alt="AI.BERT"
+              style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 12 }}
+            />
           </div>
+          {!collapsed && <span style={s.logoText}>AI.BERT</span>}
         </div>
-      )}
 
-      {collapsed && (
-        <div style={s.avatarCollapsed} onClick={() => navigate('/profile')}>
-          —
-        </div>
-      )}
-
-      <div style={s.divider} />
-
-      {/* NAV ACADÉMICO */}
-      {!collapsed && <div style={s.sectionLabel}>ACADÉMICO</div>}
-      {NAV_ACADEMIC.map((item) => {
-        const active = location.pathname === item.path;
-        return (
-          <div
-            key={item.path}
-            style={{ ...s.navItem, ...(active ? s.navItemActive : {}) }}
-            onClick={() => navigate(item.path)}
-          >
-            <item.IconComp color={iconColor(active)} />
-            {!collapsed && (
-              <span style={{ ...s.navLabel, ...(active ? s.navLabelActive : {}) }}>
-                {item.label}
-              </span>
-            )}
+        {/* USER BLOCK */}
+        {!collapsed && (
+          <div style={s.userBlock} onClick={() => navigate('/profile')}>
+            <div style={s.avatar}>—</div>
+            <div>
+              <div style={s.userName}>—</div>
+              <div style={s.userRole}>ESTUDIANTE</div>
+            </div>
           </div>
-        );
-      })}
+        )}
 
-      <div style={{ ...s.divider, marginTop: 12 }} />
-
-      {/* NAV PERSONAL */}
-      {!collapsed && <div style={s.sectionLabel}>PERSONAL</div>}
-      {NAV_PERSONAL.map((item) => {
-        const active = location.pathname === item.path;
-        return (
-          <div
-            key={item.path}
-            style={{ ...s.navItem, ...(active ? s.navItemActive : {}) }}
-            onClick={() => navigate(item.path)}
-          >
-            <item.IconComp color={iconColor(active)} />
-            {!collapsed && (
-              <span style={{ ...s.navLabel, ...(active ? s.navLabelActive : {}) }}>
-                {item.label}
-              </span>
-            )}
+        {collapsed && (
+          <div style={s.avatarCollapsed} onClick={() => navigate('/profile')}>
+            —
           </div>
-        );
-      })}
+        )}
 
-      {/* BOTTOM */}
-      <div style={s.bottomSection}>
         <div style={s.divider} />
-        <div
-          style={{
-            ...s.navItem,
-            ...(location.pathname === '/configuracion' ? s.navItemActive : {}),
-          }}
-          onClick={() => navigate('/configuracion')}
-        >
-          <Settings size={17} color={iconColor(location.pathname === '/configuracion')} />
-          {!collapsed && <span style={s.navLabel}>Configuración</span>}
+
+        {/* NAV ACADÉMICO */}
+        {!collapsed && <div style={s.sectionLabel}>ACADÉMICO</div>}
+        {NAV_ACADEMIC.map((item) => {
+          const active = location.pathname === item.path;
+          return (
+            <div
+              key={item.path}
+              style={{ ...s.navItem, ...(active ? s.navItemActive : {}) }}
+              onClick={() => navigate(item.path)}
+            >
+              <item.IconComp size={17} color={iconColor(active)} />
+              {!collapsed && (
+                <span style={{ ...s.navLabel, ...(active ? s.navLabelActive : {}) }}>
+                  {item.label}
+                </span>
+              )}
+            </div>
+          );
+        })}
+
+        <div style={{ ...s.divider, marginTop: 12 }} />
+
+        {/* NAV PERSONAL */}
+        {!collapsed && <div style={s.sectionLabel}>PERSONAL</div>}
+        {NAV_PERSONAL.map((item) => {
+          const active = location.pathname === item.path;
+          return (
+            <div
+              key={item.path}
+              style={{ ...s.navItem, ...(active ? s.navItemActive : {}) }}
+              onClick={() => navigate(item.path)}
+            >
+              <item.IconComp size={17} color={iconColor(active)} />
+              {!collapsed && (
+                <span style={{ ...s.navLabel, ...(active ? s.navLabelActive : {}) }}>
+                  {item.label}
+                </span>
+              )}
+            </div>
+          );
+        })}
+
+        {/* BOTTOM */}
+        <div style={s.bottomSection}>
+          <div style={s.divider} />
+          <div
+            style={{ ...s.navItem, ...(location.pathname === '/configuracion' ? s.navItemActive : {}) }}
+            onClick={() => navigate('/configuracion')}
+          >
+            <Settings size={17} color={iconColor(location.pathname === '/configuracion')} />
+            {!collapsed && <span style={s.navLabel}>Configuración</span>}
+          </div>
+          <div style={s.navItem} onClick={() => setShowLogout(true)}>
+            <LogOut size={17} color={isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)'} />
+            {!collapsed && <span style={s.navLabel}>Cerrar Sesión</span>}
+          </div>
         </div>
-        <div style={s.navItem} onClick={() => navigate('/login')}>
-          <LogOut size={17} color={isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.55)'} />
-          {!collapsed && <span style={s.navLabel}>Cerrar Sesión</span>}
+
+      </aside>
+
+      {/* MODAL CERRAR SESIÓN */}
+      {showLogout && (
+        <div style={s.modalOverlay} onClick={() => setShowLogout(false)}>
+          <div style={s.modalCard} onClick={(e) => e.stopPropagation()}>
+            <div style={s.modalIconWrap}>
+              <LogOut size={22} color="#fff" />
+            </div>
+            <h2 style={s.modalTitle}>¿Estás seguro de cerrar sesión?</h2>
+            <p style={s.modalDesc}>No te preocupes, tu progreso quedará guardado.</p>
+            <button style={s.modalBtnPrimary} onClick={handleLogout}>
+              Cerrar sesión
+            </button>
+            <button style={s.modalBtnCancel} onClick={() => setShowLogout(false)}>
+              Cancelar
+            </button>
+          </div>
         </div>
-      </div>
-    </aside>
+      )}
+    </>
   );
 };
 
 const getStyles = (isDark, collapsed) => ({
   sidebar: {
-    width: collapsed ? 64 : 220,
+    width: collapsed ? 72 : 230,
     minHeight: '100vh',
     background: isDark ? '#0F0E0F' : '#FEFBF9',
     borderRight: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'}`,
@@ -156,15 +174,15 @@ const getStyles = (isDark, collapsed) => ({
   logoRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: 14,
-    padding: collapsed ? '0 12px 24px' : '0 16px 24px',
+    gap: 12,
+    padding: collapsed ? '0 12px 20px' : '0 16px 20px',
     cursor: 'pointer',
     justifyContent: collapsed ? 'center' : 'flex-start',
-    marginTop: 12,
+    marginTop: 8,
   },
   logoCircle: {
-    width: 48,
-    height: 48,
+    width: collapsed ? 44 : 56,
+    height: collapsed ? 44 : 56,
     borderRadius: 14,
     overflow: 'hidden',
     flexShrink: 0,
@@ -172,11 +190,15 @@ const getStyles = (isDark, collapsed) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    boxShadow: isDark
+      ? '0 4px 16px rgba(196,16,122,0.25)'
+      : '0 4px 16px rgba(255,132,48,0.25)',
+    transition: 'width 0.3s ease, height 0.3s ease',
   },
   logoText: {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
     fontWeight: 800,
-    fontSize: 22,
+    fontSize: 24,
     backgroundImage: isDark
       ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
       : 'linear-gradient(90deg, #FF8430, #F7306D)',
@@ -184,21 +206,21 @@ const getStyles = (isDark, collapsed) => ({
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
     width: 'fit-content',
-    letterSpacing: '-0.03em',
+    letterSpacing: '-0.02em',
   },
   userBlock: {
     display: 'flex',
     alignItems: 'center',
-    gap: 12,
-    padding: '16px 16px 20px',
+    gap: 10,
+    padding: '12px 16px 18px',
     cursor: 'pointer',
     borderRadius: 8,
     margin: '0 8px',
     transition: 'background 0.15s',
   },
   avatarCollapsed: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     borderRadius: '50%',
     background: isDark
       ? 'linear-gradient(135deg, #C4107A, #FF5B2E)'
@@ -207,14 +229,14 @@ const getStyles = (isDark, collapsed) => ({
     alignItems: 'center',
     justifyContent: 'center',
     color: '#fff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 700,
     cursor: 'pointer',
-    margin: '0 auto 16px',
+    margin: '0 auto 14px',
   },
   avatar: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     borderRadius: '50%',
     background: isDark
       ? 'linear-gradient(135deg, #C4107A, #FF5B2E)'
@@ -223,7 +245,7 @@ const getStyles = (isDark, collapsed) => ({
     alignItems: 'center',
     justifyContent: 'center',
     color: '#fff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 700,
     flexShrink: 0,
   },
@@ -235,7 +257,7 @@ const getStyles = (isDark, collapsed) => ({
     lineHeight: 1.3,
   },
   userRole: {
-    fontSize: 10.5,
+    fontSize: 10,
     color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.45)',
     fontFamily: "'Poppins', sans-serif",
     textTransform: 'uppercase',
@@ -245,7 +267,7 @@ const getStyles = (isDark, collapsed) => ({
   divider: {
     height: 1,
     background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
-    margin: '12px 16px',
+    margin: '10px 16px',
   },
   sectionLabel: {
     fontSize: 9,
@@ -253,7 +275,7 @@ const getStyles = (isDark, collapsed) => ({
     textTransform: 'uppercase',
     color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)',
     fontFamily: "'Poppins', sans-serif",
-    padding: '8px 16px 4px',
+    padding: '6px 16px 4px',
   },
   navItem: {
     display: 'flex',
@@ -284,6 +306,84 @@ const getStyles = (isDark, collapsed) => ({
   },
   bottomSection: {
     marginTop: 'auto',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.75)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 500,
+    backdropFilter: 'blur(4px)',
+  },
+  modalCard: {
+    background: isDark ? '#1A1A1A' : '#FFFFFF',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.40)'}`,
+    borderRadius: 20,
+    padding: '36px 32px 28px',
+    width: '100%',
+    maxWidth: 340,
+    margin: '0 24px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
+    boxShadow: isDark
+      ? '0 0 0 1px rgba(196,16,122,0.20), 0 24px 64px rgba(0,0,0,0.80)'
+      : '0 24px 64px rgba(0,0,0,0.15)',
+    gap: 0,
+  },
+  modalIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #FF5B2E, #C4107A)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    boxShadow: '0 8px 24px rgba(196,16,122,0.35)',
+  },
+  modalTitle: {
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 20,
+    fontWeight: 800,
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    margin: '0 0 10px 0',
+    lineHeight: 1.3,
+  },
+  modalDesc: {
+    fontSize: 13,
+    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.50)',
+    lineHeight: 1.6,
+    margin: '0 0 28px 0',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  modalBtnPrimary: {
+    width: '100%',
+    padding: '13px',
+    border: 'none',
+    borderRadius: 12,
+    background: 'linear-gradient(90deg, #FF5B2E, #C4107A)',
+    color: '#fff',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: 'pointer',
+    marginBottom: 12,
+    letterSpacing: '0.02em',
+  },
+  modalBtnCancel: {
+    width: '100%',
+    padding: '11px',
+    border: 'none',
+    background: 'transparent',
+    color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: 'pointer',
   },
 });
 

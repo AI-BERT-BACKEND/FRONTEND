@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
@@ -96,10 +97,10 @@ const RIESGO_ACADEMICO = [
 
 const Prioritization = () => {
   const { isDark } = useTheme();
+  const navigate = useNavigate();
   const [tareasCompletadas, setTareasCompletadas] = useState({});
   const [notificacionVista, setNotificacionVista] = useState({});
   const s = getStyles(isDark);
-  const navigate = useNavigate();
 
   const handleCompletar = (id) => {
     setTareasCompletadas(p => ({ ...p, [id]: !p[id] }));
@@ -130,7 +131,10 @@ const Prioritization = () => {
 
       <div style={s.criticasGrid}>
         {TAREAS_CRITICAS.map(tc => (
-          <div key={tc.id} style={{ ...s.criticaCard, borderTop: `3px solid ${tc.urgencia === 'high' ? '#F00707' : isDark ? '#FF5B2E' : '#FF8430'}` }}>
+          <div key={tc.id} style={{
+            ...s.criticaCard,
+            borderTop: `3px solid ${tc.urgencia === 'high' ? '#F00707' : isDark ? '#FF5B2E' : '#FF8430'}`,
+          }}>
             <div style={s.criticaTop}>
               <span style={s.criticaMateria}>{tc.materia}</span>
               <span style={{ ...s.criticaBadge, background: 'rgba(240,7,7,0.18)', color: '#F00707' }}>{tc.tipo}</span>
@@ -139,7 +143,9 @@ const Prioritization = () => {
             <div style={s.criticaInfoRow}>
               <div style={s.criticaInfo}>
                 <span style={s.criticaInfoLabel}>Entrega</span>
-                <span style={{ ...s.criticaInfoVal, color: tc.urgencia === 'high' ? '#F00707' : isDark ? '#FF5B2E' : '#FF8430' }}>{tc.entrega}</span>
+                <span style={{ ...s.criticaInfoVal, color: tc.urgencia === 'high' ? '#F00707' : isDark ? '#FF5B2E' : '#FF8430' }}>
+                  {tc.entrega}
+                </span>
               </div>
               <div style={s.criticaInfo}>
                 <span style={s.criticaInfoLabel}>Estimado</span>
@@ -147,7 +153,12 @@ const Prioritization = () => {
               </div>
             </div>
             <button
-              style={{ ...s.criticaBtn, background: tc.urgencia === 'high' ? 'linear-gradient(90deg, #F00707, #FF5B2E)' : isDark ? 'linear-gradient(90deg,#C4107A,#FF5B2E)' : 'linear-gradient(90deg,#FF8430,#F7306D)' }}
+              style={{
+                ...s.criticaBtn,
+                background: tc.urgencia === 'high'
+                  ? 'linear-gradient(90deg, #F00707, #FF5B2E)'
+                  : isDark ? 'linear-gradient(90deg,#C4107A,#FF5B2E)' : 'linear-gradient(90deg,#FF8430,#F7306D)',
+              }}
               onClick={() => handleCompletar(tc.id)}
             >
               {tareasCompletadas[tc.id] ? '✓ REVISADA' : tc.accion}
@@ -189,7 +200,9 @@ const Prioritization = () => {
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={s.tareaNombre}>{tarea.nombre}</span>
-                        <span style={{ ...s.prioridadBadge, background: prioColor.bg, color: prioColor.color }}>{tarea.prioridad}</span>
+                        <span style={{ ...s.prioridadBadge, background: prioColor.bg, color: prioColor.color }}>
+                          {tarea.prioridad}
+                        </span>
                       </div>
                       <span style={s.tareaMateria}>{tarea.materia}</span>
                     </div>
@@ -258,7 +271,9 @@ const Prioritization = () => {
               );
             })}
             <div style={s.riesgoInfo}>
-              <span style={s.riesgoInfoText}>El motor de IA te sugiere priorizar el bloque de hoy para mitigar el riesgo en tus entregas.</span>
+              <span style={s.riesgoInfoText}>
+                El motor de IA te sugiere priorizar el bloque de hoy para mitigar el riesgo en tus entregas.
+              </span>
             </div>
           </div>
         </div>
