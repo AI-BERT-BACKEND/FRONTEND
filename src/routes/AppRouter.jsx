@@ -22,6 +22,7 @@ import Tasks from '../pages/Tasks';
 import Prioritization from '../pages/Prioritization';
 import Statistics from '../pages/Statistics';
 import SmartSchedule from '../pages/SmartSchedule';
+import Gamification from '../pages/Gamification';
 
 const AppRouter = () => {
   return (
@@ -49,6 +50,7 @@ const AppRouter = () => {
         <Route path="/priorizacion" element={<Prioritization />} />
         <Route path="/estadisticas" element={<Statistics />} />
         <Route path="/horario-inteligente" element={<SmartSchedule />} />
+        <Route path="/gamificacion" element={<Gamification />} />
       </Routes>
     </BrowserRouter>
   );

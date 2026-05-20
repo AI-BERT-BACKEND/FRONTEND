@@ -1,787 +1,684 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
-import ErrorMsg from '../components/ErrorMsg';
-import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import CircleProgress from '../components/CircleProgress';
+import ProgressBar from '../components/ProgressBar';
+import AibertGif from '../assets/aibert-logo-sin-negro-corregido.gif';
+import { ArrowRight, Plus, Clock, AlertTriangle, TrendingDown, X } from 'lucide-react';
 
-const ChevronDown = ({ color }) => (
-  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"
-    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-    <path d="M2 4l3.5 3.5L9 4" stroke={color || 'currentColor'} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+/* ── datos de ejemplo ── */
+const ALERTAS_INIT = [
+  {
+    id: 1,
+    tipo: 'warning',
+    texto: 'Sobrecarga detectada para mañana',
+    detalle: 'Tienes 3 entregas acumuladas el mismo día.',
+  },
+  {
+    id: 2,
+    tipo: 'danger',
+    texto: 'Bajo rendimiento en Cálculo',
+    detalle: 'Tu promedio bajó 12 puntos este período.',
+  },
+];
 
-const COLORS = ['#FF8430','#F7306D','#00CFFF','#A855F7','#22C55E','#EAB308','#FF5B2E','#C4107A'];
-const HORAS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
-const DIAS = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+const MATERIAS_RESUMEN = [
+  { nombre: 'Matemáticas',    pct: 80, color: '#FF8430' },
+  { nombre: 'Historia Moderna', pct: 45, color: '#F7306D' },
+  { nombre: 'Programación',   pct: 63, color: '#A855F7' },
+];
 
-const Subjects = () => {
-  const { isDark } = useTheme();
-  const [showModal, setShowModal] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(null);
-  const menuRef = useRef(null);
-
-  const [materias, setMaterias] = useState([
-    {
-      id: 1,
-      nombre: 'Diseño de Operaciones de Software',
-      profesor: 'Dr. Alberto García',
-      creditos: '4',
-      semestre: 'Sexto Semestre',
-      color: '#FF8430',
-      activo: true,
-      progreso: 65,
-      horario: {},
-    },
-    {
-      id: 2,
-      nombre: 'Arquitectura y Sistemas de Red',
-      profesor: 'Dra. María López',
-      creditos: '3',
-      semestre: 'Sexto Semestre',
-      color: '#C4107A',
-      activo: true,
-      progreso: 40,
-      horario: {},
-    },
-    {
-      id: 3,
-      nombre: 'Ciclos de Vida y Desarrollo de Software',
-      profesor: 'Martín Cantor',
-      creditos: '4',
-      semestre: 'Sexto Semestre',
-      color: '#A855F7',
-      activo: true,
-      progreso: 55,
-      horario: {},
-    },
-  ]);
-
-  const [form, setForm] = useState({
-    nombre: '',
-    profesor: '',
-    creditos: '',
-    semestre: '',
+const TAREAS_INIT = [
+  {
+    id: 1,
+    texto: 'Resolver ejercicios de cálculo integral',
+    materia: 'Matemáticas',
     color: '#FF8430',
-    horario: {},
-  });
-  const [formErrors, setFormErrors] = useState({});
+    hora: '10:00 AM',
+    done: false,
+  },
+  {
+    id: 2,
+    texto: 'Leer capítulo 4 de Historia',
+    materia: 'Historia',
+    color: '#F7306D',
+    hora: '2:00 PM',
+    done: true,
+  },
+  {
+    id: 3,
+    texto: 'Entregar taller de Programación',
+    materia: 'Programación',
+    color: '#A855F7',
+    hora: '11:59 PM',
+    done: false,
+  },
+];
 
-  const creditosOptions = ['1','2','3','4','5','6'];
-  const semestresOptions = [
-    'Primer Semestre','Segundo Semestre','Tercer Semestre','Cuarto Semestre',
-    'Quinto Semestre','Sexto Semestre','Séptimo Semestre','Octavo Semestre',
-    'Noveno Semestre','Décimo Semestre',
-  ];
+/* ── componente principal ── */
+const Dashboard = () => {
+  const { isDark } = useTheme();
+  const navigate = useNavigate();
+  const t = createStyles(isDark);
 
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(null);
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, []);
+  const [alertas, setAlertas] = useState(ALERTAS_INIT);
+  const [tareas, setTareas] = useState(TAREAS_INIT);
+  const [showNewTask, setShowNewTask] = useState(false);
+  const [newTask, setNewTask] = useState('');
 
-  const toggleHorario = (dia, hora) => {
-    const key = `${dia}-${hora}`;
-    setForm((prev) => {
-      const h = { ...prev.horario };
-      if (h[key]) delete h[key];
-      else h[key] = true;
-      return { ...prev, horario: h };
-    });
+  const dismissAlerta = (id) => setAlertas((prev) => prev.filter((a) => a.id !== id));
+  const toggleTarea = (id) =>
+    setTareas((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+
+  const addTarea = () => {
+    const txt = newTask.trim();
+    if (!txt) return;
+    setTareas((prev) => [
+      ...prev,
+      { id: Date.now(), texto: txt, materia: 'General', color: '#00CFFF', hora: '', done: false },
+    ]);
+    setNewTask('');
+    setShowNewTask(false);
   };
 
-  const validateForm = () => {
-    const e = {};
-    if (!form.nombre.trim()) e.nombre = 'El nombre es requerido';
-    if (!form.creditos) e.creditos = 'Selecciona los créditos';
-    if (!form.semestre) e.semestre = 'Selecciona el semestre';
-    setFormErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const handleCrear = () => {
-    if (!validateForm()) return;
-    setMaterias((prev) => [...prev, { ...form, id: Date.now(), activo: true, progreso: 0 }]);
-    setForm({ nombre: '', profesor: '', creditos: '', semestre: '', color: '#FF8430', horario: {} });
-    setFormErrors({});
-    setShowModal(false);
-  };
-
-  const handleEliminar = (id) => {
-    setMaterias((prev) => prev.filter((m) => m.id !== id));
-    setMenuOpen(null);
-  };
-
-  const handleEditar = (id) => {
-    const m = materias.find((x) => x.id === id);
-    if (m) {
-      setForm({ ...m });
-      setMaterias((prev) => prev.filter((x) => x.id !== id));
-      setShowModal(true);
-    }
-    setMenuOpen(null);
-  };
-
-  const totalCreditos = materias.reduce((acc, m) => acc + Number(m.creditos || 0), 0);
-  const s = getStyles(isDark);
+  const tareasPendientes = tareas.filter((t) => !t.done).length;
+  const s = styles(isDark, t);
 
   return (
     <AppLayout>
-      {/* HEADER */}
-      <div style={s.pageHeader}>
-        <div>
-          <h1 style={s.pageTitle}>Mis Materias</h1>
-          <p style={s.pageDesc}>Gestión académica y seguimiento de currículo actual.</p>
-        </div>
-        <button style={s.newBtn} onClick={() => setShowModal(true)}>
-          + Nueva Materia
-        </button>
-      </div>
 
-      {/* GRID MATERIAS + CRÉDITOS */}
-      <div style={s.materiasGrid}>
-        {materias.length === 0 && (
-          <div style={s.emptyState}>
-            <span style={{ fontSize: 32 }}>📚</span>
-            <p style={s.emptyText}>Aún no tienes materias. ¡Agrega tu primera materia!</p>
+      {/* ── SALUDO ── */}
+      <h1 style={s.greeting}>Hola, Juan 👋</h1>
+
+      {/* ── CENTRO DE ALERTAS ── */}
+      {alertas.length > 0 && (
+        <section style={s.card} aria-label="Centro de Alertas">
+          <div style={s.cardHeader}>
+            <div style={s.cardTitleRow}>
+              <span style={s.alertBell}>🔔</span>
+              <span style={s.cardTitle}>Centro de Alertas</span>
+              {alertas.length > 0 && (
+                <span style={s.alertBadge(isDark)}>{alertas.length}</span>
+              )}
+            </div>
           </div>
-        )}
 
-        {materias.map((m) => (
-          <div key={m.id} style={s.materiaCard}>
-            <div style={s.cardTop}>
-              <div style={{
-                ...s.activoBadge,
-                background: m.activo ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.08)',
-                color: m.activo ? '#22C55E' : 'rgba(255,255,255,0.40)',
-              }}>
-                {m.activo ? '● Activo' : '● Inactivo'}
-              </div>
-              <div style={{ position: 'relative' }} ref={menuOpen === m.id ? menuRef : null}>
-                <button style={s.menuBtn} onClick={() => setMenuOpen(menuOpen === m.id ? null : m.id)}>
-                  ⋮
+          <div style={s.alertList}>
+            {alertas.map((a) => (
+              <div key={a.id} style={s.alertItem(a.tipo, isDark)}>
+                <div style={s.alertIcon(a.tipo)}>
+                  {a.tipo === 'warning'
+                    ? <AlertTriangle size={14} color="#EAB308" />
+                    : <TrendingDown size={14} color="#F7306D" />}
+                </div>
+                <div style={s.alertBody}>
+                  <span style={s.alertText(isDark)}>{a.texto}</span>
+                  <span style={s.alertDetail(isDark)}>{a.detalle}</span>
+                </div>
+                <button
+                  style={s.alertDismiss}
+                  onClick={() => dismissAlerta(a.id)}
+                  aria-label="Descartar alerta"
+                >
+                  <X size={13} color={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)'} />
                 </button>
-                {menuOpen === m.id && (
-                  <div style={s.dropdown}>
-                    <button style={s.dropdownItem} onClick={() => handleEditar(m.id)}>
-                      ✏️ Editar materia
-                    </button>
-                    <button style={{ ...s.dropdownItem, color: '#F00707' }} onClick={() => handleEliminar(m.id)}>
-                      🗑 Eliminar materia
-                    </button>
-                  </div>
-                )}
               </div>
-            </div>
-
-            <div style={{ ...s.materiaIcon, background: m.color + '22', border: `2px solid ${m.color}44` }}>
-              <span style={{ fontSize: 22 }}>📖</span>
-            </div>
-            <div style={s.materiaName}>{m.nombre}</div>
-            <div style={s.materiaSemestre}>{m.semestre?.toUpperCase()}</div>
-
-            {/* PROGRESO EN TARJETA */}
-            <div style={s.progresoWrap}>
-              <div style={s.progresoLabelRow}>
-                <span style={s.progresoLabel}>Progreso</span>
-                <span style={{ ...s.progresoLabel, color: m.color }}>{m.progreso}%</span>
-              </div>
-              <ProgressBar value={m.progreso} isDark={isDark} color={m.color} />
-            </div>
-
-            <div style={s.materiaFooter}>
-              <div style={s.materiaInfo}>
-                <span style={s.infoIcon}>👤</span>
-                <div>
-                  <div style={s.infoLabel}>DOCENTE</div>
-                  <div style={s.infoVal}>{m.profesor || '—'}</div>
-                </div>
-              </div>
-              <div style={s.materiaInfo}>
-                <span style={s.infoIcon}>📋</span>
-                <div>
-                  <div style={s.infoLabel}>CRÉDITOS</div>
-                  <div style={s.infoVal}>{m.creditos} Créditos</div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
 
-        {/* RESUMEN DE CRÉDITOS */}
-        <div style={s.creditosCard}>
-          <div style={s.creditosHeader}>
-            <span style={s.creditosTitle}>RESUMEN DE CRÉDITOS</span>
-            <span style={{ fontSize: 16 }}>⭐</span>
-          </div>
-          <div style={s.creditosNum}>
-            <span style={s.creditosBig}>{totalCreditos}</span>
-            <span style={s.creditosTotal}> / 18</span>
-          </div>
-          <p style={s.creditosDesc}>
-            Has completado el {Math.round((totalCreditos / 18) * 100)}% de tu carga académica proyectada para este período.
-          </p>
-          <div style={s.progressLabel}>
-            <span style={s.progressText}>Progreso Actual</span>
-            <span style={{ ...s.progressText, color: isDark ? '#FF5B2E' : '#F7306D' }}>
-              Faltan {Math.max(0, 18 - totalCreditos)}
-            </span>
-          </div>
-          <ProgressBar value={Math.min(100, (totalCreditos / 18) * 100)} isDark={isDark} />
-        </div>
-      </div>
-
-      {/* PRÓXIMOS SEMESTRES */}
-      <div style={s.proximosCard}>
-        <div style={s.proximosImg}>
-          <div style={s.proximosImgPlaceholder}>
-            <span style={{ fontSize: 24 }}>🗓</span>
-          </div>
-        </div>
-        <div style={s.proximosInfo}>
-          <div style={s.proximosTitle}>Próximos Semestres</div>
-          <p style={s.proximosDesc}>
-            Anticípate a tus próximos retos académicos. Visualiza las materias disponibles y planifica tu carga horaria con nuestro asistente inteligente.
-          </p>
-          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-            <button style={s.proximosBtn}>Planificar</button>
-            <button style={s.proximosBtnOutline}>Ver Malla</button>
-          </div>
-        </div>
-      </div>
-
-      {/* MODAL NUEVA MATERIA */}
-      {showModal && (
-        <div style={s.modalOverlay} onClick={() => setShowModal(false)}>
-          <div style={s.modalCard} onClick={(e) => e.stopPropagation()}>
-            <div style={s.modalHeader}>
-              <div>
-                <div style={s.modalTitle}>Nueva Materia</div>
-                <div style={s.modalSubtitle}>Agrega una nueva materia a tu plan de estudios</div>
-              </div>
-              <button style={s.modalClose} onClick={() => setShowModal(false)}>✕</button>
-            </div>
-
-            <div style={s.modalBody}>
-              <div style={s.mField}>
-                <label style={s.mLabel}>Nombre de la materia</label>
-                <input
-                  style={{ ...s.mInput, ...(formErrors.nombre ? s.inputError : {}) }}
-                  placeholder="Ej: Inteligencia Artificial Aplicada"
-                  value={form.nombre}
-                  onChange={(e) => {
-                    setForm((p) => ({ ...p, nombre: e.target.value }));
-                    if (formErrors.nombre) setFormErrors((p) => ({ ...p, nombre: '' }));
-                  }}
-                />
-                <ErrorMsg message={formErrors.nombre} />
-              </div>
-
-              <div style={s.mField}>
-                <label style={s.mLabel}>Profesor titular</label>
-                <div style={{ position: 'relative' }}>
-                  <span style={s.inputIcon}>👤</span>
-                  <input
-                    style={{ ...s.mInput, paddingLeft: 32 }}
-                    placeholder="Dr. Alberto García"
-                    value={form.profesor}
-                    onChange={(e) => setForm((p) => ({ ...p, profesor: e.target.value }))}
-                  />
-                </div>
-              </div>
-
-              <div style={s.mRow}>
-                <div style={{ ...s.mField, flex: 1 }}>
-                  <label style={s.mLabel}>Créditos</label>
-                  <div style={{ position: 'relative' }}>
-                    <select
-                      style={{ ...s.mInput, ...s.mSelect, ...(formErrors.creditos ? s.inputError : {}) }}
-                      value={form.creditos}
-                      onChange={(e) => {
-                        setForm((p) => ({ ...p, creditos: e.target.value }));
-                        if (formErrors.creditos) setFormErrors((p) => ({ ...p, creditos: '' }));
-                      }}
-                    >
-                      <option value="" disabled>Seleccionar</option>
-                      {creditosOptions.map((c) => (
-                        <option key={c} value={c}>{c} crédito{c !== '1' ? 's' : ''}</option>
-                      ))}
-                    </select>
-                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
-                  </div>
-                  <ErrorMsg message={formErrors.creditos} />
-                </div>
-
-                <div style={{ ...s.mField, flex: 1 }}>
-                  <label style={s.mLabel}>Semestre</label>
-                  <div style={{ position: 'relative' }}>
-                    <select
-                      style={{ ...s.mInput, ...s.mSelect, ...(formErrors.semestre ? s.inputError : {}) }}
-                      value={form.semestre}
-                      onChange={(e) => {
-                        setForm((p) => ({ ...p, semestre: e.target.value }));
-                        if (formErrors.semestre) setFormErrors((p) => ({ ...p, semestre: '' }));
-                      }}
-                    >
-                      <option value="" disabled>Primer Semestre</option>
-                      {semestresOptions.map((sem) => (
-                        <option key={sem} value={sem}>{sem}</option>
-                      ))}
-                    </select>
-                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
-                  </div>
-                  <ErrorMsg message={formErrors.semestre} />
-                </div>
-              </div>
-
-              <div style={s.mField}>
-                <label style={s.mLabel}>Horario Semanal</label>
-                <div style={s.horarioWrap}>
-                  <div style={s.horarioGrid}>
-                    <div style={s.horarioHeader}>
-                      <div style={s.horaCell} />
-                      {DIAS.map((d) => <div key={d} style={s.diaCell}>{d}</div>)}
-                    </div>
-                    {HORAS.map((hora) => (
-                      <div key={hora} style={s.horarioRow}>
-                        <div style={s.horaCell}>{hora}</div>
-                        {DIAS.map((dia) => {
-                          const key = `${dia}-${hora}`;
-                          const sel = form.horario[key];
-                          return (
-                            <div
-                              key={dia}
-                              style={{
-                                ...s.horarioCell,
-                                background: sel ? form.color + 'AA' : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
-                                border: sel ? `1px solid ${form.color}` : `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
-                              }}
-                              onClick={() => toggleHorario(dia, hora)}
-                            />
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <p style={s.horarioHint}>Haz clic en los bloques para seleccionar las horas de clase.</p>
-              </div>
-
-              <div style={s.mField}>
-                <label style={s.mLabel}>Elige un color para identificar esta materia en tu horario</label>
-                <div style={s.colorRow}>
-                  {COLORS.map((c) => (
-                    <div
-                      key={c}
-                      style={{
-                        ...s.colorDot,
-                        background: c,
-                        border: form.color === c ? `3px solid ${isDark ? '#fff' : '#000'}` : '3px solid transparent',
-                        transform: form.color === c ? 'scale(1.2)' : 'scale(1)',
-                      }}
-                      onClick={() => setForm((p) => ({ ...p, color: c }))}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div style={s.modalFooter}>
-              <button style={s.mCancelBtn} onClick={() => setShowModal(false)}>Cancelar</button>
-              <button style={s.mCreateBtn} onClick={handleCrear}>Crear materia</button>
-            </div>
-          </div>
-        </div>
+          <button style={s.linkBtn} onClick={() => navigate('/estadisticas')}>
+            Ver detalle <ArrowRight size={13} style={{ marginLeft: 4 }} />
+          </button>
+        </section>
       )}
+
+      {/* ── FILA CENTRAL: Resumen + Progreso ── */}
+      <div style={s.row2}>
+
+        {/* Resumen Diario */}
+        <section style={{ ...s.card, flex: '1 1 340px' }} aria-label="Resumen Diario">
+          <div style={s.cardHeader}>
+            <div>
+              <div style={s.cardTitle}>Resumen Diario</div>
+              <div style={s.cardSubtitle(isDark)}>Tu ritmo de estudio esta semana</div>
+            </div>
+            <div style={s.focusBlock}>
+              <span style={s.focusTime(isDark)}>4.2h</span>
+              <span style={s.focusLabel(isDark)}>ENFOCADO HOY</span>
+            </div>
+          </div>
+
+          <div style={s.materiasList}>
+            {MATERIAS_RESUMEN.map((m) => (
+              <div key={m.nombre} style={s.materiaRow}>
+                <div style={s.materiaRowHeader}>
+                  <span style={s.materiaRowName(isDark)}>{m.nombre}</span>
+                  <span style={{ ...s.materiaRowPct, color: m.color }}>{m.pct}%</span>
+                </div>
+                <ProgressBar value={m.pct} isDark={isDark} color={m.color} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Progreso semanal */}
+        <section style={{ ...s.card, flex: '0 1 240px', alignItems: 'center', textAlign: 'center' }}
+          aria-label="Progreso semanal">
+          <CircleProgress pct={75} isDark={isDark} size={130} label="Completado" />
+          <p style={s.progressText(isDark)}>
+            Vas por buen camino para cumplir tus metas de la semana.
+          </p>
+          <button style={s.linkBtn} onClick={() => navigate('/gestion/metas')}>
+            Ver metas <ArrowRight size={13} style={{ marginLeft: 4 }} />
+          </button>
+        </section>
+
+      </div>
+
+      {/* ── FILA INFERIOR: Tareas + AI Assistant ── */}
+      <div style={s.row2}>
+
+        {/* Lista de Tareas */}
+        <section style={{ ...s.card, flex: '1 1 340px' }} aria-label="Lista de Tareas">
+          <div style={s.cardHeader}>
+            <div>
+              <div style={s.cardTitle}>Lista de Tareas</div>
+              <div style={s.cardSubtitle(isDark)}>
+                {tareasPendientes} pendiente{tareasPendientes !== 1 ? 's' : ''}
+              </div>
+            </div>
+            <button style={s.newTaskBtn(isDark)} onClick={() => setShowNewTask((p) => !p)}>
+              <Plus size={13} /> Nueva tarea
+            </button>
+          </div>
+
+          {/* Input nueva tarea */}
+          {showNewTask && (
+            <div style={s.newTaskRow}>
+              <input
+                autoFocus
+                style={s.newTaskInput(isDark, t)}
+                placeholder="Nombre de la tarea…"
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') addTarea();
+                  if (e.key === 'Escape') setShowNewTask(false);
+                }}
+              />
+              <button style={s.addBtn(isDark)} onClick={addTarea}>Agregar</button>
+            </div>
+          )}
+
+          <ul style={s.taskList}>
+            {tareas.map((tarea) => (
+              <li key={tarea.id} style={s.taskItem(isDark, tarea.done)}>
+                <button
+                  style={s.checkbox(tarea.done, tarea.color)}
+                  onClick={() => toggleTarea(tarea.id)}
+                  aria-label={tarea.done ? 'Marcar como pendiente' : 'Marcar como completada'}
+                >
+                  {tarea.done && (
+                    <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                      <path d="M1.5 4.5L3.5 6.5L7.5 2.5" stroke="#fff" strokeWidth="1.6"
+                        strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </button>
+                <div style={s.taskBody}>
+                  <span style={s.taskText(isDark, tarea.done)}>{tarea.texto}</span>
+                  <div style={s.taskMeta}>
+                    <span style={s.taskTag(tarea.color)}>{tarea.materia}</span>
+                    {tarea.hora && (
+                      <span style={s.taskHora(isDark)}>
+                        <Clock size={10} style={{ marginRight: 3 }} />
+                        {tarea.hora}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <button style={s.linkBtn} onClick={() => navigate('/tareas')}>
+            Ver todas las tareas <ArrowRight size={13} style={{ marginLeft: 4 }} />
+          </button>
+        </section>
+
+        {/* AI Assistant */}
+        <section style={{ ...s.card, flex: '0 1 240px', alignItems: 'center', textAlign: 'center' }}
+          aria-label="AI Assistant">
+          <span style={s.aiLabel(isDark)}>AI ASSISTANT</span>
+
+          <div style={s.aiImgWrap(isDark)}>
+            <img src={AibertGif} alt="AI.BERT" style={s.aiImg} />
+          </div>
+
+          <blockquote style={s.aiQuote(isDark)}>
+            "Te sugiero priorizar Matemáticas hoy. Tienes un examen en 3 días y esta sesión
+            te dará la ventaja necesaria."
+          </blockquote>
+
+          <button style={s.aiBtn(isDark)} onClick={() => navigate('/horario-inteligente')}>
+            Ver recomendación
+          </button>
+        </section>
+
+      </div>
+
     </AppLayout>
   );
 };
 
-const getStyles = (isDark) => {
-  const t = createStyles(isDark);
-  return {
-    pageHeader: {
-      display: 'flex',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-      marginBottom: 28,
-    },
-    pageTitle: {
-      fontFamily: t.fontPrimary,
-      fontSize: 32,
-      fontWeight: 800,
-      color: isDark ? '#FF5B2E' : '#FF8430',
-      margin: '0 0 4px 0',
-    },
-    pageDesc: { fontSize: 13, color: t.textSecondary, margin: 0 },
-    newBtn: {
-      background: t.primaryGradient,
-      border: 'none',
-      borderRadius: 10,
-      padding: '10px 20px',
-      color: '#fff',
-      fontFamily: t.fontPrimary,
-      fontSize: 13,
-      fontWeight: 700,
-      cursor: 'pointer',
-      whiteSpace: 'nowrap',
-      flexShrink: 0,
-    },
-    materiasGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-      gap: 16,
-      marginBottom: 16,
-    },
-    emptyState: {
-      gridColumn: '1 / -1',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      gap: 12,
-      padding: '48px 0',
-      background: t.cardBg,
-      borderRadius: 16,
-      border: `1px dashed ${t.cardBorder}`,
-    },
-    emptyText: { fontSize: 13, color: t.textMuted, textAlign: 'center', margin: 0 },
-    materiaCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      padding: '16px',
-      boxShadow: t.cardShadow,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-    },
-    cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    activoBadge: {
-      fontSize: 10,
-      fontWeight: 600,
-      padding: '3px 8px',
-      borderRadius: 20,
-      fontFamily: t.fontSecondary,
-    },
-    menuBtn: {
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      fontSize: 18,
-      color: t.textSecondary,
-      padding: '0 4px',
-      lineHeight: 1,
-    },
-    dropdown: {
-      position: 'absolute',
-      right: 0,
-      top: '100%',
-      background: isDark ? '#1E1E1E' : '#FFFFFF',
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 10,
-      padding: '6px',
-      zIndex: 50,
-      minWidth: 160,
-      boxShadow: t.popupShadow,
-    },
-    dropdownItem: {
-      display: 'block',
-      width: '100%',
-      padding: '8px 12px',
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      fontFamily: t.fontSecondary,
-      fontSize: 12,
-      fontWeight: 500,
-      color: t.textPrimary,
-      textAlign: 'left',
-      borderRadius: 6,
-    },
-    materiaIcon: {
-      width: 52,
-      height: 52,
-      borderRadius: 12,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    materiaName: {
-      fontFamily: t.fontPrimary,
-      fontSize: 14,
-      fontWeight: 700,
-      color: t.textPrimary,
-      lineHeight: 1.3,
-    },
-    materiaSemestre: {
-      fontSize: 9,
-      letterSpacing: '0.08em',
-      color: t.textMuted,
-      fontWeight: 600,
-    },
-    progresoWrap: { marginTop: 2 },
-    progresoLabelRow: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      marginBottom: 5,
-    },
-    progresoLabel: {
-      fontSize: 10,
-      color: t.textSecondary,
-      fontWeight: 500,
-    },
-    materiaFooter: {
-      display: 'flex',
-      gap: 12,
-      paddingTop: 10,
-      borderTop: `1px solid ${t.cardBorder}`,
-      marginTop: 'auto',
-    },
-    materiaInfo: { display: 'flex', alignItems: 'center', gap: 6, flex: 1 },
-    infoIcon: { fontSize: 14, flexShrink: 0 },
-    infoLabel: { fontSize: 8, letterSpacing: '0.06em', color: t.textMuted, fontWeight: 600 },
-    infoVal: { fontSize: 11, fontWeight: 600, color: t.textPrimary },
-    creditosCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      padding: '18px',
-      boxShadow: t.cardShadow,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-    },
-    creditosHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    creditosTitle: {
-      fontSize: 10,
-      letterSpacing: '0.08em',
-      fontWeight: 700,
-      color: t.textSecondary,
-    },
-    creditosNum: { marginBottom: 8 },
-    creditosBig: {
-      fontFamily: t.fontPrimary,
-      fontSize: 36,
-      fontWeight: 800,
-      color: isDark ? '#FF5B2E' : '#FF8430',
-    },
-    creditosTotal: { fontSize: 18, color: t.textMuted, fontWeight: 500 },
-    creditosDesc: { fontSize: 11, color: t.textSecondary, lineHeight: 1.55, marginBottom: 14 },
-    progressLabel: { display: 'flex', justifyContent: 'space-between', marginBottom: 6 },
-    progressText: { fontSize: 10, color: t.textMuted, fontWeight: 500 },
-    proximosCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      padding: '20px',
-      display: 'flex',
-      gap: 20,
-      alignItems: 'center',
-      boxShadow: t.cardShadow,
-    },
-    proximosImg: { width: 100, height: 80, borderRadius: 10, overflow: 'hidden', flexShrink: 0 },
-    proximosImgPlaceholder: {
-      width: '100%',
-      height: '100%',
-      background: t.inputBg,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    proximosInfo: { flex: 1 },
-    proximosTitle: {
-      fontFamily: t.fontPrimary,
-      fontSize: 15,
-      fontWeight: 700,
-      color: t.textPrimary,
-      marginBottom: 6,
-    },
-    proximosDesc: { fontSize: 12, color: t.textSecondary, lineHeight: 1.55, margin: 0 },
-    proximosBtn: {
-      background: t.primaryGradient,
-      border: 'none',
-      borderRadius: 8,
-      padding: '7px 16px',
-      color: '#fff',
-      fontFamily: t.fontSecondary,
-      fontSize: 12,
-      fontWeight: 600,
-      cursor: 'pointer',
-    },
-    proximosBtnOutline: {
-      background: 'transparent',
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 8,
-      padding: '7px 16px',
-      color: t.textSecondary,
-      fontFamily: t.fontSecondary,
-      fontSize: 12,
-      fontWeight: 600,
-      cursor: 'pointer',
-    },
-    modalOverlay: {
-      position: 'fixed',
-      inset: 0,
-      background: 'rgba(0,0,0,0.70)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 200,
-      backdropFilter: 'blur(2px)',
-    },
-    modalCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      width: '100%',
-      maxWidth: 520,
-      maxHeight: '88vh',
-      margin: '0 20px',
-      boxShadow: t.modalShadow,
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden',
-    },
-    modalHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      padding: '20px 24px 0',
-      flexShrink: 0,
-    },
-    modalTitle: {
-      fontFamily: t.fontPrimary,
-      fontSize: 18,
-      fontWeight: 700,
-      backgroundImage: t.primaryGradient,
-      WebkitBackgroundClip: 'text',
-      WebkitTextFillColor: 'transparent',
-      backgroundClip: 'text',
-      width: 'fit-content',
-      marginBottom: 2,
-    },
-    modalSubtitle: { fontSize: 12, color: t.textMuted },
-    modalClose: {
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      fontSize: 14,
-      color: t.textSecondary,
-      padding: 4,
-      lineHeight: 1,
-      flexShrink: 0,
-    },
-    modalBody: { padding: '16px 24px', overflowY: 'auto', flex: 1 },
-    modalFooter: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      gap: 12,
-      padding: '12px 24px 20px',
-      borderTop: `1px solid ${t.cardBorder}`,
-      flexShrink: 0,
-    },
-    mField: { marginBottom: 14 },
-    mRow: { display: 'flex', gap: 12, marginBottom: 14 },
-    mLabel: {
-      display: 'block',
-      fontSize: 12,
-      fontWeight: 600,
-      color: t.textPrimary,
-      marginBottom: 6,
-      fontFamily: t.fontSecondary,
-    },
-    mInput: {
-      width: '100%',
-      background: t.inputBg,
-      border: `1px solid ${t.inputBorder}`,
-      borderRadius: 10,
-      padding: '10px 12px',
-      fontFamily: t.fontSecondary,
-      fontSize: 12,
-      color: t.textPrimary,
-      outline: 'none',
-      boxSizing: 'border-box',
-      transition: 'border-color 0.2s',
-    },
-    mSelect: { appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer', paddingRight: 28 },
-    inputError: { borderColor: t.error, boxShadow: `0 0 0 2px ${t.error}1a` },
-    inputIcon: {
-      position: 'absolute',
-      left: 10,
-      top: '50%',
-      transform: 'translateY(-50%)',
-      fontSize: 14,
-      pointerEvents: 'none',
-    },
-    horarioWrap: { overflowX: 'auto', borderRadius: 8, border: `1px solid ${t.cardBorder}` },
-    horarioGrid: { minWidth: 360 },
-    horarioHeader: { display: 'flex', background: t.inputBg },
-    horarioRow: { display: 'flex' },
-    horaCell: {
-      width: 44,
-      flexShrink: 0,
-      fontSize: 9,
-      color: t.textMuted,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '4px 2px',
-      fontFamily: t.fontSecondary,
-    },
-    diaCell: {
-      flex: 1,
-      fontSize: 9,
-      fontWeight: 700,
-      color: t.textSecondary,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '6px 2px',
-      letterSpacing: '0.05em',
-    },
-    horarioCell: { flex: 1, height: 20, cursor: 'pointer', transition: 'all 0.1s', borderRadius: 2 },
-    horarioHint: { fontSize: 10, color: t.textMuted, marginTop: 6, fontStyle: 'italic' },
-    colorRow: { display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 4 },
-    colorDot: {
-      width: 26,
-      height: 26,
-      borderRadius: '50%',
-      cursor: 'pointer',
-      transition: 'all 0.15s',
-      boxSizing: 'border-box',
-    },
-    mCancelBtn: {
-      padding: '9px 20px',
-      borderRadius: 8,
-      border: `1px solid ${t.inputBorder}`,
-      background: 'transparent',
-      cursor: 'pointer',
-      fontFamily: t.fontSecondary,
-      fontSize: 13,
-      fontWeight: 500,
-      color: t.textSecondary,
-    },
-    mCreateBtn: {
-      padding: '9px 20px',
-      borderRadius: 8,
-      border: 'none',
-      background: t.primaryGradient,
-      cursor: 'pointer',
-      fontFamily: t.fontPrimary,
-      fontSize: 13,
-      fontWeight: 700,
-      color: '#fff',
-      letterSpacing: '0.03em',
-    },
-  };
-};
+/* ─── Estilos ─────────────────────────────────────────────────────────────── */
 
-export default Subjects;
+const styles = (isDark, t) => ({
+
+  greeting: {
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 'clamp(28px, 4vw, 40px)',
+    fontWeight: 800,
+    color: isDark ? '#FF5B2E' : '#FF8430',
+    margin: '0 0 20px',
+    letterSpacing: '-0.02em',
+  },
+
+  card: {
+    background: t.cardBg,
+    border: `1px solid ${t.cardBorder}`,
+    borderRadius: 18,
+    padding: 'clamp(16px, 2.5vw, 24px)',
+    boxShadow: t.cardShadow,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 14,
+    marginBottom: 16,
+  },
+
+  cardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+
+  cardTitleRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+  },
+
+  alertBell: { fontSize: 16 },
+
+  cardTitle: {
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 16,
+    fontWeight: 700,
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+  },
+
+  cardSubtitle: (isDark) => ({
+    fontSize: 12,
+    color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.45)',
+    fontFamily: "'Poppins', sans-serif",
+    marginTop: 2,
+  }),
+
+  alertBadge: (isDark) => ({
+    background: isDark ? '#C4107A' : '#F7306D',
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 700,
+    borderRadius: 99,
+    padding: '1px 7px',
+    fontFamily: "'Poppins', sans-serif",
+  }),
+
+  alertList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+
+  alertItem: (tipo, isDark) => ({
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 10,
+    padding: '10px 14px',
+    borderRadius: 12,
+    borderLeft: `3px solid ${tipo === 'warning' ? '#EAB308' : '#F7306D'}`,
+    background: tipo === 'warning'
+      ? (isDark ? 'rgba(234,179,8,0.07)' : 'rgba(234,179,8,0.06)')
+      : (isDark ? 'rgba(247,48,109,0.07)' : 'rgba(247,48,109,0.05)'),
+  }),
+
+  alertIcon: (tipo) => ({
+    flexShrink: 0,
+    marginTop: 2,
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    background: tipo === 'warning' ? 'rgba(234,179,8,0.15)' : 'rgba(247,48,109,0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }),
+
+  alertBody: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 2,
+    minWidth: 0,
+  },
+
+  alertText: (isDark) => ({
+    fontSize: 13,
+    fontWeight: 600,
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    fontFamily: "'Poppins', sans-serif",
+    lineHeight: 1.3,
+  }),
+
+  alertDetail: (isDark) => ({
+    fontSize: 11,
+    color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.45)',
+    fontFamily: "'Poppins', sans-serif",
+  }),
+
+  alertDismiss: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: 4,
+    borderRadius: 6,
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  linkBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: isDark ? '#FF5B2E' : '#F7306D',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: 12,
+    fontWeight: 600,
+    display: 'flex',
+    alignItems: 'center',
+    padding: 0,
+    letterSpacing: '0.01em',
+    alignSelf: 'flex-end',
+  },
+
+  row2: {
+    display: 'flex',
+    gap: 16,
+    flexWrap: 'wrap',
+    alignItems: 'stretch',
+  },
+
+  focusBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    flexShrink: 0,
+  },
+
+  focusTime: (isDark) => ({
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 'clamp(24px, 3vw, 32px)',
+    fontWeight: 900,
+    color: isDark ? '#FF5B2E' : '#FF8430',
+    lineHeight: 1,
+  }),
+
+  focusLabel: (isDark) => ({
+    fontSize: 9,
+    letterSpacing: '0.10em',
+    textTransform: 'uppercase',
+    color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.45)',
+    fontFamily: "'Poppins', sans-serif",
+    marginTop: 3,
+  }),
+
+  materiasList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+  },
+
+  materiaRow: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 5,
+  },
+
+  materiaRowHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  materiaRowName: (isDark) => ({
+    fontSize: 12,
+    fontWeight: 500,
+    color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.70)',
+    fontFamily: "'Poppins', sans-serif",
+  }),
+
+  materiaRowPct: {
+    fontSize: 12,
+    fontWeight: 700,
+    fontFamily: "'Poppins', sans-serif",
+  },
+
+  progressText: (isDark) => ({
+    fontSize: 13,
+    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)',
+    fontFamily: "'Poppins', sans-serif",
+    lineHeight: 1.55,
+    margin: '4px 0 0',
+    textAlign: 'center',
+  }),
+
+  newTaskBtn: (isDark) => ({
+    background: 'transparent',
+    border: `1px solid ${isDark ? 'rgba(255,91,46,0.40)' : 'rgba(247,48,109,0.35)'}`,
+    borderRadius: 8,
+    padding: '6px 12px',
+    color: isDark ? '#FF5B2E' : '#F7306D',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 5,
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+  }),
+
+  newTaskRow: {
+    display: 'flex',
+    gap: 8,
+  },
+
+  newTaskInput: (isDark, t) => ({
+    flex: 1,
+    background: t.inputBg,
+    border: `1px solid ${t.inputBorder}`,
+    borderRadius: 10,
+    padding: '9px 12px',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: 12,
+    color: isDark ? '#fff' : 'rgba(0,0,0,0.85)',
+    outline: 'none',
+  }),
+
+  addBtn: (isDark) => ({
+    background: isDark
+      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
+      : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    border: 'none',
+    borderRadius: 10,
+    padding: '9px 14px',
+    color: '#fff',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  }),
+
+  taskList: {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+
+  taskItem: (isDark, done) => ({
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 12,
+    padding: '10px 12px',
+    borderRadius: 12,
+    background: done
+      ? (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)')
+      : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+    transition: 'background 0.15s',
+  }),
+
+  checkbox: (done, color) => ({
+    width: 20,
+    height: 20,
+    borderRadius: 6,
+    border: done ? 'none' : `2px solid ${color}`,
+    background: done ? color : 'transparent',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 1,
+    transition: 'all 0.15s',
+  }),
+
+  taskBody: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 5,
+  },
+
+  taskText: (isDark, done) => ({
+    fontSize: 13,
+    fontWeight: done ? 400 : 600,
+    color: done
+      ? (isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)')
+      : (isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)'),
+    fontFamily: "'Poppins', sans-serif",
+    textDecoration: done ? 'line-through' : 'none',
+    lineHeight: 1.35,
+  }),
+
+  taskMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
+
+  taskTag: (color) => ({
+    fontSize: 10,
+    fontWeight: 600,
+    color,
+    background: color + '1A',
+    padding: '2px 8px',
+    borderRadius: 99,
+    fontFamily: "'Poppins', sans-serif",
+  }),
+
+  taskHora: (isDark) => ({
+    fontSize: 10,
+    color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
+    fontFamily: "'Poppins', sans-serif",
+    display: 'flex',
+    alignItems: 'center',
+  }),
+
+  aiLabel: (isDark) => ({
+    fontSize: 10,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    fontWeight: 700,
+    fontFamily: "'Poppins', sans-serif",
+    color: isDark ? '#FF5B2E' : '#F7306D',
+    alignSelf: 'center',
+  }),
+
+  aiImgWrap: (isDark) => ({
+    width: 90,
+    height: 90,
+    borderRadius: '50%',
+    overflow: 'hidden',
+    background: isDark
+      ? 'radial-gradient(circle, rgba(196,16,122,0.20) 0%, rgba(255,91,46,0.10) 100%)'
+      : 'radial-gradient(circle, rgba(255,132,48,0.18) 0%, rgba(247,48,109,0.10) 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: isDark
+      ? '0 0 32px rgba(196,16,122,0.35)'
+      : '0 0 32px rgba(255,132,48,0.25)',
+    flexShrink: 0,
+    alignSelf: 'center',
+  }),
+
+  aiImg: {
+    width: '80%',
+    height: '80%',
+    objectFit: 'contain',
+  },
+
+  aiQuote: (isDark) => ({
+    fontSize: 12,
+    fontStyle: 'italic',
+    color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.60)',
+    fontFamily: "'Poppins', sans-serif",
+    lineHeight: 1.6,
+    margin: '4px 0 0',
+    borderLeft: 'none',
+    padding: 0,
+    textAlign: 'center',
+  }),
+
+  aiBtn: (isDark) => ({
+    background: isDark
+      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
+      : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    border: 'none',
+    borderRadius: 10,
+    padding: '9px 18px',
+    color: '#fff',
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: 12,
+    fontWeight: 600,
+    cursor: 'pointer',
+    alignSelf: 'center',
+    marginTop: 4,
+  }),
+});
+
+export default Dashboard;
