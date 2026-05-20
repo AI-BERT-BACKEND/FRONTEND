@@ -15,3 +15,23 @@ body {
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* ── View Transition API Fix ── */
+
+/* Disable default cross-fade animation */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  display: block;
+}
+
+/* Ensure the new view is always on top to see the reveal animation */
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
