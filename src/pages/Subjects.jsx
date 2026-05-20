@@ -163,7 +163,7 @@ const Subjects = () => {
                 </button>
                 {menuOpen === m.id && (
                   <div style={s.dropdown}>
-                    <button style={s.dropdownItem} onClick={() => navigate(`/materias/${m.id}`)}>
+                    <button style={s.dropdownItem} onClick={() => navigate(`/materias/id`)}>
                       📊 Ver detalle
                     </button>
                     <button style={{ ...s.dropdownItem, color: '#F00707' }} onClick={() => handleEliminar(m.id)}>
