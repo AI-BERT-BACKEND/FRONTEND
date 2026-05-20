@@ -99,6 +99,7 @@ const Prioritization = () => {
   const [tareasCompletadas, setTareasCompletadas] = useState({});
   const [notificacionVista, setNotificacionVista] = useState({});
   const s = getStyles(isDark);
+  const navigate = useNavigate();
 
   const handleCompletar = (id) => {
     setTareasCompletadas(p => ({ ...p, [id]: !p[id] }));
