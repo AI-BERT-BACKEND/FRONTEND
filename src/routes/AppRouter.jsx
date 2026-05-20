@@ -23,6 +23,11 @@ import Prioritization from '../pages/Prioritization';
 import Statistics from '../pages/Statistics';
 import SmartSchedule from '../pages/SmartSchedule';
 import Gamification from '../pages/Gamification';
+import Settings from '../pages/Settings';
+import Availability from '../pages/Availability';
+import StudySession from '../pages/StudySession';
+import CreateStudySession from '../pages/CreateStudySession';
+import StartStudySession from '../pages/StartStudySession';
 
 const AppRouter = () => {
   return (
@@ -44,6 +49,7 @@ const AppRouter = () => {
         <Route path="/gestion/dashboard" element={<AcademicDashboard />} />
         <Route path="/gestion/metas" element={<AcademicGoals />} />
         <Route path="/gestion/preferencias" element={<StudyPreferences />} />
+        <Route path="/gestion/disponibilidad" element={<Availability />} />
         <Route path="/materias/:id" element={<SubjectDetail />} />
         <Route path="/materias/:id/cortes" element={<CourseGrades />} />
         <Route path="/tareas" element={<Tasks />} />
@@ -51,6 +57,10 @@ const AppRouter = () => {
         <Route path="/estadisticas" element={<Statistics />} />
         <Route path="/horario-inteligente" element={<SmartSchedule />} />
         <Route path="/gamificacion" element={<Gamification />} />
+        <Route path="/configuracion" element={<Settings />} />
+        <Route path="/sesion" element={<StudySession />} />
+        <Route path="/sesion/crear" element={<CreateStudySession />} />
+        <Route path="/sesion/iniciar" element={<StartStudySession />} />
       </Routes>
     </BrowserRouter>
   );
