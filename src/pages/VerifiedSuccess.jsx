@@ -1,116 +1,167 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import AuthLayout from '../components/Layout/AuthLayout';
+import { useTheme } from '../context/ThemeContext';
+import { createStyles } from '../theme/createStyles';
 
-const VerifiedSuccess = ({ theme = 'light', onToggleTheme }) => {
-  const isDark = theme === 'dark';
+const VerifiedSuccess = () => {
+  const { isDark } = useTheme();
   const navigate = useNavigate();
   const s = getStyles(isDark);
 
   return (
-    <div style={s.root}>
-      <button style={s.themeBtn} onClick={onToggleTheme}>
-        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
-        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-      </button>
-
+    <AuthLayout>
       <div style={s.page}>
-        <div style={s.card}>
-          <div style={s.iconCircle}>
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-              <path d="M8 18l7 7 13-13" stroke="url(#checkGrad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-              <defs>
-                <linearGradient id="checkGrad" x1="8" y1="11" x2="28" y2="25" gradientUnits="userSpaceOnUse">
-                  <stop stopColor={isDark ? '#FF5B2E' : '#FF8430'} />
-                  <stop offset="1" stopColor={isDark ? '#C4107A' : '#F7306D'} />
-                </linearGradient>
-              </defs>
-            </svg>
-          </div>
-
-          <h1 style={s.title}>{isDark ? '¡Codigo verificado!' : '¡CODIGO VERIFICADO!'}</h1>
-          <p style={s.description}>Tu correo ha sido verificado correctamente.<br />Ahora puedes continuar.</p>
-
-          <div style={s.infoBox}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-              <rect x="1" y="3" width="14" height="10" rx="2" stroke={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'} strokeWidth="1.2" fill="none" />
-              <path d="M1 6h14" stroke={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'} strokeWidth="1.2" />
-              <circle cx="5" cy="9.5" r="1" fill={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'} />
-            </svg>
-            <span style={s.infoText}>Te recomendamos, por seguridad cambia tu contraseña después de iniciar sesión.</span>
-          </div>
-
-          <button style={s.btn} onClick={() => navigate('/login')}>Continuar</button>
+        <div style={s.iconCircle}>
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+            <path
+              d="M8 18l7 7 13-13"
+              stroke="url(#checkGrad)"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <defs>
+              <linearGradient
+                id="checkGrad"
+                x1="8"
+                y1="11"
+                x2="28"
+                y2="25"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop stopColor={isDark ? '#FF5B2E' : '#FF8430'} />
+                <stop offset="1" stopColor={isDark ? '#C4107A' : '#F7306D'} />
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
+
+        <h1 style={s.title}>{isDark ? '¡Codigo verificado!' : '¡CODIGO VERIFICADO!'}</h1>
+        <p style={s.description}>
+          Tu correo ha sido verificado correctamente.
+          <br />
+          Ahora puedes continuar.
+        </p>
+
+        <div style={s.infoBox}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+            <rect
+              x="1"
+              y="3"
+              width="14"
+              height="10"
+              rx="2"
+              stroke={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'}
+              strokeWidth="1.2"
+              fill="none"
+            />
+            <path
+              d="M1 6h14"
+              stroke={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'}
+              strokeWidth="1.2"
+            />
+            <circle
+              cx="5"
+              cy="9.5"
+              r="1"
+              fill={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'}
+            />
+          </svg>
+          <span style={s.infoText}>
+            Te recomendamos, por seguridad cambia tu contraseña después de iniciar sesión.
+          </span>
+        </div>
+
+        <button style={s.btn} onClick={() => navigate('/login')}>
+          Continuar
+        </button>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
-const getStyles = (isDark) => ({
-  root: {
-    position: 'relative', minHeight: '100vh', width: '100%',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    backgroundImage: isDark
-      ? `linear-gradient(#041B36 1px, transparent 1px), linear-gradient(90deg, #041B36 1px, transparent 1px)`
-      : `linear-gradient(rgba(210,140,100,0.30) 1px, transparent 1px), linear-gradient(90deg, rgba(210,140,100,0.30) 1px, transparent 1px)`,
-    backgroundSize: '36px 36px',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontFamily: "'Poppins', sans-serif", boxSizing: 'border-box',
-  },
-  themeBtn: {
-    position: 'fixed', top: 20, right: 24, zIndex: 100,
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 50, padding: '6px 14px', cursor: 'pointer',
-    display: 'flex', alignItems: 'center', gap: 8,
-    fontFamily: "'Poppins', sans-serif", color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-  },
-  page: {
-    position: 'relative', zIndex: 1,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    padding: 'clamp(24px, 4vh, 60px) clamp(16px, 4vw, 60px)',
-    width: '100%', boxSizing: 'border-box',
-  },
-  card: {
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 20,
-    padding: 'clamp(28px, 3vw, 52px) clamp(24px, 3vw, 48px)',
-    width: '100%',
-    maxWidth: 'clamp(340px, 35vw, 500px)',
-    boxShadow: isDark
-      ? '0 0 0 1px rgba(196,16,122,0.35), 0 8px 48px rgba(196,16,122,0.22), 0 2px 16px rgba(0,0,0,0.60)'
-      : '0 8px 40px rgba(253,214,189,0.60), 0 2px 12px rgba(196,16,122,0.08)',
-    display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-    boxSizing: 'border-box',
-  },
-  iconCircle: {
-    width: 'clamp(56px, 6vw, 80px)', height: 'clamp(56px, 6vw, 80px)', borderRadius: '50%',
-    border: `2px solid ${isDark ? 'rgba(196,16,122,0.50)' : 'rgba(247,48,109,0.35)'}`,
-    background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.06)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22,
-  },
-  title: {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 'clamp(18px, 2.2vw, 26px)', fontWeight: 800,
-    background: isDark ? 'linear-gradient(90deg, #FF5B2E, #C4107A)' : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-    marginBottom: 10, letterSpacing: isDark ? 0 : '0.03em',
-  },
-  description: { fontSize: 'clamp(12px, 1vw, 14px)', color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)', lineHeight: 1.65, marginBottom: 22 },
-  infoBox: {
-    width: '100%', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
-    borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, textAlign: 'left',
-  },
-  infoText: { fontSize: 'clamp(11px, 0.9vw, 13px)', color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)', lineHeight: 1.55 },
-  btn: {
-    width: '100%', padding: 13, border: 'none', borderRadius: 10,
-    background: isDark ? 'linear-gradient(90deg, #C4107A, #FF5B2E)' : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    color: '#fff', fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 'clamp(13px, 1vw, 15px)',
-    fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', cursor: 'pointer',
-  },
-});
+const getStyles = (isDark) => {
+  const t = createStyles(isDark);
+  return {
+    page: {
+      position: 'relative',
+      zIndex: 1,
+      background: t.cardBg,
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: 20,
+      padding: '40px 40px 36px',
+      width: '100%',
+      maxWidth: 400,
+      boxShadow: t.cardShadow,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+      margin: '0 24px',
+    },
+    iconCircle: {
+      width: 72,
+      height: 72,
+      borderRadius: '50%',
+      border: `2px solid ${isDark ? 'rgba(196,16,122,0.50)' : 'rgba(247,48,109,0.35)'}`,
+      background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.06)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 22,
+    },
+    title: {
+      fontFamily: t.fontPrimary,
+      fontSize: 22,
+      fontWeight: 800,
+      backgroundImage: t.primaryGradient,
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
+      width: 'fit-content',
+      margin: '0 auto',
+      marginBottom: 10,
+      letterSpacing: isDark ? 0 : '0.03em',
+    },
+    description: {
+      fontSize: 13,
+      color: t.textSecondary,
+      lineHeight: 1.65,
+      marginBottom: 22,
+    },
+    infoBox: {
+      width: '100%',
+      background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: 10,
+      padding: '10px 14px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 24,
+      textAlign: 'left',
+    },
+    infoText: {
+      fontSize: 11.5,
+      color: t.textSecondary,
+      lineHeight: 1.55,
+    },
+    btn: {
+      width: '100%',
+      padding: 13,
+      border: 'none',
+      borderRadius: 10,
+      background: t.primaryGradient,
+      color: '#fff',
+      fontFamily: t.fontPrimary,
+      fontSize: 14,
+      fontWeight: 700,
+      letterSpacing: '0.05em',
+      textTransform: 'uppercase',
+      cursor: 'pointer',
+    },
+  };
+};
 
 export default VerifiedSuccess;
