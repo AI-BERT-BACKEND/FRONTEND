@@ -25,6 +25,7 @@ import SmartSchedule from '../pages/SmartSchedule';
 import Gamification from '../pages/Gamification';
 import Settings from '../pages/Settings';
 import Availability from '../pages/Availability';
+import StudySession from '../pages/StudySession';
 
 const AppRouter = () => {
   return (
@@ -55,6 +56,7 @@ const AppRouter = () => {
         <Route path="/horario-inteligente" element={<SmartSchedule />} />
         <Route path="/gamificacion" element={<Gamification />} />
         <Route path="/configuracion" element={<Settings />} />
+        <Route path="/sesion" element={<StudySession />} />
       </Routes>
     </BrowserRouter>
   );
