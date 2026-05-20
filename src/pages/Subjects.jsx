@@ -1,37 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
-import { ChevronDown } from 'lucide-react';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import { useNavigate } from 'react-router-dom';
 
-const COLORS = [
-  '#FF8430',
-  '#F7306D',
-  '#00CFFF',
-  '#A855F7',
-  '#22C55E',
-  '#EAB308',
-  '#FF5B2E',
-  '#C4107A',
-];
-const HORAS = [
-  '07:00',
-  '08:00',
-  '09:00',
-  '10:00',
-  '11:00',
-  '12:00',
-  '13:00',
-  '14:00',
-  '15:00',
-  '16:00',
-  '17:00',
-  '18:00',
-  '19:00',
-  '20:00',
-];
+const ChevronDown = ({ color }) => (
+  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"
+    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+    <path d="M2 4l3.5 3.5L9 4" stroke={color || 'currentColor'} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const COLORS = ['#FF8430','#F7306D','#00CFFF','#A855F7','#22C55E','#EAB308','#FF5B2E','#C4107A'];
+const HORAS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
 const DIAS = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 
 const Subjects = () => {
@@ -39,6 +22,8 @@ const Subjects = () => {
   const [showModal, setShowModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
+
   const [materias, setMaterias] = useState([
     {
       id: 1,
@@ -60,6 +45,16 @@ const Subjects = () => {
       activo: true,
       progreso: 40,
     },
+    {
+      id: 3,
+      nombre: 'Ciclos de Vida y Desarrollo de Software',
+      profesor: 'Martín Cantor',
+      creditos: '4',
+      semestre: 'Sexto Semestre',
+      color: '#A855F7',
+      activo: true,
+      progreso: 55,
+    },
   ]);
 
   const [form, setForm] = useState({
@@ -72,18 +67,11 @@ const Subjects = () => {
   });
   const [formErrors, setFormErrors] = useState({});
 
-  const creditosOptions = ['1', '2', '3', '4', '5', '6'];
+  const creditosOptions = ['1','2','3','4','5','6'];
   const semestresOptions = [
-    'Primer Semestre',
-    'Segundo Semestre',
-    'Tercer Semestre',
-    'Cuarto Semestre',
-    'Quinto Semestre',
-    'Sexto Semestre',
-    'Séptimo Semestre',
-    'Octavo Semestre',
-    'Noveno Semestre',
-    'Décimo Semestre',
+    'Primer Semestre','Segundo Semestre','Tercer Semestre','Cuarto Semestre',
+    'Quinto Semestre','Sexto Semestre','Séptimo Semestre','Octavo Semestre',
+    'Noveno Semestre','Décimo Semestre',
   ];
 
   useEffect(() => {
@@ -115,16 +103,8 @@ const Subjects = () => {
 
   const handleCrear = () => {
     if (!validateForm()) return;
-    const newSubject = { ...form, id: Date.now(), activo: true, progreso: 0 };
-    setMaterias((prev) => [...prev, newSubject]);
-    setForm({
-      nombre: '',
-      profesor: '',
-      creditos: '',
-      semestre: '',
-      color: '#FF8430',
-      horario: {},
-    });
+    setMaterias((prev) => [...prev, { ...form, id: Date.now(), activo: true, progreso: 0 }]);
+    setForm({ nombre: '', profesor: '', creditos: '', semestre: '', color: '#FF8430', horario: {} });
     setFormErrors({});
     setShowModal(false);
   };
@@ -149,6 +129,7 @@ const Subjects = () => {
 
   return (
     <AppLayout>
+      {/* HEADER */}
       <div style={s.pageHeader}>
         <div>
           <h1 style={s.pageTitle}>Mis Materias</h1>
@@ -159,128 +140,105 @@ const Subjects = () => {
         </button>
       </div>
 
-      <div style={s.layout}>
-        <div style={s.leftCol}>
-          <div style={s.materiasGrid}>
-            {materias.length === 0 && (
-              <div style={s.emptyState}>
-                <span style={{ fontSize: 32 }}>📚</span>
-                <p style={s.emptyText}>Aún no tienes materias. ¡Agrega tu primera materia!</p>
-              </div>
-            )}
-            {materias.map((m) => (
-              <div key={m.id} style={s.materiaCard}>
-                <div style={s.cardTop}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div
-                      style={{
-                        ...s.activoBadge,
-                        background: m.activo
-                          ? 'rgba(34,197,94,0.15)'
-                          : 'rgba(255,255,255,0.08)',
-                        color: m.activo ? '#22C55E' : 'rgba(255,255,255,0.40)',
-                      }}
-                    >
-                      {m.activo ? '● Activo' : '● Inactivo'}
-                    </div>
-                  </div>
-                  <div
-                    style={{ position: 'relative' }}
-                    ref={menuOpen === m.id ? menuRef : null}
-                  >
-                    <button
-                      style={s.menuBtn}
-                      onClick={() => setMenuOpen(menuOpen === m.id ? null : m.id)}
-                    >
-                      ⋮
-                    </button>
-                    {menuOpen === m.id && (
-                      <div style={s.dropdown}>
-                        <button style={s.dropdownItem} onClick={() => handleEditar(m.id)}>
-                          ✏️ Editar materia
-                        </button>
-                        <button
-                          style={{ ...s.dropdownItem, color: '#F00707' }}
-                          onClick={() => handleEliminar(m.id)}
-                        >
-                          🗑 Eliminar materia
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    ...s.materiaIcon,
-                    background: m.color + '22',
-                    border: `2px solid ${m.color}44`,
-                  }}
-                >
-                  <span style={{ fontSize: 22 }}>📖</span>
-                </div>
-                <div style={s.materiaName}>{m.nombre}</div>
-                <div style={s.materiaSemestre}>{m.semestre?.toUpperCase()}</div>
-                <div style={s.materiaFooter}>
-                  <div style={s.materiaInfo}>
-                    <span style={s.infoIcon}>👤</span>
-                    <div>
-                      <div style={s.infoLabel}>DOCENTE</div>
-                      <div style={s.infoVal}>{m.profesor || '—'}</div>
-                    </div>
-                  </div>
-                  <div style={s.materiaInfo}>
-                    <span style={s.infoIcon}>📋</span>
-                    <div>
-                      <div style={s.infoLabel}>CRÉDITOS</div>
-                      <div style={s.infoVal}>{m.creditos} Créditos</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* GRID MATERIAS + CRÉDITOS */}
+      <div style={s.materiasGrid}>
+        {materias.length === 0 && (
+          <div style={s.emptyState}>
+            <span style={{ fontSize: 32 }}>📚</span>
+            <p style={s.emptyText}>Aún no tienes materias. ¡Agrega tu primera materia!</p>
           </div>
+        )}
 
-          <div style={s.proximosCard}>
-            <div style={s.proximosImg}>
-              <div style={s.proximosImgPlaceholder}>
-                <span style={{ fontSize: 24 }}>🗓</span>
+        {materias.map((m) => (
+          <div key={m.id} style={s.materiaCard}>
+            <div style={s.cardTop}>
+              <div style={{
+                ...s.activoBadge,
+                background: m.activo ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.08)',
+                color: m.activo ? '#22C55E' : 'rgba(255,255,255,0.40)',
+              }}>
+                {m.activo ? '● Activo' : '● Inactivo'}
+              </div>
+              <div style={{ position: 'relative' }} ref={menuOpen === m.id ? menuRef : null}>
+                <button style={s.menuBtn} onClick={() => setMenuOpen(menuOpen === m.id ? null : m.id)}>
+                  ⋮
+                </button>
+                {menuOpen === m.id && (
+                  <div style={s.dropdown}>
+                    <button style={s.dropdownItem} onClick={() => navigate(`/materias/${m.id}`)}>
+                      📊 Ver detalle
+                    </button>
+                    <button style={{ ...s.dropdownItem, color: '#F00707' }} onClick={() => handleEliminar(m.id)}>
+                      🗑 Eliminar materia
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-            <div style={s.proximosInfo}>
-              <div style={s.proximosTitle}>Próximos Semestres</div>
-              <p style={s.proximosDesc}>
-                Anticípate a tus próximos retos académicos. Visualiza las materias disponibles
-                y planifica tu carga horaria con nuestro asistente inteligente.
-              </p>
-              <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
-                <button style={s.proximosBtn}>Planificar</button>
-                <button style={s.proximosBtnOutline}>Ver Malla</button>
+
+            <div style={{ ...s.materiaIcon, background: m.color + '22', border: `2px solid ${m.color}44` }}>
+              <span style={{ fontSize: 22 }}>📖</span>
+            </div>
+            <div style={s.materiaName}>{m.nombre}</div>
+            <div style={s.materiaSemestre}>{m.semestre?.toUpperCase()}</div>
+
+            <div style={s.materiaFooter}>
+              <div style={s.materiaInfo}>
+                <span style={s.infoIcon}>👤</span>
+                <div>
+                  <div style={s.infoLabel}>DOCENTE</div>
+                  <div style={s.infoVal}>{m.profesor || '—'}</div>
+                </div>
+              </div>
+              <div style={s.materiaInfo}>
+                <span style={s.infoIcon}>📋</span>
+                <div>
+                  <div style={s.infoLabel}>CRÉDITOS</div>
+                  <div style={s.infoVal}>{m.creditos} Créditos</div>
+                </div>
               </div>
             </div>
+          </div>
+        ))}
+
+        {/* RESUMEN DE CRÉDITOS dentro del grid */}
+        <div style={s.creditosCard}>
+          <div style={s.creditosHeader}>
+            <span style={s.creditosTitle}>RESUMEN DE CRÉDITOS</span>
+            <span style={{ fontSize: 16 }}>⭐</span>
+          </div>
+          <div style={s.creditosNum}>
+            <span style={s.creditosBig}>{totalCreditos}</span>
+            <span style={s.creditosTotal}> / 18</span>
+          </div>
+          <p style={s.creditosDesc}>
+            Has completado el {Math.round((totalCreditos / 18) * 100)}% de tu carga académica proyectada para este período.
+          </p>
+          <div style={s.progressLabel}>
+            <span style={s.progressText}>Progreso Actual</span>
+            <span style={{ ...s.progressText, color: isDark ? '#FF5B2E' : '#F7306D' }}>
+              Faltan {Math.max(0, 18 - totalCreditos)}
+            </span>
+          </div>
+          <ProgressBar value={Math.min(100, (totalCreditos / 18) * 100)} isDark={isDark} />
+        </div>
+      </div>
+
+      {/* PRÓXIMOS SEMESTRES */}
+      <div style={s.proximosCard}>
+        <div style={s.proximosImg}>
+          <div style={s.proximosImgPlaceholder}>
+            <span style={{ fontSize: 24 }}>🗓</span>
           </div>
         </div>
-
-        <div style={s.rightCol}>
-          <div style={s.creditosCard}>
-            <div style={s.creditosHeader}>
-              <span style={s.creditosTitle}>RESUMEN DE CRÉDITOS</span>
-              <span style={{ fontSize: 16 }}>⭐</span>
-            </div>
-            <div style={s.creditosNum}>
-              <span style={s.creditosBig}>{totalCreditos}</span>
-              <span style={s.creditosTotal}> / 18</span>
-            </div>
-            <p style={s.creditosDesc}>
-              Has completado el {Math.round((totalCreditos / 18) * 100)}% de tu carga
-              académica proyectada para este período.
-            </p>
-            <div style={s.progressLabel}>
-              <span style={s.progressText}>Progreso Actual</span>
-              <span style={{ ...s.progressText, color: isDark ? '#FF5B2E' : '#F7306D' }}>
-                Faltan {Math.max(0, 18 - totalCreditos)}
-              </span>
-            </div>
-            <ProgressBar value={Math.min(100, (totalCreditos / 18) * 100)} isDark={isDark} />
+        <div style={s.proximosInfo}>
+          <div style={s.proximosTitle}>Próximos Semestres</div>
+          <p style={s.proximosDesc}>
+            Anticípate a tus próximos retos académicos. Visualiza las materias disponibles y planifica tu carga horaria con nuestro asistente inteligente.
+          </p>
+          <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
+            <button style={s.proximosBtn}>Planificar</button>
+            <button style={s.proximosBtnOutline}>Ver Malla</button>
           </div>
         </div>
       </div>
@@ -294,9 +252,7 @@ const Subjects = () => {
                 <div style={s.modalTitle}>Nueva Materia</div>
                 <div style={s.modalSubtitle}>Agrega una nueva materia a tu plan de estudios</div>
               </div>
-              <button style={s.modalClose} onClick={() => setShowModal(false)}>
-                ✕
-              </button>
+              <button style={s.modalClose} onClick={() => setShowModal(false)}>✕</button>
             </div>
 
             <div style={s.modalBody}>
@@ -332,37 +288,19 @@ const Subjects = () => {
                   <label style={s.mLabel}>Créditos</label>
                   <div style={{ position: 'relative' }}>
                     <select
-                      style={{
-                        ...s.mInput,
-                        ...s.mSelect,
-                        ...(formErrors.creditos ? s.inputError : {}),
-                      }}
+                      style={{ ...s.mInput, ...s.mSelect, ...(formErrors.creditos ? s.inputError : {}) }}
                       value={form.creditos}
                       onChange={(e) => {
                         setForm((p) => ({ ...p, creditos: e.target.value }));
                         if (formErrors.creditos) setFormErrors((p) => ({ ...p, creditos: '' }));
                       }}
                     >
-                      <option value="" disabled>
-                        Seleccionar
-                      </option>
+                      <option value="" disabled>Seleccionar</option>
                       {creditosOptions.map((c) => (
-                        <option key={c} value={c}>
-                          {c} crédito{c !== '1' ? 's' : ''}
-                        </option>
+                        <option key={c} value={c}>{c} crédito{c !== '1' ? 's' : ''}</option>
                       ))}
                     </select>
-                    <ChevronDown
-                      size={11}
-                      color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'}
-                      style={{
-                        position: 'absolute',
-                        right: 10,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        pointerEvents: 'none',
-                      }}
-                    />
+                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                   <ErrorMsg message={formErrors.creditos} />
                 </div>
@@ -371,37 +309,19 @@ const Subjects = () => {
                   <label style={s.mLabel}>Semestre</label>
                   <div style={{ position: 'relative' }}>
                     <select
-                      style={{
-                        ...s.mInput,
-                        ...s.mSelect,
-                        ...(formErrors.semestre ? s.inputError : {}),
-                      }}
+                      style={{ ...s.mInput, ...s.mSelect, ...(formErrors.semestre ? s.inputError : {}) }}
                       value={form.semestre}
                       onChange={(e) => {
                         setForm((p) => ({ ...p, semestre: e.target.value }));
                         if (formErrors.semestre) setFormErrors((p) => ({ ...p, semestre: '' }));
                       }}
                     >
-                      <option value="" disabled>
-                        Primer Semestre
-                      </option>
-                      {semestresOptions.map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
+                      <option value="" disabled>Primer Semestre</option>
+                      {semestresOptions.map((sem) => (
+                        <option key={sem} value={sem}>{sem}</option>
                       ))}
                     </select>
-                    <ChevronDown
-                      size={11}
-                      color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'}
-                      style={{
-                        position: 'absolute',
-                        right: 10,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        pointerEvents: 'none',
-                      }}
-                    />
+                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                   <ErrorMsg message={formErrors.semestre} />
                 </div>
@@ -413,11 +333,7 @@ const Subjects = () => {
                   <div style={s.horarioGrid}>
                     <div style={s.horarioHeader}>
                       <div style={s.horaCell} />
-                      {DIAS.map((d) => (
-                        <div key={d} style={s.diaCell}>
-                          {d}
-                        </div>
-                      ))}
+                      {DIAS.map((d) => <div key={d} style={s.diaCell}>{d}</div>)}
                     </div>
                     {HORAS.map((hora) => (
                       <div key={hora} style={s.horarioRow}>
@@ -430,14 +346,8 @@ const Subjects = () => {
                               key={dia}
                               style={{
                                 ...s.horarioCell,
-                                background: sel
-                                  ? form.color + 'AA'
-                                  : isDark
-                                    ? 'rgba(255,255,255,0.04)'
-                                    : 'rgba(0,0,0,0.04)',
-                                border: sel
-                                  ? `1px solid ${form.color}`
-                                  : `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+                                background: sel ? form.color + 'AA' : isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                                border: sel ? `1px solid ${form.color}` : `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
                               }}
                               onClick={() => toggleHorario(dia, hora)}
                             />
@@ -447,15 +357,11 @@ const Subjects = () => {
                     ))}
                   </div>
                 </div>
-                <p style={s.horarioHint}>
-                  Haz clic en los bloques para seleccionar las horas de clase.
-                </p>
+                <p style={s.horarioHint}>Haz clic en los bloques para seleccionar las horas de clase.</p>
               </div>
 
               <div style={s.mField}>
-                <label style={s.mLabel}>
-                  Elige un color para identificar esta materia en tu horario
-                </label>
+                <label style={s.mLabel}>Elige un color para identificar esta materia en tu horario</label>
                 <div style={s.colorRow}>
                   {COLORS.map((c) => (
                     <div
@@ -463,10 +369,7 @@ const Subjects = () => {
                       style={{
                         ...s.colorDot,
                         background: c,
-                        border:
-                          form.color === c
-                            ? `3px solid ${isDark ? '#fff' : '#000'}`
-                            : '3px solid transparent',
+                        border: form.color === c ? `3px solid ${isDark ? '#fff' : '#000'}` : '3px solid transparent',
                         transform: form.color === c ? 'scale(1.2)' : 'scale(1)',
                       }}
                       onClick={() => setForm((p) => ({ ...p, color: c }))}
@@ -477,12 +380,8 @@ const Subjects = () => {
             </div>
 
             <div style={s.modalFooter}>
-              <button style={s.mCancelBtn} onClick={() => setShowModal(false)}>
-                Cancelar
-              </button>
-              <button style={s.mCreateBtn} onClick={handleCrear}>
-                Crear materia
-              </button>
+              <button style={s.mCancelBtn} onClick={() => setShowModal(false)}>Cancelar</button>
+              <button style={s.mCreateBtn} onClick={handleCrear}>Crear materia</button>
             </div>
           </div>
         </div>
@@ -507,11 +406,7 @@ const getStyles = (isDark) => {
       color: isDark ? '#FF5B2E' : '#FF8430',
       margin: '0 0 4px 0',
     },
-    pageDesc: {
-      fontSize: 13,
-      color: t.textSecondary,
-      margin: 0,
-    },
+    pageDesc: { fontSize: 13, color: t.textSecondary, margin: 0 },
     newBtn: {
       background: t.primaryGradient,
       border: 'none',
@@ -525,13 +420,11 @@ const getStyles = (isDark) => {
       whiteSpace: 'nowrap',
       flexShrink: 0,
     },
-    layout: { display: 'flex', gap: 20, alignItems: 'flex-start' },
-    leftCol: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 16 },
-    rightCol: { width: 220, flexShrink: 0 },
     materiasGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
       gap: 16,
+      marginBottom: 16,
     },
     emptyState: {
       gridColumn: '1 / -1',
@@ -544,12 +437,7 @@ const getStyles = (isDark) => {
       borderRadius: 16,
       border: `1px dashed ${t.cardBorder}`,
     },
-    emptyText: {
-      fontSize: 13,
-      color: t.textMuted,
-      textAlign: 'center',
-      margin: 0,
-    },
+    emptyText: { fontSize: 13, color: t.textMuted, textAlign: 'center', margin: 0 },
     materiaCard: {
       background: t.cardBg,
       border: `1px solid ${t.cardBorder}`,
@@ -629,20 +517,45 @@ const getStyles = (isDark) => {
       gap: 12,
       paddingTop: 10,
       borderTop: `1px solid ${t.cardBorder}`,
+      marginTop: 'auto',
     },
     materiaInfo: { display: 'flex', alignItems: 'center', gap: 6, flex: 1 },
     infoIcon: { fontSize: 14, flexShrink: 0 },
-    infoLabel: {
-      fontSize: 8,
-      letterSpacing: '0.06em',
-      color: t.textMuted,
-      fontWeight: 600,
+    infoLabel: { fontSize: 8, letterSpacing: '0.06em', color: t.textMuted, fontWeight: 600 },
+    infoVal: { fontSize: 11, fontWeight: 600, color: t.textPrimary },
+    creditosCard: {
+      background: t.cardBg,
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: 16,
+      padding: '18px',
+      boxShadow: t.cardShadow,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
     },
-    infoVal: {
-      fontSize: 11,
-      fontWeight: 600,
-      color: t.textPrimary,
+    creditosHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
     },
+    creditosTitle: {
+      fontSize: 10,
+      letterSpacing: '0.08em',
+      fontWeight: 700,
+      color: t.textSecondary,
+    },
+    creditosNum: { marginBottom: 8 },
+    creditosBig: {
+      fontFamily: t.fontPrimary,
+      fontSize: 36,
+      fontWeight: 800,
+      color: isDark ? '#FF5B2E' : '#FF8430',
+    },
+    creditosTotal: { fontSize: 18, color: t.textMuted, fontWeight: 500 },
+    creditosDesc: { fontSize: 11, color: t.textSecondary, lineHeight: 1.55, marginBottom: 14 },
+    progressLabel: { display: 'flex', justifyContent: 'space-between', marginBottom: 6 },
+    progressText: { fontSize: 10, color: t.textMuted, fontWeight: 500 },
     proximosCard: {
       background: t.cardBg,
       border: `1px solid ${t.cardBorder}`,
@@ -670,12 +583,7 @@ const getStyles = (isDark) => {
       color: t.textPrimary,
       marginBottom: 6,
     },
-    proximosDesc: {
-      fontSize: 12,
-      color: t.textSecondary,
-      lineHeight: 1.55,
-      margin: 0,
-    },
+    proximosDesc: { fontSize: 12, color: t.textSecondary, lineHeight: 1.55, margin: 0 },
     proximosBtn: {
       background: t.primaryGradient,
       border: 'none',
@@ -697,49 +605,6 @@ const getStyles = (isDark) => {
       fontSize: 12,
       fontWeight: 600,
       cursor: 'pointer',
-    },
-    creditosCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      padding: '18px',
-      boxShadow: t.cardShadow,
-    },
-    creditosHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    creditosTitle: {
-      fontSize: 10,
-      letterSpacing: '0.08em',
-      fontWeight: 700,
-      color: t.textSecondary,
-    },
-    creditosNum: { marginBottom: 8 },
-    creditosBig: {
-      fontFamily: t.fontPrimary,
-      fontSize: 36,
-      fontWeight: 800,
-      color: isDark ? '#FF5B2E' : '#FF8430',
-    },
-    creditosTotal: {
-      fontSize: 18,
-      color: t.textMuted,
-      fontWeight: 500,
-    },
-    creditosDesc: {
-      fontSize: 11,
-      color: t.textSecondary,
-      lineHeight: 1.55,
-      marginBottom: 14,
-    },
-    progressLabel: { display: 'flex', justifyContent: 'space-between', marginBottom: 6 },
-    progressText: {
-      fontSize: 10,
-      color: t.textMuted,
-      fontWeight: 500,
     },
     modalOverlay: {
       position: 'fixed',
@@ -835,16 +700,9 @@ const getStyles = (isDark) => {
       fontSize: 14,
       pointerEvents: 'none',
     },
-    horarioWrap: {
-      overflowX: 'auto',
-      borderRadius: 8,
-      border: `1px solid ${t.cardBorder}`,
-    },
+    horarioWrap: { overflowX: 'auto', borderRadius: 8, border: `1px solid ${t.cardBorder}` },
     horarioGrid: { minWidth: 360 },
-    horarioHeader: {
-      display: 'flex',
-      background: t.inputBg,
-    },
+    horarioHeader: { display: 'flex', background: t.inputBg },
     horarioRow: { display: 'flex' },
     horaCell: {
       width: 44,
@@ -869,12 +727,7 @@ const getStyles = (isDark) => {
       letterSpacing: '0.05em',
     },
     horarioCell: { flex: 1, height: 20, cursor: 'pointer', transition: 'all 0.1s', borderRadius: 2 },
-    horarioHint: {
-      fontSize: 10,
-      color: t.textMuted,
-      marginTop: 6,
-      fontStyle: 'italic',
-    },
+    horarioHint: { fontSize: 10, color: t.textMuted, marginTop: 6, fontStyle: 'italic' },
     colorRow: { display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 4 },
     colorDot: {
       width: 26,

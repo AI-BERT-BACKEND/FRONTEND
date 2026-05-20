@@ -17,11 +17,14 @@ export const AuthLayout = ({ children }) => {
       justifyContent: 'center',
       overflow: 'hidden',
       fontFamily: tokens.fonts.secondary,
+      padding: 'clamp(16px, 3vw, 40px)',
+      boxSizing: 'border-box',
     },
     content: {
       position: 'relative',
       zIndex: 1,
       width: '100%',
+      maxWidth: 960,
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -36,6 +39,5 @@ export const AuthLayout = ({ children }) => {
     </div>
   );
 };
-
 
 export default AuthLayout;

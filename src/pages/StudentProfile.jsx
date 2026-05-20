@@ -42,130 +42,115 @@ const StudentProfile = () => {
 
   return (
     <AppLayout>
-      <h1 style={s.pageTitle}>Perfil de estudiante</h1>
+      {/* Wrapper centrado */}
+      <div style={s.pageWrapper}>
+        <h1 style={s.pageTitle}>Perfil de estudiante</h1>
 
-      <div style={s.card}>
-        <div style={s.fotoSection}>
-          <div style={s.fotoCircle} onClick={() => fileRef.current?.click()}>
-            {form.foto ? (
-              <img
-                src={form.foto}
-                alt="Perfil"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  borderRadius: '50%',
+        <div style={s.card}>
+          <div style={s.fotoSection}>
+            <div style={s.fotoCircle} onClick={() => fileRef.current?.click()}>
+              {form.foto ? (
+                <img
+                  src={form.foto}
+                  alt="Perfil"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                />
+              ) : (
+                <div style={s.fotoPlaceholder} />
+              )}
+              <div style={s.fotoBadge}>
+                <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
+                  <path d="M7 1l1.5 1.5H11a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h2.5L7 1z"
+                    stroke="#fff" strokeWidth="1.2" fill="none" strokeLinejoin="round" />
+                  <circle cx="7" cy="7" r="1.8" stroke="#fff" strokeWidth="1.2" />
+                </svg>
+              </div>
+            </div>
+            <input ref={fileRef} type="file" accept="image/*"
+              style={{ display: 'none' }} onChange={handleFotoChange} />
+            <span style={s.fotoLabel}>FOTO DE PERFIL</span>
+          </div>
+
+          <div style={s.fields}>
+            <div style={s.fieldGroup}>
+              <label style={s.label}>Nombre completo</label>
+              <input
+                style={{ ...s.input, ...(errors.nombre ? s.inputError : {}) }}
+                value={form.nombre}
+                placeholder="Ingresa tu nombre completo"
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, nombre: e.target.value }));
+                  if (errors.nombre) setErrors((p) => ({ ...p, nombre: '' }));
                 }}
               />
-            ) : (
-              <div style={s.fotoPlaceholder} />
-            )}
-            <div style={s.fotoBadge}>
-              <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-                <path
-                  d="M7 1l1.5 1.5H11a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h2.5L7 1z"
-                  stroke="#fff"
-                  strokeWidth="1.2"
-                  fill="none"
-                  strokeLinejoin="round"
-                />
-                <circle cx="7" cy="7" r="1.8" stroke="#fff" strokeWidth="1.2" />
-              </svg>
+              <ErrorMsg message={errors.nombre} />
             </div>
-          </div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handleFotoChange}
-          />
-          <span style={s.fotoLabel}>FOTO DE PERFIL</span>
-        </div>
 
-        <div style={s.fields}>
-          <div style={s.fieldGroup}>
-            <label style={s.label}>Nombre completo</label>
-            <input
-              style={{ ...s.input, ...(errors.nombre ? s.inputError : {}) }}
-              value={form.nombre}
-              placeholder="Ingresa tu nombre completo"
-              onChange={(e) => {
-                setForm((p) => ({ ...p, nombre: e.target.value }));
-                if (errors.nombre) setErrors((p) => ({ ...p, nombre: '' }));
-              }}
-            />
-            <ErrorMsg message={errors.nombre} />
-          </div>
-
-          <div style={s.fieldGroup}>
-            <label style={s.label}>Nombre de usuario</label>
-            <input
-              style={{ ...s.input, ...(errors.username ? s.inputError : {}) }}
-              value={form.username}
-              placeholder="Ingresa tu nombre de usuario"
-              onChange={(e) => {
-                setForm((p) => ({ ...p, username: e.target.value }));
-                if (errors.username) setErrors((p) => ({ ...p, username: '' }));
-              }}
-            />
-            <ErrorMsg message={errors.username} />
-          </div>
-
-          <div style={s.fieldGroup}>
-            <label style={s.label}>Correo electrónico</label>
-            <input
-              style={{ ...s.input, ...(errors.email ? s.inputError : {}) }}
-              type="email"
-              value={form.email}
-              placeholder="tucorreo@academia.edu"
-              onChange={(e) => {
-                setForm((p) => ({ ...p, email: e.target.value }));
-                if (errors.email) setErrors((p) => ({ ...p, email: '' }));
-              }}
-            />
-            <ErrorMsg message={errors.email} />
-          </div>
-
-          <div style={s.dangerZone}>
-            <div style={s.dangerHeader}>
-              <span style={{ fontSize: 14 }}>⚠️</span>
-              <span style={s.dangerTitle}>Zona de Peligro</span>
+            <div style={s.fieldGroup}>
+              <label style={s.label}>Nombre de usuario</label>
+              <input
+                style={{ ...s.input, ...(errors.username ? s.inputError : {}) }}
+                value={form.username}
+                placeholder="Ingresa tu nombre de usuario"
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, username: e.target.value }));
+                  if (errors.username) setErrors((p) => ({ ...p, username: '' }));
+                }}
+              />
+              <ErrorMsg message={errors.username} />
             </div>
-            <div style={s.dangerRow}>
-              <div style={s.dangerInfo}>
-                <span style={s.dangerItemTitle}>Desactivar cuenta temporalmente</span>
-                <span style={s.dangerItemDesc}>Oculta tu perfil hasta que decidas volver.</span>
+
+            <div style={s.fieldGroup}>
+              <label style={s.label}>Correo electrónico</label>
+              <input
+                style={{ ...s.input, ...(errors.email ? s.inputError : {}) }}
+                type="email"
+                value={form.email}
+                placeholder="tucorreo@academia.edu"
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, email: e.target.value }));
+                  if (errors.email) setErrors((p) => ({ ...p, email: '' }));
+                }}
+              />
+              <ErrorMsg message={errors.email} />
+            </div>
+
+            <div style={s.dangerZone}>
+              <div style={s.dangerHeader}>
+                <span style={{ fontSize: 14 }}>⚠️</span>
+                <span style={s.dangerTitle}>Zona de Peligro</span>
               </div>
-              <button style={s.dangerBtnOutline} onClick={() => setShowDesactivarConfirm(true)}>
-                Desactivar cuenta
-              </button>
-            </div>
-            <div style={{ ...s.dangerRow, marginTop: 10 }}>
-              <div style={s.dangerInfo}>
-                <span style={s.dangerItemTitle}>Eliminar cuenta permanentemente</span>
-                <span style={s.dangerItemDesc}>
-                  Una acción borrará todos tus datos de forma irreversible.
-                </span>
+              <div style={s.dangerRow}>
+                <div style={s.dangerInfo}>
+                  <span style={s.dangerItemTitle}>Desactivar cuenta temporalmente</span>
+                  <span style={s.dangerItemDesc}>Oculta tu perfil hasta que decidas volver.</span>
+                </div>
+                <button style={s.dangerBtnOutline} onClick={() => setShowDesactivarConfirm(true)}>
+                  Desactivar cuenta
+                </button>
               </div>
-              <button style={s.dangerBtnFill} onClick={() => setShowEliminarConfirm(true)}>
-                🗑 Eliminar mi cuenta
-              </button>
+              <div style={{ ...s.dangerRow, marginTop: 10 }}>
+                <div style={s.dangerInfo}>
+                  <span style={s.dangerItemTitle}>Eliminar cuenta permanentemente</span>
+                  <span style={s.dangerItemDesc}>
+                    Una acción borrará todos tus datos de forma irreversible.
+                  </span>
+                </div>
+                <button style={s.dangerBtnFill} onClick={() => setShowEliminarConfirm(true)}>
+                  🗑 Eliminar mi cuenta
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div style={s.actionRow}>
-            <button style={s.cancelBtn} onClick={() => navigate('/dashboard')}>
-              Cancelar
-            </button>
-            <button style={s.saveBtn} onClick={handleSave}>
-              Guardar cambios
-            </button>
+            <div style={s.actionRow}>
+              <button style={s.cancelBtn} onClick={() => navigate('/dashboard')}>Cancelar</button>
+              <button style={s.saveBtn} onClick={handleSave}>Guardar cambios</button>
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Modal Desactivar */}
       {showDesactivarConfirm && (
         <div style={s.modalOverlay} onClick={() => setShowDesactivarConfirm(false)}>
           <div style={s.modalCard} onClick={(e) => e.stopPropagation()}>
@@ -174,20 +159,11 @@ const StudentProfile = () => {
               <span style={s.modalTitle}>Desactivar cuenta</span>
             </div>
             <p style={s.modalText}>
-              Tu perfil quedará oculto temporalmente. Podrás reactivarlo cuando quieras iniciando
-              sesión nuevamente.
+              Tu perfil quedará oculto temporalmente. Podrás reactivarlo cuando quieras iniciando sesión nuevamente.
             </p>
             <div style={s.modalFooter}>
-              <button style={s.modalCancelBtn} onClick={() => setShowDesactivarConfirm(false)}>
-                Cancelar
-              </button>
-              <button
-                style={s.dangerBtnOutline}
-                onClick={() => {
-                  setShowDesactivarConfirm(false);
-                  navigate('/login');
-                }}
-              >
+              <button style={s.modalCancelBtn} onClick={() => setShowDesactivarConfirm(false)}>Cancelar</button>
+              <button style={s.dangerBtnOutline} onClick={() => { setShowDesactivarConfirm(false); navigate('/login'); }}>
                 Sí, desactivar
               </button>
             </div>
@@ -195,37 +171,23 @@ const StudentProfile = () => {
         </div>
       )}
 
+      {/* Modal Eliminar */}
       {showEliminarConfirm && (
         <div style={s.modalOverlay} onClick={() => setShowEliminarConfirm(false)}>
           <div style={s.modalCard} onClick={(e) => e.stopPropagation()}>
             <div style={s.modalHeader}>
               <span style={{ fontSize: 20 }}>🗑</span>
-              <span
-                style={{
-                  ...s.modalTitle,
-                  color: '#F00707',
-                  WebkitTextFillColor: '#F00707',
-                  background: 'none',
-                }}
-              >
+              <span style={{ ...s.modalTitle, color: '#F00707', WebkitTextFillColor: '#F00707', background: 'none' }}>
                 Eliminar cuenta
               </span>
             </div>
             <p style={s.modalText}>
-              Esta acción es <strong>irreversible</strong>. Se borrarán todos tus datos, materias,
-              tareas y progreso de forma permanente.
+              Esta acción es <strong>irreversible</strong>. Se borrarán todos tus datos, materias, tareas y progreso de forma permanente.
             </p>
             <div style={s.modalFooter}>
-              <button style={s.modalCancelBtn} onClick={() => setShowEliminarConfirm(false)}>
-                Cancelar
-              </button>
-              <button
-                style={{ ...s.dangerBtnFill, padding: '9px 20px' }}
-                onClick={() => {
-                  setShowEliminarConfirm(false);
-                  navigate('/login');
-                }}
-              >
+              <button style={s.modalCancelBtn} onClick={() => setShowEliminarConfirm(false)}>Cancelar</button>
+              <button style={{ ...s.dangerBtnFill, padding: '9px 20px' }}
+                onClick={() => { setShowEliminarConfirm(false); navigate('/login'); }}>
                 Sí, eliminar
               </button>
             </div>
@@ -239,22 +201,24 @@ const StudentProfile = () => {
 const getStyles = (isDark) => {
   const t = createStyles(isDark);
   return {
+    pageWrapper: {
+      width: '100%',
+      maxWidth: 620,
+      margin: '0 auto',
+    },
     pageTitle: {
       fontFamily: t.fontPrimary,
       fontSize: 28,
       fontWeight: 800,
       color: isDark ? '#FF5B2E' : '#FF8430',
       margin: '0 0 24px 0',
-      width: '100%',
-      maxWidth: 560,
     },
     card: {
       background: t.cardBg,
       border: `1px solid ${t.cardBorder}`,
       borderRadius: 16,
-      padding: '28px 32px',
+      padding: '32px 40px',
       width: '100%',
-      maxWidth: 560,
       boxShadow: t.cardShadow,
     },
     fotoSection: {
@@ -332,18 +296,10 @@ const getStyles = (isDark) => {
       marginTop: 4,
     },
     dangerHeader: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 },
-    dangerTitle: {
-      fontSize: 12,
-      fontWeight: 700,
-      color: t.textPrimary,
-    },
+    dangerTitle: { fontSize: 12, fontWeight: 700, color: t.textPrimary },
     dangerRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
     dangerInfo: { display: 'flex', flexDirection: 'column', gap: 2, flex: 1 },
-    dangerItemTitle: {
-      fontSize: 12,
-      fontWeight: 600,
-      color: t.textPrimary,
-    },
+    dangerItemTitle: { fontSize: 12, fontWeight: 600, color: t.textPrimary },
     dangerItemDesc: { fontSize: 11, color: t.textSecondary },
     dangerBtnOutline: {
       padding: '7px 14px',
@@ -356,6 +312,7 @@ const getStyles = (isDark) => {
       fontWeight: 600,
       color: t.textPrimary,
       whiteSpace: 'nowrap',
+      flexShrink: 0,
     },
     dangerBtnFill: {
       padding: '7px 14px',
@@ -368,6 +325,7 @@ const getStyles = (isDark) => {
       fontWeight: 600,
       color: '#fff',
       whiteSpace: 'nowrap',
+      flexShrink: 0,
     },
     actionRow: { display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 },
     cancelBtn: {
@@ -424,12 +382,7 @@ const getStyles = (isDark) => {
       backgroundClip: 'text',
       width: 'fit-content',
     },
-    modalText: {
-      fontSize: 13,
-      color: t.textSecondary,
-      lineHeight: 1.6,
-      marginBottom: 20,
-    },
+    modalText: { fontSize: 13, color: t.textSecondary, lineHeight: 1.6, marginBottom: 20 },
     modalFooter: { display: 'flex', justifyContent: 'flex-end', gap: 10 },
     modalCancelBtn: {
       padding: '9px 18px',

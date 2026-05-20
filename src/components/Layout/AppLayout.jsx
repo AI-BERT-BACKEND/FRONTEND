@@ -25,8 +25,8 @@ export const AppLayout = ({ children }) => {
       flexDirection: 'column',
       position: 'relative',
       zIndex: 1,
-      width: '100%',
       minWidth: 0,
+      overflow: 'hidden',
     },
     scrollArea: {
       flex: 1,
@@ -34,9 +34,11 @@ export const AppLayout = ({ children }) => {
       overflowX: 'hidden',
     },
     content: {
-      padding: '28px 32px',
+      padding: 'clamp(16px, 2vw, 28px) clamp(16px, 2.5vw, 32px)',
       width: '100%',
+      maxWidth: 1440,
       boxSizing: 'border-box',
+      margin: '0 auto',
     },
   };
 

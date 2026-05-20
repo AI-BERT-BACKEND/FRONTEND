@@ -16,6 +16,12 @@ import AcademicDashboard from '../pages/AcademicDashboard';
 import Calendar from '../pages/Calendar';
 import AcademicGoals from '../pages/AcademicGoals';
 import StudyPreferences from '../pages/StudyPreferences';
+import SubjectDetail from '../pages/SubjectDetail';
+import CourseGrades from '../pages/CourseGrades';
+import Tasks from '../pages/Tasks';
+import Prioritization from '../pages/Prioritization';
+import Statistics from '../pages/Statistics';
+import SmartSchedule from '../pages/SmartSchedule';
 
 const AppRouter = () => {
   return (
@@ -37,6 +43,12 @@ const AppRouter = () => {
         <Route path="/gestion/dashboard" element={<AcademicDashboard />} />
         <Route path="/gestion/metas" element={<AcademicGoals />} />
         <Route path="/gestion/preferencias" element={<StudyPreferences />} />
+        <Route path="/materias/:id" element={<SubjectDetail />} />
+        <Route path="/materias/:id/cortes" element={<CourseGrades />} />
+        <Route path="/tareas" element={<Tasks />} />
+        <Route path="/priorizacion" element={<Prioritization />} />
+        <Route path="/estadisticas" element={<Statistics />} />
+        <Route path="/horario-inteligente" element={<SmartSchedule />} />
       </Routes>
     </BrowserRouter>
   );
