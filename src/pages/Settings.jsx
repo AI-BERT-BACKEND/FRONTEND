@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
 const Settings = () => {
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark } = useTheme();
   const [passwords, setPasswords] = useState({
     current: '',
     new: '',
@@ -50,36 +50,6 @@ const Settings = () => {
   return (
     <AppLayout>
       <h1 style={s.pageTitle}>Configuracion</h1>
-
-      {/* APARIENCIA — solo modo oscuro lo muestra */}
-      {isDark && (
-        <div style={s.section}>
-          <div style={s.sectionHeader}>
-            <span style={s.sectionIcon}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            </span>
-            <span style={s.sectionTitle}>Apariencia</span>
-          </div>
-          <div style={s.settingRow}>
-            <div style={s.settingInfo}>
-              <div style={s.settingLabel}>Modo de Apariencia</div>
-              <div style={s.settingDesc}>Cambia entre el tema oscuro y el modo claro.</div>
-            </div>
-            <Toggle value={isDark} onChange={toggleTheme} />
-          </div>
-        </div>
-      )}
 
       {/* SEGURIDAD */}
       <div style={s.section}>
