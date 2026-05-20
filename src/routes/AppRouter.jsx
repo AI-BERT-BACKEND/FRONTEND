@@ -26,6 +26,7 @@ import Gamification from '../pages/Gamification';
 import Settings from '../pages/Settings';
 import Availability from '../pages/Availability';
 import StudySession from '../pages/StudySession';
+import CreateStudySession from '../pages/CreateStudySession';
 
 const AppRouter = () => {
   return (
@@ -57,6 +58,7 @@ const AppRouter = () => {
         <Route path="/gamificacion" element={<Gamification />} />
         <Route path="/configuracion" element={<Settings />} />
         <Route path="/sesion" element={<StudySession />} />
+        <Route path="/sesion/crear" element={<CreateStudySession />} />
       </Routes>
     </BrowserRouter>
   );

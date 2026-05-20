@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
@@ -70,6 +71,7 @@ const ESTADOS  = ['TODAS', 'EN CURSO', 'PRÓXIMA', 'FINALIZADA'];
 
 const StudySession = () => {
   const { isDark } = useTheme();
+  const navigate = useNavigate();
   const s = getStyles(isDark);
 
   const [filtroMateria, setFiltroMateria] = useState('TODAS');
@@ -99,7 +101,7 @@ const StudySession = () => {
           <h1 style={s.pageTitle}>Sesion de estudio</h1>
           <p style={s.subtitle}>Únete y aprende con otros estudiantes.</p>
         </div>
-        <button style={s.crearBtn}>
+        <button style={s.crearBtn} onClick={() => navigate('/sesion/crear')}>
           <span>+</span> CREAR SESIÓN
         </button>
       </div>
