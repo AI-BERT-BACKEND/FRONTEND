@@ -1,42 +1,57 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTheme } from '../context/ThemeContext';
+import { Bell, Users } from 'lucide-react';
 import SocialPopup from './SocialPopup';
-
-/* ── Icons ── */
-const BellIcon = ({ isDark }) => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2"
-    strokeLinecap="round" strokeLinejoin="round">
-    <defs>
-      <linearGradient id="bellGradHeader" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor={isDark ? '#FF5B2E' : '#FF8430'} />
-        <stop offset="100%" stopColor={isDark ? '#C4107A' : '#F7306D'} />
-      </linearGradient>
-    </defs>
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="url(#bellGradHeader)" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" stroke="url(#bellGradHeader)" />
-  </svg>
-);
-
-const SocialIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-    stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
 
 /* ── Notificaciones data ── */
 const NOTIFICACIONES = [
-  { id: 1, icon: '📋', iconBg: 'rgba(255,132,48,0.15)', titulo: 'Resolver ejercicios de cálculo integral', tiempo: 'Hace 5 min', tag: null },
-  { id: 2, icon: '📅', iconBg: 'rgba(247,48,109,0.15)', titulo: 'Mañana vence el taller de Matemáticas', tiempo: 'Hace 1h', tag: 'Prioridad Alta', tagColor: '#F7306D' },
-  { id: 3, icon: null, isLogo: true, iconBg: 'rgba(255,91,46,0.12)', titulo: 'ALBERT recomienda tu sesión de estudio', tiempo: 'Hace 2h', tag: null },
-  { id: 4, icon: '📉', iconBg: 'rgba(196,16,122,0.15)', titulo: 'Rendimiento bajo en Historia Moderna', tiempo: 'Hace 4h', tag: null },
-  { id: 5, icon: '🏆', iconBg: 'rgba(255,91,46,0.15)', titulo: 'Llevas 5 días consecutivos estudiando', tiempo: 'Hace 6h', tag: '¡Sigue así!', tagColor: '#FF8430' },
+  {
+    id: 1,
+    icon: '📋',
+    iconBg: 'rgba(255,132,48,0.15)',
+    titulo: 'Resolver ejercicios de cálculo integral',
+    tiempo: 'Hace 5 min',
+    tag: null,
+  },
+  {
+    id: 2,
+    icon: '📅',
+    iconBg: 'rgba(247,48,109,0.15)',
+    titulo: 'Mañana vence el taller de Matemáticas',
+    tiempo: 'Hace 1h',
+    tag: 'Prioridad Alta',
+    tagColor: '#F7306D',
+  },
+  {
+    id: 3,
+    icon: null,
+    isLogo: true,
+    iconBg: 'rgba(255,91,46,0.12)',
+    titulo: 'ALBERT recomienda tu sesión de estudio',
+    tiempo: 'Hace 2h',
+    tag: null,
+  },
+  {
+    id: 4,
+    icon: '📉',
+    iconBg: 'rgba(196,16,122,0.15)',
+    titulo: 'Rendimiento bajo en Historia Moderna',
+    tiempo: 'Hace 4h',
+    tag: null,
+  },
+  {
+    id: 5,
+    icon: '🏆',
+    iconBg: 'rgba(255,91,46,0.15)',
+    titulo: 'Llevas 5 días consecutivos estudiando',
+    tiempo: 'Hace 6h',
+    tag: '¡Sigue así!',
+    tagColor: '#FF8430',
+  },
 ];
 
-const Header = ({ theme, onToggleTheme }) => {
-  const isDark = theme === 'dark';
+const Header = () => {
+  const { isDark, toggleTheme } = useTheme();
   const [showNotif, setShowNotif] = useState(false);
   const [showSocial, setShowSocial] = useState(false);
   const notifRef = useRef(null);
@@ -57,17 +72,22 @@ const Header = ({ theme, onToggleTheme }) => {
     <div style={s.topbar}>
       <div />
       <div style={s.topbarRight}>
-
         {/* THEME TOGGLE */}
-        <button style={s.themeBtn} onClick={onToggleTheme}>
+        <button style={s.themeBtn} onClick={toggleTheme}>
           <span style={{ fontSize: 15 }}>{isDark ? '☀️' : '🌙'}</span>
           <span style={{ fontSize: 12 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
         </button>
 
         {/* BELL + NOTIF POPUP */}
         <div style={{ position: 'relative' }} ref={notifRef}>
-          <button style={s.iconBtn} onClick={() => { setShowNotif(p => !p); setShowSocial(false); }}>
-            <BellIcon isDark={isDark} />
+          <button
+            style={s.iconBtn}
+            onClick={() => {
+              setShowNotif((p) => !p);
+              setShowSocial(false);
+            }}
+          >
+            <Bell size={20} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2} />
             <span style={s.badge}>5</span>
           </button>
 
@@ -75,24 +95,36 @@ const Header = ({ theme, onToggleTheme }) => {
             <div style={s.notifPopup}>
               <div style={s.notifHeader}>
                 <div style={s.notifTitleRow}>
-                  <BellIcon isDark={isDark} />
+                  <Bell size={20} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2} />
                   <span style={s.notifTitle}>Notificaciones</span>
                 </div>
                 <span style={s.notifCount}>5</span>
               </div>
               <div style={s.notifList}>
-                {NOTIFICACIONES.map(n => (
+                {NOTIFICACIONES.map((n) => (
                   <div key={n.id} style={s.notifItem}>
                     <div style={{ ...s.notifIconWrap, background: n.iconBg }}>
-                      {n.isLogo
-                        ? <span style={{ fontSize: 10, fontWeight: 800, color: isDark ? '#FF5B2E' : '#FF8430', fontFamily: "'Plus Jakarta Sans',sans-serif" }}>AI</span>
-                        : <span style={{ fontSize: 14 }}>{n.icon}</span>
-                      }
+                      {n.isLogo ? (
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 800,
+                            color: isDark ? '#FF5B2E' : '#FF8430',
+                            fontFamily: "'Plus Jakarta Sans',sans-serif",
+                          }}
+                        >
+                          AI
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 14 }}>{n.icon}</span>
+                      )}
                     </div>
                     <div style={s.notifContent}>
                       <div style={s.notifTexto}>{n.titulo}</div>
                       <div style={s.notifMeta}>
-                        {n.tag && <span style={{ ...s.notifTag, color: n.tagColor }}>{n.tag} • </span>}
+                        {n.tag && (
+                          <span style={{ ...s.notifTag, color: n.tagColor }}>{n.tag} • </span>
+                        )}
                         <span style={s.notifTiempo}>{n.tiempo}</span>
                       </div>
                     </div>
@@ -108,12 +140,17 @@ const Header = ({ theme, onToggleTheme }) => {
 
         {/* SOCIAL BUTTON + POPUP */}
         <div style={{ position: 'relative' }} ref={socialRef}>
-          <button style={s.socialBtn} onClick={() => { setShowSocial(p => !p); setShowNotif(false); }}>
-            <SocialIcon /> Social
+          <button
+            style={s.socialBtn}
+            onClick={() => {
+              setShowSocial((p) => !p);
+              setShowNotif(false);
+            }}
+          >
+            <Users size={15} color="#fff" strokeWidth={2} /> Social
           </button>
           {showSocial && <SocialPopup isDark={isDark} onClose={() => setShowSocial(false)} />}
         </div>
-
       </div>
     </div>
   );
@@ -158,13 +195,18 @@ const getStyles = (isDark) => ({
   },
   badge: {
     position: 'absolute',
-    top: 0, right: 0,
-    width: 14, height: 14,
+    top: 0,
+    right: 0,
+    width: 14,
+    height: 14,
     borderRadius: '50%',
     background: isDark ? '#C4107A' : '#F7306D',
     color: '#fff',
-    fontSize: 8, fontWeight: 700,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 8,
+    fontWeight: 700,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     fontFamily: "'Poppins', sans-serif",
   },
   socialBtn: {
@@ -209,26 +251,71 @@ const getStyles = (isDark) => ({
   notifTitleRow: { display: 'flex', alignItems: 'center', gap: 8 },
   notifTitle: {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 15, fontWeight: 700,
+    fontSize: 15,
+    fontWeight: 700,
     color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
   },
   notifCount: {
     background: isDark ? '#C4107A' : '#F7306D',
-    color: '#fff', fontSize: 10, fontWeight: 700,
-    borderRadius: '50%', width: 20, height: 20,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 700,
+    borderRadius: '50%',
+    width: 20,
+    height: 20,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     fontFamily: "'Poppins', sans-serif",
   },
   notifList: { maxHeight: 320, overflowY: 'auto', padding: '6px 0' },
-  notifItem: { display: 'flex', alignItems: 'flex-start', gap: 12, padding: '10px 18px', cursor: 'pointer' },
-  notifIconWrap: { width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  notifItem: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 12,
+    padding: '10px 18px',
+    cursor: 'pointer',
+  },
+  notifIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
   notifContent: { flex: 1, minWidth: 0 },
-  notifTexto: { fontSize: 12, fontWeight: 600, color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)', lineHeight: 1.4, marginBottom: 3, fontFamily: "'Poppins', sans-serif" },
+  notifTexto: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    lineHeight: 1.4,
+    marginBottom: 3,
+    fontFamily: "'Poppins', sans-serif",
+  },
   notifMeta: { display: 'flex', alignItems: 'center', gap: 2 },
   notifTag: { fontSize: 10, fontWeight: 600, fontFamily: "'Poppins', sans-serif" },
-  notifTiempo: { fontSize: 10, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontFamily: "'Poppins', sans-serif" },
-  notifFooter: { borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`, padding: '10px 18px', textAlign: 'center' },
-  verTodasBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: isDark ? '#FF5B2E' : '#F7306D', fontFamily: "'Poppins', sans-serif" },
+  notifTiempo: {
+    fontSize: 10,
+    color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  notifFooter: {
+    borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+    padding: '10px 18px',
+    textAlign: 'center',
+  },
+  verTodasBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    color: isDark ? '#FF5B2E' : '#F7306D',
+    fontFamily: "'Poppins', sans-serif",
+  },
 });
 
 export default Header;
