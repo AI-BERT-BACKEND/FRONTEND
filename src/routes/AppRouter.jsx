@@ -24,6 +24,7 @@ import Statistics from '../pages/Statistics';
 import SmartSchedule from '../pages/SmartSchedule';
 import Gamification from '../pages/Gamification';
 import Settings from '../pages/Settings';
+import Availability from '../pages/Availability';
 
 const AppRouter = () => {
   return (
@@ -45,6 +46,7 @@ const AppRouter = () => {
         <Route path="/gestion/dashboard" element={<AcademicDashboard />} />
         <Route path="/gestion/metas" element={<AcademicGoals />} />
         <Route path="/gestion/preferencias" element={<StudyPreferences />} />
+        <Route path="/gestion/disponibilidad" element={<Availability />} />
         <Route path="/materias/:id" element={<SubjectDetail />} />
         <Route path="/materias/:id/cortes" element={<CourseGrades />} />
         <Route path="/tareas" element={<Tasks />} />
