@@ -4,6 +4,7 @@ import ErrorMsg from '../components/ErrorMsg';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import { useNavigate } from 'react-router-dom';
 
 const ChevronDown = ({ color }) => (
   <svg width="11" height="11" viewBox="0 0 11 11" fill="none"
@@ -21,6 +22,7 @@ const Subjects = () => {
   const [showModal, setShowModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(null);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   const [materias, setMaterias] = useState([
     {
@@ -163,7 +165,7 @@ const Subjects = () => {
                 </button>
                 {menuOpen === m.id && (
                   <div style={s.dropdown}>
-                    <button style={s.dropdownItem} onClick={() => navigate(`/materias/:id`)}>
+                    <button style={s.dropdownItem} onClick={() => navigate(`/materias/${m.id}`)}>
                       📊 Ver detalle
                     </button>
                     <button style={{ ...s.dropdownItem, color: '#F00707' }} onClick={() => handleEliminar(m.id)}>
