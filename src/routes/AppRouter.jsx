@@ -21,6 +21,7 @@ import CourseGrades from '../pages/CourseGrades';
 import Tasks from '../pages/Tasks';
 import Prioritization from '../pages/Prioritization';
 import Statistics from '../pages/Statistics';
+import SmartSchedule from '../pages/SmartSchedule';
 
 const AppRouter = () => {
   return (
@@ -47,6 +48,7 @@ const AppRouter = () => {
         <Route path="/tareas" element={<Tasks />} />
         <Route path="/priorizacion" element={<Prioritization />} />
         <Route path="/estadisticas" element={<Statistics />} />
+        <Route path="/horario-inteligente" element={<SmartSchedule />} />
       </Routes>
     </BrowserRouter>
   );
