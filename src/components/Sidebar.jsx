@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { createStyles } from '../theme/createStyles';
 import LogoImg from '../assets/LOGO.png';
 import {
   Home, Calendar, BookOpen, Zap, Trophy,
