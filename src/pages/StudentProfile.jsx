@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
+import { AlertTriangle, Trash2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { validateEmail, validateRequired } from '../utils/validators';
 import { createStyles } from '../theme/createStyles';
@@ -117,7 +118,7 @@ const StudentProfile = () => {
 
             <div style={s.dangerZone}>
               <div style={s.dangerHeader}>
-                <span style={{ fontSize: 14 }}>⚠️</span>
+                <AlertTriangle size={15} color={isDark ? '#F7306D' : '#F00707'} />
                 <span style={s.dangerTitle}>Zona de Peligro</span>
               </div>
               <div style={s.dangerRow}>
@@ -137,7 +138,7 @@ const StudentProfile = () => {
                   </span>
                 </div>
                 <button style={s.dangerBtnFill} onClick={() => setShowEliminarConfirm(true)}>
-                  🗑 Eliminar mi cuenta
+                  <Trash2 size={14} color="#fff" /> Eliminar mi cuenta
                 </button>
               </div>
             </div>
@@ -152,11 +153,17 @@ const StudentProfile = () => {
 
       {/* Modal Desactivar */}
       {showDesactivarConfirm && (
-        <div style={s.modalOverlay} onClick={() => setShowDesactivarConfirm(false)}>
-          <div style={s.modalCard} onClick={(e) => e.stopPropagation()}>
+        <div style={s.modalOverlay} onClick={() => setShowDesactivarConfirm(false)} role="presentation">
+          <div 
+            style={s.modalCard} 
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="desactivar-title"
+          >
             <div style={s.modalHeader}>
-              <span style={{ fontSize: 20 }}>⚠️</span>
-              <span style={s.modalTitle}>Desactivar cuenta</span>
+              <AlertTriangle size={20} color="#FF8430" />
+              <span id="desactivar-title" style={s.modalTitle}>Desactivar cuenta</span>
             </div>
             <p style={s.modalText}>
               Tu perfil quedará oculto temporalmente. Podrás reactivarlo cuando quieras iniciando sesión nuevamente.
@@ -173,11 +180,17 @@ const StudentProfile = () => {
 
       {/* Modal Eliminar */}
       {showEliminarConfirm && (
-        <div style={s.modalOverlay} onClick={() => setShowEliminarConfirm(false)}>
-          <div style={s.modalCard} onClick={(e) => e.stopPropagation()}>
+        <div style={s.modalOverlay} onClick={() => setShowEliminarConfirm(false)} role="presentation">
+          <div 
+            style={s.modalCard} 
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="eliminar-title"
+          >
             <div style={s.modalHeader}>
-              <span style={{ fontSize: 20 }}>🗑</span>
-              <span style={{ ...s.modalTitle, color: '#F00707', WebkitTextFillColor: '#F00707', background: 'none' }}>
+              <Trash2 size={20} color="#F00707" />
+              <span id="eliminar-title" style={{ ...s.modalTitle, color: '#F00707', WebkitTextFillColor: '#F00707', background: 'none' }}>
                 Eliminar cuenta
               </span>
             </div>

@@ -38,4 +38,7 @@ export const createStyles = (isDark) => ({
   // Shared patterns
   modalShadow: isDark ? tokens.shadows.modal.dark : tokens.shadows.modal.light,
   popupShadow: isDark ? tokens.shadows.popup.dark : tokens.shadows.popup.light,
+
+  // Transitions
+  appleTransition: 'all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)',
 });

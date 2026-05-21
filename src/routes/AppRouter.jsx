@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import ProtectedRoute from '../components/ProtectedRoute';
+import ScrollToTop from '../components/ScrollToTop';
 
 import Login from '../pages/Login';
 import ForgotPassword from '../pages/ForgotPassword';
@@ -32,6 +34,7 @@ import StartStudySession from '../pages/StartStudySession';
 const AppRouter = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/login" element={<Login />} />
@@ -40,27 +43,176 @@ const AppRouter = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/verified-success" element={<VerifiedSuccess />} />
-        <Route path="/academic-profile" element={<AcademicProfile />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/profile" element={<StudentProfile />} />
-        <Route path="/materias" element={<Subjects />} />
-        <Route path="/calendario" element={<Calendar />} />
-        <Route path="/gestion" element={<AcademicManagement />} />
-        <Route path="/gestion/dashboard" element={<AcademicDashboard />} />
-        <Route path="/gestion/metas" element={<AcademicGoals />} />
-        <Route path="/gestion/preferencias" element={<StudyPreferences />} />
-        <Route path="/gestion/disponibilidad" element={<Availability />} />
-        <Route path="/materias/:id" element={<SubjectDetail />} />
-        <Route path="/materias/:id/cortes" element={<CourseGrades />} />
-        <Route path="/tareas" element={<Tasks />} />
-        <Route path="/priorizacion" element={<Prioritization />} />
-        <Route path="/estadisticas" element={<Statistics />} />
-        <Route path="/horario-inteligente" element={<SmartSchedule />} />
-        <Route path="/gamificacion" element={<Gamification />} />
-        <Route path="/configuracion" element={<Settings />} />
-        <Route path="/sesion" element={<StudySession />} />
-        <Route path="/sesion/crear" element={<CreateStudySession />} />
-        <Route path="/sesion/iniciar" element={<StartStudySession />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/academic-profile"
+          element={
+            <ProtectedRoute>
+              <AcademicProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <StudentProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/materias"
+          element={
+            <ProtectedRoute>
+              <Subjects />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/calendario"
+          element={
+            <ProtectedRoute>
+              <Calendar />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gestion"
+          element={
+            <ProtectedRoute>
+              <AcademicManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gestion/dashboard"
+          element={
+            <ProtectedRoute>
+              <AcademicDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gestion/metas"
+          element={
+            <ProtectedRoute>
+              <AcademicGoals />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gestion/preferencias"
+          element={
+            <ProtectedRoute>
+              <StudyPreferences />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gestion/disponibilidad"
+          element={
+            <ProtectedRoute>
+              <Availability />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/materias/:id"
+          element={
+            <ProtectedRoute>
+              <SubjectDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/materias/:id/cortes"
+          element={
+            <ProtectedRoute>
+              <CourseGrades />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tareas"
+          element={
+            <ProtectedRoute>
+              <Tasks />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/priorizacion"
+          element={
+            <ProtectedRoute>
+              <Prioritization />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/estadisticas"
+          element={
+            <ProtectedRoute>
+              <Statistics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/horario-inteligente"
+          element={
+            <ProtectedRoute>
+              <SmartSchedule />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/gamificacion"
+          element={
+            <ProtectedRoute>
+              <Gamification />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/configuracion"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sesion"
+          element={
+            <ProtectedRoute>
+              <StudySession />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sesion/crear"
+          element={
+            <ProtectedRoute>
+              <CreateStudySession />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sesion/iniciar"
+          element={
+            <ProtectedRoute>
+              <StartStudySession />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

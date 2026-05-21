@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import CircleProgress from '../components/CircleProgress';
 import ProgressBar from '../components/ProgressBar';
+import { Pin, Circle, Calendar, Timer, Sun } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
@@ -148,18 +149,20 @@ const AcademicManagement = () => {
                 ...s.badge,
                 background: isDark ? 'rgba(196,16,122,0.18)' : 'rgba(255,132,48,0.12)',
                 color: isDark ? '#FF5B2E' : '#FF8430',
+                display: 'flex', alignItems: 'center', gap: 4
               }}
             >
-              📌 PRÓXIMAS ENTREGAS: 2
+              <Pin size={10} /> PRÓXIMAS ENTREGAS: 2
             </span>
             <span
               style={{
                 ...s.badge,
                 background: isDark ? 'rgba(196,16,122,0.18)' : 'rgba(247,48,109,0.10)',
                 color: isDark ? '#C4107A' : '#F7306D',
+                display: 'flex', alignItems: 'center', gap: 4
               }}
             >
-              ● RENDIMIENTO ALTO
+              <Circle size={8} fill="currentColor" /> RENDIMIENTO ALTO
             </span>
           </div>
         </div>
@@ -175,7 +178,9 @@ const AcademicManagement = () => {
               </div>
             ))}
           </div>
-          <div style={s.estadoBadge}>📅 ESTADO: SEMANA PLANIFICADA</div>
+          <div style={{ ...s.estadoBadge, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <Calendar size={12} /> ESTADO: SEMANA PLANIFICADA
+          </div>
         </div>
       );
     }
@@ -190,14 +195,14 @@ const AcademicManagement = () => {
       return (
         <div style={s.extraBlock}>
           <div style={s.prefItem}>
-            <span style={s.prefIcon}>⏱️</span>
+            <Timer size={16} color={isDark ? '#FF5B2E' : '#FF8430'} />
             <div>
               <div style={s.prefTitle}>Técnica: Pomodoro</div>
               <div style={s.prefSub}>Sesiones de 25 min + 5 break</div>
             </div>
           </div>
           <div style={{ ...s.prefItem, marginTop: 8 }}>
-            <span style={s.prefIcon}>☀️</span>
+            <Sun size={16} color={isDark ? '#FF5B2E' : '#FF8430'} />
             <div style={s.prefTitle}>Modalidad de estudio preferida</div>
           </div>
         </div>

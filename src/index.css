@@ -9,6 +9,7 @@ html, body, #root {
   height: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
@@ -26,12 +27,45 @@ body {
   display: block;
 }
 
-/* Ensure the new view is always on top to see the reveal animation */
-::view-transition-new(root) {
-  z-index: 9999;
+/* ── Smooth Transitions (Apple Style) ── */
+
+@keyframes appleFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.99) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-::view-transition-old(root) {
-  z-index: 1;
+@keyframes appleFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.01) translateY(-10px);
+  }
+}
+
+.page-transition {
+  animation: appleFadeIn 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.exit-transition {
+  animation: appleFadeOut 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* Stagger effects */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+
+/* Global scroll behavior */
+html {
+  scroll-behavior: smooth;
 }
 
