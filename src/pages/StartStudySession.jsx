@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
@@ -39,21 +40,32 @@ const fmt = (s) =>
 
 // ── COMPONENTE PRINCIPAL ──────────────────────────────────────────────────────
 
+const LIMITE_SESION = 3 * 60 * 60; // 3 horas en segundos
+
 const StartStudySession = () => {
   const { isDark } = useTheme();
+  const navigate = useNavigate();
   const s = getStyles(isDark);
+  const t = createStyles(isDark);
 
-  const [segundos,    setSegundos]    = useState(23 * 60 + 41);
-  const [corriendo,   setCorriendo]   = useState(true);
-  const [bloque,      setBloque]      = useState(2);
-  const [bitacora,    setBitacora]    = useState(BITACORA_INIT);
-  const [anotacion,   setAnotacion]   = useState('');
+  const [segundos,      setSegundos]      = useState(23 * 60 + 41);
+  const [corriendo,     setCorriendo]     = useState(true);
+  const [bloque,        setBloque]        = useState(2);
+  const [bitacora,      setBitacora]      = useState(BITACORA_INIT);
+  const [anotacion,     setAnotacion]     = useState('');
+  const [tiempoTotal,   setTiempoTotal]   = useState(0);
+  const [showShare,     setShowShare]     = useState(false);
+
+  const sesionCumplida = tiempoTotal >= LIMITE_SESION;
 
   useEffect(() => {
-    if (!corriendo) return;
-    const id = setInterval(() => setSegundos((p) => Math.max(0, p - 1)), 1000);
+    if (!corriendo || sesionCumplida) return;
+    const id = setInterval(() => {
+      setSegundos((p) => Math.max(0, p - 1));
+      setTiempoTotal((p) => p + 1);
+    }, 1000);
     return () => clearInterval(id);
-  }, [corriendo]);
+  }, [corriendo, sesionCumplida]);
 
   const irBloque = (delta) => {
     const next = bloque + delta;
@@ -77,6 +89,9 @@ const StartStudySession = () => {
 
   return (
     <AppLayout>
+      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
+        ← Volver
+      </button>
       <div style={s.layout}>
 
         {/* ── IZQUIERDA: BITÁCORA ───────────────────────────── */}
@@ -138,8 +153,28 @@ const StartStudySession = () => {
             </span>
           </div>
 
+          {sesionCumplida && (
+            <div style={{
+              background: 'rgba(34,197,94,0.14)',
+              border: '1px solid rgba(34,197,94,0.30)',
+              borderRadius: 12,
+              padding: '10px 18px',
+              fontSize: 12,
+              color: '#22C55E',
+              fontWeight: 600,
+              textAlign: 'center',
+              fontFamily: t.fontSecondary,
+            }}>
+              ✓ Sesión completada — 3 horas alcanzadas
+            </div>
+          )}
+
           <div style={s.controls}>
-            <button style={s.controlBtn} onClick={() => irBloque(-1)}>
+            <button
+              style={{ ...s.controlBtn, ...(sesionCumplida ? { opacity: 0.4, cursor: 'not-allowed' } : {}) }}
+              onClick={() => !sesionCumplida && irBloque(-1)}
+              disabled={sesionCumplida}
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="19 20 9 12 19 4 19 20"/>
@@ -147,8 +182,12 @@ const StartStudySession = () => {
               </svg>
             </button>
 
-            <button style={s.playBtn} onClick={() => setCorriendo((p) => !p)}>
-              {corriendo ? (
+            <button
+              style={{ ...s.playBtn, ...(sesionCumplida ? { opacity: 0.4, cursor: 'not-allowed' } : {}) }}
+              onClick={() => !sesionCumplida && setCorriendo((p) => !p)}
+              disabled={sesionCumplida}
+            >
+              {corriendo && !sesionCumplida ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="6" y="4" width="4" height="16"/>
@@ -161,7 +200,11 @@ const StartStudySession = () => {
               )}
             </button>
 
-            <button style={s.controlBtn} onClick={() => irBloque(1)}>
+            <button
+              style={{ ...s.controlBtn, ...(sesionCumplida ? { opacity: 0.4, cursor: 'not-allowed' } : {}) }}
+              onClick={() => !sesionCumplida && irBloque(1)}
+              disabled={sesionCumplida}
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="5 4 15 12 5 20 5 4"/>
@@ -185,23 +228,23 @@ const StartStudySession = () => {
                   <div style={s.avatar}>{p.iniciales}</div>
                   <span style={{
                     ...s.presenciaDot,
-                    background: p.activo ? '#22C55E' : '#FF8430',
+                    background: p.activo ? '#22C55E' : '#EF4444',
                   }} />
                 </div>
                 <div style={s.pInfo}>
                   <div style={s.pNombre}>{p.nombre}</div>
                   <div style={{
                     ...s.pEstado,
-                    color: p.activo ? '#22C55E' : (isDark ? '#FF5B2E' : '#FF8430'),
+                    color: p.activo ? '#22C55E' : '#EF4444',
                   }}>
-                    {p.activo ? 'Disponible ahora' : 'Trabajando...'}
+                    {p.activo ? 'Disponible ahora' : 'Ocupado'}
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          <button style={s.invitarBtn}>INVITAR A LA SALA</button>
+          <button style={s.invitarBtn} onClick={() => setShowShare(true)}>INVITAR A LA SALA</button>
 
           {/* Meta actual */}
           <div style={s.metaCard}>
@@ -214,6 +257,45 @@ const StartStudySession = () => {
 
         </div>
       </div>
+      {/* ── MODAL COMPARTIR ── */}
+      {showShare && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.70)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 300, backdropFilter: 'blur(3px)',
+        }} onClick={() => setShowShare(false)}>
+          <div style={{
+            background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+            borderRadius: 20, width: '100%', maxWidth: 360, margin: '0 20px',
+            padding: '28px 28px 24px', boxShadow: t.modalShadow,
+          }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <span style={{ fontFamily: t.fontPrimary, fontSize: 18, fontWeight: 700, backgroundImage: t.primaryGradient, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                Invitar a la sala
+              </span>
+              <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.textSecondary, fontSize: 18, lineHeight: 1, padding: 4 }} onClick={() => setShowShare(false)}>✕</button>
+            </div>
+            <p style={{ fontSize: 12, color: t.textSecondary, marginBottom: 16 }}>
+              Comparte este enlace con tus compañeros para unirse a la sesión de estudio.
+            </p>
+            <div style={{ display: 'flex', gap: 8, background: t.inputBg, border: `1px solid ${t.inputBorder}`, borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
+              <span style={{ flex: 1, fontSize: 12, color: t.textSecondary, fontFamily: t.fontSecondary, wordBreak: 'break-all' }}>
+                aibert.app/sesion/sala-{Math.random().toString(36).slice(2, 8)}
+              </span>
+              <button style={{ background: t.primaryGradient, border: 'none', borderRadius: 7, padding: '4px 12px', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                Copiar
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {['WhatsApp', 'Teams', 'Email'].map(app => (
+                <button key={app} style={{ flex: 1, padding: '9px 0', borderRadius: 9, border: `1px solid ${t.cardBorder}`, background: 'transparent', cursor: 'pointer', fontFamily: t.fontSecondary, fontSize: 11, fontWeight: 600, color: t.textSecondary }}>
+                  {app}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </AppLayout>
   );
 };

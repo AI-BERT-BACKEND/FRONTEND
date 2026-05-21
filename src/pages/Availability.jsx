@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
@@ -41,11 +42,13 @@ const formatMes = (date) =>
 const Availability = () => {
   const { isDark } = useTheme();
   const s = getStyles(isDark);
+  const navigate = useNavigate();
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [selected, setSelected]   = useState(new Set());
   const [categorias, setCategorias] = useState(CATEGORIAS_INIT);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
@@ -84,13 +87,24 @@ const Availability = () => {
     );
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 600));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const t = createStyles(isDark);
 
   return (
     <AppLayout>
+      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
+        ← Volver
+      </button>
       <div style={s.layout}>
 
         {/* ── IZQUIERDA: CALENDARIO SEMANAL ─────────────────── */}
@@ -190,14 +204,18 @@ const Availability = () => {
 
           {/* Botón guardar */}
           <div style={s.saveRow}>
-            <button style={s.saveBtn} onClick={handleSave}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-              </svg>
-              Guardar configuración
+            <button style={{ ...s.saveBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSave} disabled={loading}>
+              {loading ? 'Guardando...' : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                    stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                  </svg>
+                  Guardar configuración
+                </>
+              )}
             </button>
           </div>
         </div>

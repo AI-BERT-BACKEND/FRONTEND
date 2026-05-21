@@ -198,6 +198,48 @@ const Statistics = () => {
         </div>
       </div>
 
+      {/* ── HISTORIAL DE SESIONES + FLUJO ── */}
+      <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+        <div style={{ ...s.chartCard, padding: '18px 20px' }}>
+          <div style={{ ...s.chartTitle, fontSize: 13, marginBottom: 14 }}>Historial de Sesiones</div>
+          {[
+            { dia: 'Lun', horas: 2.5, completadas: 3 },
+            { dia: 'Mar', horas: 1.0, completadas: 1 },
+            { dia: 'Mié', horas: 3.0, completadas: 4 },
+            { dia: 'Jue', horas: 0.5, completadas: 1 },
+            { dia: 'Vie', horas: 2.0, completadas: 2 },
+            { dia: 'Sáb', horas: 1.5, completadas: 2 },
+          ].map(d => (
+            <div key={d.dia} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: 10, color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)', width: 28, fontWeight: 600 }}>{d.dia}</span>
+              <div style={{ flex: 1, height: 7, borderRadius: 4, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: 4, width: `${(d.horas / 3.5) * 100}%`, background: isDark ? 'linear-gradient(90deg,#FF5B2E,#C4107A)' : 'linear-gradient(90deg,#FF8430,#F7306D)' }} />
+              </div>
+              <span style={{ fontSize: 10, fontWeight: 700, color: isDark ? '#FF5B2E' : '#FF8430', minWidth: 28 }}>{d.horas}h</span>
+              <span style={{ fontSize: 9, color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>{d.completadas} sesiones</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ ...s.statCard, flex: 'none', width: 200 }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', marginBottom: 12 }}>Flujo de Sesión</div>
+          {[
+            { label: 'Iniciadas', val: 18, pct: 100, color: isDark ? '#FF5B2E' : '#FF8430' },
+            { label: 'Completadas', val: 14, pct: 78, color: '#22C55E' },
+            { label: 'Interrumpidas', val: 4, pct: 22, color: '#EAB308' },
+          ].map(r => (
+            <div key={r.label} style={{ marginBottom: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.60)' }}>{r.label}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: r.color }}>{r.val}</span>
+              </div>
+              <div style={{ height: 5, borderRadius: 3, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: 3, width: `${r.pct}%`, background: r.color }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ── BOTTOM ROW: Recomendaciones + AI.BERT ── */}
       <div style={s.bottomRow}>
         {/* RECOMENDACIONES */}
@@ -309,6 +351,7 @@ const getStyles = (isDark) => {
       alignItems: 'flex-end',
       boxShadow: t.cardShadow,
       flexShrink: 0,
+      minWidth: 220,
     },
     promedioHeaderLabel: { fontSize: 10, color: t.textMuted, fontFamily: t.fontSecondary },
     promedioHeaderVal: {

@@ -396,15 +396,28 @@ const StudyPreferences = () => {
   const [ambiente, setAmbiente] = useState('silencio');
   const [showToast, setShowToast] = useState(false);
 
-  const handleGuardar = () => {
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3500);
+  const [loading, setLoading] = useState(false);
+
+  const handleGuardar = async () => {
+    setLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 600));
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3500);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const s = getStyles(isDark);
 
+  const t = createStyles(isDark);
+
   return (
     <AppLayout>
+      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
+        ← Volver
+      </button>
       <div style={s.row2}>
         <div style={s.card}>
           <div style={s.cardHeader}>
@@ -573,8 +586,8 @@ const StudyPreferences = () => {
       </div>
 
       <div style={s.footerRow}>
-        <button style={s.saveBtn} onClick={handleGuardar}>
-          Guardar Preferencias →
+        <button style={{ ...s.saveBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleGuardar} disabled={loading}>
+          {loading ? 'Guardando...' : 'Guardar Preferencias →'}
         </button>
       </div>
 

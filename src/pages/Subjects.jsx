@@ -17,10 +17,22 @@ const COLORS = ['#FF8430','#F7306D','#00CFFF','#A855F7','#22C55E','#EAB308','#FF
 const HORAS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'];
 const DIAS = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
 
+const Spinner = () => (
+  <>
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <svg style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+    </svg>
+  </>
+);
+
 const Subjects = () => {
   const { isDark } = useTheme();
   const [showModal, setShowModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -101,12 +113,20 @@ const Subjects = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleCrear = () => {
+  const handleCrear = async () => {
     if (!validateForm()) return;
-    setMaterias((prev) => [...prev, { ...form, id: Date.now(), activo: true, progreso: 0 }]);
-    setForm({ nombre: '', profesor: '', creditos: '', semestre: '', color: '#FF8430', horario: {} });
-    setFormErrors({});
-    setShowModal(false);
+    setLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 500));
+      setMaterias((prev) => [...prev, { ...form, id: Date.now(), activo: true, progreso: 0 }]);
+      setForm({ nombre: '', profesor: '', creditos: '', semestre: '', color: '#FF8430', horario: {} });
+      setFormErrors({});
+      setShowModal(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 4000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEliminar = (id) => {
@@ -129,6 +149,31 @@ const Subjects = () => {
 
   return (
     <AppLayout>
+      {/* TOAST ÉXITO */}
+      {showSuccess && (
+        <div style={{
+          position: 'fixed', top: 20, right: 24, zIndex: 300,
+          background: isDark ? '#1E1E1E' : '#FFFFFF',
+          border: `1px solid ${isDark ? 'rgba(34,197,94,0.35)' : 'rgba(34,197,94,0.35)'}`,
+          borderRadius: 14, padding: '14px 20px',
+          display: 'flex', alignItems: 'center', gap: 12,
+          maxWidth: 340,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+        }}>
+          <div style={{
+            width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+            background: '#22C55E', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#fff' : 'rgba(0,0,0,0.85)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            ¡Materia registrada correctamente!
+          </span>
+        </div>
+      )}
+
       {/* HEADER */}
       <div style={s.pageHeader}>
         <div>
@@ -380,8 +425,10 @@ const Subjects = () => {
             </div>
 
             <div style={s.modalFooter}>
-              <button style={s.mCancelBtn} onClick={() => setShowModal(false)}>Cancelar</button>
-              <button style={s.mCreateBtn} onClick={handleCrear}>Crear materia</button>
+              <button style={s.mCancelBtn} onClick={() => setShowModal(false)} disabled={loading}>Cancelar</button>
+              <button style={{ ...s.mCreateBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleCrear} disabled={loading}>
+                {loading ? <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Spinner /> Guardando...</span> : 'Registrar Materia'}
+              </button>
             </div>
           </div>
         </div>

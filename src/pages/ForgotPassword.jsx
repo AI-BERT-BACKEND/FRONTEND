@@ -9,6 +9,7 @@ import { createStyles } from '../theme/createStyles';
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({ email: '' });
+  const [loading, setLoading] = useState(false);
   const { isDark } = useTheme();
   const navigate = useNavigate();
 
@@ -18,8 +19,15 @@ const ForgotPassword = () => {
     return !error;
   };
 
-  const handleSubmit = () => {
-    if (validate()) navigate('/forgot-password/sent', { state: { email } });
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 600));
+      navigate('/forgot-password/sent', { state: { email } });
+    } finally {
+      setLoading(false);
+    }
   };
   const s = getStyles(isDark);
 
@@ -82,8 +90,8 @@ const ForgotPassword = () => {
           )}
         </div>
 
-        <button style={s.btn} onClick={handleSubmit}>
-          Enviar Instrucciones
+        <button style={{ ...s.btn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSubmit} disabled={loading}>
+          {loading ? 'Enviando...' : 'Recuperar Contraseña'}
         </button>
 
         <p style={s.backRow}>
