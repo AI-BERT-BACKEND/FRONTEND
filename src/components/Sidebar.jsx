@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { createStyles } from '../theme/createStyles';
 import LogoImg from '../assets/LOGO.png';
 import {
   Home, Calendar, BookOpen, Zap, Trophy,
   GraduationCap, CheckSquare, BarChart3, Settings, LogOut, User,
 } from 'lucide-react';
-import { createStyles } from '../theme/createStyles';
 
 const NAV_ACADEMIC = [
   { label: 'Inicio',            IconComp: Home,          path: '/dashboard'   },
