@@ -6,6 +6,8 @@ import StatusBadge from '../components/StatusBadge';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
+import { Star, ClipboardList, ListTodo, CheckCircle2 } from 'lucide-react';
+
 const IconPlus = ({ color }) => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round">
     <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -393,14 +395,14 @@ const CourseGrades = () => {
       {/* ── TOP STATS ── */}
       <div style={s.statsRow}>
         {[
-          { label: 'Promedio Global',     val: stats.promedioGlobal, icon: '⭐', accent: isDark ? '#FF5B2E' : '#FF8430' },
-          { label: 'Cortes',              val: stats.cortes,         icon: '📋', accent: isDark ? '#A855F7' : '#A855F7' },
-          { label: 'Tareas Pendientes',   val: stats.tareasPendientes, icon: '📌', accent: isDark ? '#FF5B2E' : '#FF8430' },
-          { label: 'Asistencia',          val: `${stats.asistencia}%`, icon: '✅', accent: '#22C55E' },
+          { label: 'Promedio Global',     val: stats.promedioGlobal, icon: Star, accent: isDark ? '#FF5B2E' : '#FF8430' },
+          { label: 'Cortes',              val: stats.cortes,         icon: ClipboardList,         accent: isDark ? '#A855F7' : '#A855F7' },
+          { label: 'Tareas Pendientes',   val: stats.tareasPendientes, icon: ListTodo, accent: isDark ? '#FF5B2E' : '#FF8430' },
+          { label: 'Asistencia',          val: `${stats.asistencia}%`, icon: CheckCircle2, accent: '#22C55E' },
         ].map((item, i) => (
           <div key={i} style={s.statCard}>
             <div style={s.statIconWrap}>
-              <span style={{ fontSize: 18 }}>{item.icon}</span>
+              <item.icon size={18} color={item.accent} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={s.statLabel}>{item.label}</div>

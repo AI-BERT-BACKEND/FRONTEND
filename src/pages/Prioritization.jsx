@@ -3,62 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import { 
+  Check, AlertTriangle, Clock, Brain, 
+  Zap, Book, Scale 
+} from 'lucide-react';
 
 const AlertIcon = ({ color }) => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-    <line x1="12" y1="9" x2="12" y2="13"/>
-    <line x1="12" y1="17" x2="12.01" y2="17"/>
-  </svg>
+  <AlertTriangle size={16} color={color} strokeWidth={2} />
 );
 
 const CheckIcon = ({ color }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
-  </svg>
+  <Check size={14} color={color} strokeWidth={2.5} />
 );
 
 const ClockIcon = ({ color }) => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/>
-    <polyline points="12 6 12 12 16 14"/>
-  </svg>
+  <Clock size={13} color={color} strokeWidth={2} />
 );
 
 const BrainIcon = ({ color }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9.5 2a2.5 2.5 0 0 1 5 0v.5"/>
-    <path d="M14.5 2.5c1.5.5 2.5 2 2.5 3.5v1a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4v-1c0-1.5 1-3 2.5-3.5"/>
-    <path d="M12 11v4"/><path d="M9 15h6"/>
-    <path d="M7 15a5 5 0 0 0 10 0"/>
-  </svg>
+  <Brain size={14} color={color} strokeWidth={2} />
 );
 
 const LightningIcon = ({ color }) => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-  </svg>
+  <Zap size={13} color={color} strokeWidth={2} />
 );
 
 const BookIcon = ({ color }) => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-  </svg>
+  <Book size={13} color={color} strokeWidth={2} />
 );
 
 const BalanceIcon = ({ color }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="2" x2="12" y2="22"/>
-    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-  </svg>
+  <Scale size={14} color={color} strokeWidth={2} />
 );
 
 const TAREAS_CRITICAS = [
@@ -158,10 +133,11 @@ const Prioritization = () => {
                 background: tc.urgencia === 'high'
                   ? 'linear-gradient(90deg, #F00707, #FF5B2E)'
                   : isDark ? 'linear-gradient(90deg,#C4107A,#FF5B2E)' : 'linear-gradient(90deg,#FF8430,#F7306D)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
               }}
               onClick={() => handleCompletar(tc.id)}
             >
-              {tareasCompletadas[tc.id] ? '✓ REVISADA' : tc.accion}
+              {tareasCompletadas[tc.id] ? <><Check size={14} /> REVISADA</> : tc.accion}
             </button>
           </div>
         ))}
@@ -217,7 +193,7 @@ const Prioritization = () => {
                       style={{ ...s.completarBtn, ...(completada ? s.completarBtnDone : {}) }}
                       onClick={() => handleCompletar(`p_${tarea.id}`)}
                     >
-                      {completada && <CheckIcon color="#22C55E" />}
+                      {completada && <Check size={12} color="#22C55E" />}
                       {completada ? 'Listo' : 'Marcar'}
                     </button>
                   </div>

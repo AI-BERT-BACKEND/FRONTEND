@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { Bell, Users } from 'lucide-react';
+import { Bell, Users, ClipboardList, Calendar, TrendingDown, Trophy } from 'lucide-react';
 import SocialPopup from './SocialPopup';
 import ThemeToggle from './ThemeToggle';
 import { createStyles } from '../theme/createStyles';
@@ -9,7 +9,7 @@ import { createStyles } from '../theme/createStyles';
 const NOTIFICACIONES = [
   {
     id: 1,
-    icon: '📋',
+    icon: ClipboardList,
     iconBg: 'rgba(255,132,48,0.15)',
     titulo: 'Resolver ejercicios de cálculo integral',
     tiempo: 'Hace 5 min',
@@ -17,7 +17,7 @@ const NOTIFICACIONES = [
   },
   {
     id: 2,
-    icon: '📅',
+    icon: Calendar,
     iconBg: 'rgba(247,48,109,0.15)',
     titulo: 'Mañana vence el taller de Matemáticas',
     tiempo: 'Hace 1h',
@@ -35,7 +35,7 @@ const NOTIFICACIONES = [
   },
   {
     id: 4,
-    icon: '📉',
+    icon: TrendingDown,
     iconBg: 'rgba(196,16,122,0.15)',
     titulo: 'Rendimiento bajo en Historia Moderna',
     tiempo: 'Hace 4h',
@@ -43,7 +43,7 @@ const NOTIFICACIONES = [
   },
   {
     id: 5,
-    icon: '🏆',
+    icon: Trophy,
     iconBg: 'rgba(255,91,46,0.15)',
     titulo: 'Llevas 5 días consecutivos estudiando',
     tiempo: 'Hace 6h',
@@ -118,7 +118,7 @@ const Header = () => {
                           AI
                         </span>
                       ) : (
-                        <span style={{ fontSize: 14 }}>{n.icon}</span>
+                        <n.icon size={16} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2.5} />
                       )}
                     </div>
                     <div style={s.notifContent}>

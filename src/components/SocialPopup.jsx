@@ -5,6 +5,7 @@ import {
   FriendsIcon, ChatIcon, AddFriendIcon, SearchIcon, 
   SendIcon, CloseIcon, MessageIcon, AddPersonIcon, BackIcon 
 } from './SocialPopupIcons';
+import { ArrowUp, ArrowDown, MoreHorizontal } from 'lucide-react';
 import { 
   AMIGOS_ONLINE, AMIGOS_OFFLINE, CHATS, 
   MENSAJES_MAYA, ADD_FRIENDS 
@@ -128,7 +129,7 @@ const SocialPopup = ({ onClose }) => {
             <input style={s.searchInput} placeholder="Search friends..." aria-label="Buscar amigos" />
           </div>
           <div style={s.sectionLabel}>
-            Online <span style={s.sectionCount}>{AMIGOS_ONLINE.length} ↑</span>
+            Online <span style={{ ...s.sectionCount, display: 'flex', alignItems: 'center', gap: 2 }}>{AMIGOS_ONLINE.length} <ArrowUp size={10} /></span>
           </div>
           {AMIGOS_ONLINE.map((u) => (
             <div 
@@ -148,7 +149,7 @@ const SocialPopup = ({ onClose }) => {
             </div>
           ))}
           <div style={s.sectionLabel}>
-            Offline <span style={s.sectionCount}>{AMIGOS_OFFLINE.length} ↓</span>
+            Offline <span style={{ ...s.sectionCount, display: 'flex', alignItems: 'center', gap: 2 }}>{AMIGOS_OFFLINE.length} <ArrowDown size={10} /></span>
           </div>
           {AMIGOS_OFFLINE.map((u) => (
             <div 
@@ -193,7 +194,7 @@ const SocialPopup = ({ onClose }) => {
               m.tipo === 'escribiendo' ? (
                 <div key={`msg-${idx}`} style={s.mensajeRecibido}>
                   <div style={s.bubbleRecibido}>
-                    <span style={{ letterSpacing: 2 }}>• • •</span>
+                    <MoreHorizontal size={14} />
                   </div>
                 </div>
               ) : m.tipo === 'recibido' ? (

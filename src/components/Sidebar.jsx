@@ -5,8 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import LogoImg from '../assets/LOGO.png';
 import {
   Home, Calendar, BookOpen, Zap, Trophy,
-  GraduationCap, CheckSquare, BarChart3, Settings, LogOut,
+  GraduationCap, CheckSquare, BarChart3, Settings, LogOut, User,
 } from 'lucide-react';
+import { createStyles } from '../theme/createStyles';
 
 const NAV_ACADEMIC = [
   { label: 'Inicio',            IconComp: Home,          path: '/dashboard'   },
@@ -82,9 +83,11 @@ const Sidebar = ({ collapsed, onToggle }) => {
             onKeyDown={(e) => handleKeyDown(e, () => navigate('/profile'))}
             aria-label="Ir al perfil de usuario"
           >
-            <div style={s.avatar}>—</div>
+            <div style={s.avatar}>
+              <User size={20} color="#fff" />
+            </div>
             <div>
-              <div style={s.userName}>—</div>
+              <div style={s.userName}>USUARIO</div>
               <div style={s.userRole}>ESTUDIANTE</div>
             </div>
           </div>
@@ -99,7 +102,7 @@ const Sidebar = ({ collapsed, onToggle }) => {
             onKeyDown={(e) => handleKeyDown(e, () => navigate('/profile'))}
             aria-label="Ir al perfil de usuario"
           >
-            —
+            <User size={20} color="#fff" />
           </div>
         )}
 
@@ -447,7 +450,8 @@ const getStyles = (isDark, collapsed) => {
     fontSize: 13,
     fontWeight: 500,
     cursor: 'pointer',
-  },
-});
+    },
+  };
+};
 
 export default Sidebar;
