@@ -193,7 +193,7 @@ const SubjectDetail = () => {
             <IconExport color={isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.55)'} />
             <span>Exportar</span>
           </button>
-          <button style={s.detalleBtn}>Detalle notas</button>
+          <button style={s.detalleBtn} onClick={() => navigate(`/materias/${id}/notas`)}>Detalle notas</button>
         </div>
       </div>
 

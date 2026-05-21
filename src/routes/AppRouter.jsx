@@ -30,6 +30,7 @@ import Availability from '../pages/Availability';
 import StudySession from '../pages/StudySession';
 import CreateStudySession from '../pages/CreateStudySession';
 import StartStudySession from '../pages/StartStudySession';
+import GradeDetail from '../pages/GradeDetail';
 
 const AppRouter = () => {
   return (
@@ -138,6 +139,14 @@ const AppRouter = () => {
           element={
             <ProtectedRoute>
               <CourseGrades />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/materias/:id/notas"
+          element={
+            <ProtectedRoute>
+              <GradeDetail />
             </ProtectedRoute>
           }
         />
