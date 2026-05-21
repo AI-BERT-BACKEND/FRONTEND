@@ -34,9 +34,9 @@ export const AppLayout = ({ children }) => {
       overflowX: 'hidden',
     },
     content: {
-      padding: 'clamp(16px, 2vw, 28px) clamp(16px, 2.5vw, 32px)',
+      padding: 'clamp(20px, 3vw, 40px) clamp(20px, 4vw, 60px)',
       width: '100%',
-      maxWidth: 1440,
+      maxWidth: 1600,
       boxSizing: 'border-box',
       margin: '0 auto',
     },
@@ -52,7 +52,9 @@ export const AppLayout = ({ children }) => {
       <div style={styles.main}>
         <Header />
         <div style={styles.scrollArea}>
-          <div style={styles.content}>{children}</div>
+          <div style={styles.content} className="page-transition">
+            {children}
+          </div>
         </div>
       </div>
     </div>

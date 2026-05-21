@@ -152,11 +152,17 @@ const StudentProfile = () => {
 
       {/* Modal Desactivar */}
       {showDesactivarConfirm && (
-        <div style={s.modalOverlay} onClick={() => setShowDesactivarConfirm(false)}>
-          <div style={s.modalCard} onClick={(e) => e.stopPropagation()}>
+        <div style={s.modalOverlay} onClick={() => setShowDesactivarConfirm(false)} role="presentation">
+          <div 
+            style={s.modalCard} 
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="desactivar-title"
+          >
             <div style={s.modalHeader}>
               <span style={{ fontSize: 20 }}>⚠️</span>
-              <span style={s.modalTitle}>Desactivar cuenta</span>
+              <span id="desactivar-title" style={s.modalTitle}>Desactivar cuenta</span>
             </div>
             <p style={s.modalText}>
               Tu perfil quedará oculto temporalmente. Podrás reactivarlo cuando quieras iniciando sesión nuevamente.
@@ -173,11 +179,17 @@ const StudentProfile = () => {
 
       {/* Modal Eliminar */}
       {showEliminarConfirm && (
-        <div style={s.modalOverlay} onClick={() => setShowEliminarConfirm(false)}>
-          <div style={s.modalCard} onClick={(e) => e.stopPropagation()}>
+        <div style={s.modalOverlay} onClick={() => setShowEliminarConfirm(false)} role="presentation">
+          <div 
+            style={s.modalCard} 
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="eliminar-title"
+          >
             <div style={s.modalHeader}>
               <span style={{ fontSize: 20 }}>🗑</span>
-              <span style={{ ...s.modalTitle, color: '#F00707', WebkitTextFillColor: '#F00707', background: 'none' }}>
+              <span id="eliminar-title" style={{ ...s.modalTitle, color: '#F00707', WebkitTextFillColor: '#F00707', background: 'none' }}>
                 Eliminar cuenta
               </span>
             </div>

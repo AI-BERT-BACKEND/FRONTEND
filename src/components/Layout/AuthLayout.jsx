@@ -24,7 +24,7 @@ export const AuthLayout = ({ children }) => {
       position: 'relative',
       zIndex: 1,
       width: '100%',
-      maxWidth: 960,
+      maxWidth: 1200,
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
@@ -35,7 +35,9 @@ export const AuthLayout = ({ children }) => {
     <div style={styles.root}>
       <GridBackground isDark={isDark} />
       <ThemeToggle isDark={isDark} onToggle={toggleTheme} variant="fixed" />
-      <div style={styles.content}>{children}</div>
+      <div style={styles.content} className="page-transition">
+        {children}
+      </div>
     </div>
   );
 };

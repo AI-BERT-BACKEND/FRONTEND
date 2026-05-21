@@ -1,12 +1,16 @@
 import React from 'react';
+import { Sun, Moon } from 'lucide-react';
+import { createStyles } from '../theme/createStyles';
 
 export const ThemeToggle = ({ isDark, onToggle, variant = 'fixed' }) => {
+  const t = createStyles(isDark);
+  
   const styles = {
     btn: {
       zIndex: 100,
       background: isDark ? '#171717' : '#FEFAF9',
       border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-      padding: '6px 14px',
+      padding: '7px 14px',
       borderRadius: 50,
       cursor: 'pointer',
       display: 'flex',
@@ -15,7 +19,10 @@ export const ThemeToggle = ({ isDark, onToggle, variant = 'fixed' }) => {
       color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
       fontFamily: "'Poppins', sans-serif",
       backdropFilter: 'blur(8px)',
-      transition: 'all 0.2s ease',
+      transition: t.appleTransition,
+      boxShadow: isDark 
+        ? '0 4px 12px rgba(0,0,0,0.3)' 
+        : '0 4px 12px rgba(220,193,181,0.2)',
       ...(variant === 'fixed'
         ? {
             position: 'fixed',
@@ -26,17 +33,23 @@ export const ThemeToggle = ({ isDark, onToggle, variant = 'fixed' }) => {
             position: 'relative',
           }),
     },
-    emoji: {
-      fontSize: 16,
+    iconWrap: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: isDark ? '#FF5B2E' : '#F7306D',
     },
     text: {
-      fontSize: 13,
+      fontSize: 12,
+      fontWeight: 600,
     },
   };
 
   return (
     <button style={styles.btn} onClick={onToggle}>
-      <span style={styles.emoji}>{isDark ? '☀️' : '🌙'}</span>
+      <div style={styles.iconWrap}>
+        {isDark ? <Sun size={15} strokeWidth={2.5} /> : <Moon size={15} strokeWidth={2.5} />}
+      </div>
       <span style={styles.text}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
     </button>
   );
