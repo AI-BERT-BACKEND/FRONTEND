@@ -44,7 +44,7 @@ const Login = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      await login({ email, password });
+      await login({ email, password, rememberMe: remember });
       navigate('/academic-profile');
     } finally {
       setLoading(false);

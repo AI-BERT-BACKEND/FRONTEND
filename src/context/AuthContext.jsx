@@ -35,13 +35,15 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const data = await authService.login(credentials);
+    localStorage.setItem('token', data.token);
     setIsAuthenticated(true);
-    setUser(data.user);
+    setUser(data);
     return data;
   };
 
   const logout = () => {
     authService.logout();
+    localStorage.removeItem('token');
     setIsAuthenticated(false);
     setUser(null);
   };
