@@ -1,37 +1,27 @@
-// MOCK SERVICE for Prototype
+import api from './api';
+
 const authService = {
+
   login: async (credentials) => {
-    console.log('Mock Login with:', credentials);
-    const mockData = {
-      token: 'mock-jwt-token',
-      user: { name: 'Juan', email: credentials.email || 'juan@example.com' }
-    };
-    localStorage.setItem('token', mockData.token);
-    return mockData;
+    const { data } = await api.post('/api/auth/login', credentials);
+    return data;
   },
 
-  register: async (userData) => {
-    console.log('Mock Register with:', userData);
-    return { success: true };
+  logout: async () => {
+    const { data } = await api.post('/api/auth/logout');
+    return data;
   },
 
-  verifyEmail: async (code) => {
-    console.log('Mock Verify Email with:', code);
-    return { success: true };
+  forgotPassword: async (emailData) => {
+    const { data } = await api.post('/api/auth/forgot-password', emailData);
+    return data;
   },
 
-  forgotPassword: async (email) => {
-    console.log('Mock Forgot Password with:', email);
-    return { success: true };
+  resetPassword: async (resetData) => {
+    const { data } = await api.post('/api/auth/reset-password', resetData);
+    return data;
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
-  },
-
-  getCurrentUser: async () => {
-    return { name: 'Juan', email: 'juan@example.com' };
-  },
 };
 
 export default authService;
