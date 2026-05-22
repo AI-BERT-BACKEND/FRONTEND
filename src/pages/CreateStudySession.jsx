@@ -1,40 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
-
-
+import { useAuth } from '../context/AuthContext';
+import socialService from '../services/socialService';
 
 const DURACIONES = [60, 90, 120];
-
-const PARTICIPANTES = [
-  { id: 1, nombre: 'Dra. Elena Vance', iniciales: 'EV', disponible: true  },
-  { id: 2, nombre: 'Julian Richter',   iniciales: 'JR', disponible: true  },
-  { id: 3, nombre: 'Sarah Kang',       iniciales: 'SK', disponible: true  },
-  { id: 4, nombre: 'Marcus Thorne',    iniciales: 'MT', disponible: false },
-  { id: 5, nombre: 'Lina Rossi',       iniciales: 'LR', disponible: false },
-];
-
-const SUGERENCIA_IA = {
-  fecha: 'el Miércoles 15 de Noviembre',
-  hora: '4:30 PM',
-  participantes: 8,
-  compatibilidad: 100,
-};
 
 
 
 const CreateStudySession = () => {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const navigate   = useNavigate();
   const s = getStyles(isDark);
 
   const [tema,       setTema]       = useState('');
-  const [fecha,      setFecha]      = useState('2025-11-15');
-  const [hora,       setHora]       = useState('14:30');
+  const [fecha,      setFecha]      = useState('');
+  const [hora,       setHora]       = useState('');
   const [duracion,   setDuracion]   = useState(90);
-  const [seleccionados, setSeleccionados] = useState(new Set([2]));
+  const [seleccionados, setSeleccionados] = useState(new Set());
+  const [participantesDisponibles, setParticipantesDisponibles] = useState([]);
+  const [sugerenciaIA, setSugerenciaIA] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const toggleParticipante = (id, disponible) => {
     if (!disponible) return;
@@ -45,14 +34,54 @@ const CreateStudySession = () => {
     });
   };
 
-  const usarSugerencia = () => {
-    setFecha('2025-11-15');
-    setHora('16:30');
-  };
+  useEffect(() => {
+    if (!user) return;
+    const fetchFriends = async () => {
+      try {
+        setLoading(true);
+        const data = await socialService.getFriends(user.id);
+        setParticipantesDisponibles(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Error al cargar amigos:', err);
+        setParticipantesDisponibles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFriends();
+  }, [user]);
+
+  const usarSugerencia = () => {};
 
   const totalSeleccionados = seleccionados.size;
 
+  const handleSubmit = async () => {
+    if (!user || totalSeleccionados === 0) return;
+    try {
+      await socialService.createStudySession(user.id, {
+        tema,
+        fecha,
+        hora,
+        duracion,
+        participantes: [...seleccionados],
+      });
+      navigate('/sesion/iniciar');
+    } catch (err) {
+      console.error('Error al crear sesión:', err);
+    }
+  };
+
   const t = createStyles(isDark);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ textAlign: 'center', padding: 40, color: t.textSecondary, fontFamily: t.fontSecondary }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -120,6 +149,7 @@ const CreateStudySession = () => {
           </div>
 
           {/* Tarjeta sugerencia IA */}
+          {sugerenciaIA && (
           <div style={s.iaCard}>
             <div style={s.iaCardTop}>
               <div style={s.iaIconRow}>
@@ -139,7 +169,7 @@ const CreateStudySession = () => {
 
             <p style={s.iaDesc}>
               Todos los participantes están disponibles{' '}
-              {SUGERENCIA_IA.fecha} a las {SUGERENCIA_IA.hora}.
+              {sugerenciaIA.fecha} a las {sugerenciaIA.hora}.
             </p>
 
             <div style={s.iaStats}>
@@ -151,14 +181,14 @@ const CreateStudySession = () => {
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                {SUGERENCIA_IA.participantes} Participantes disponibles
+                {sugerenciaIA.participantes} Participantes disponibles
               </span>
               <span style={s.iaStat}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
                   stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                {SUGERENCIA_IA.compatibilidad}% Compatibilidad
+                {sugerenciaIA.compatibilidad}% Compatibilidad
               </span>
               <span style={s.iaStat}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
@@ -174,9 +204,10 @@ const CreateStudySession = () => {
               USAR ESTE HORARIO →
             </button>
           </div>
+          )}
         </div>
 
-        {/* ── DERECHA: SELECTOR DE PARTICIPANTES ────────────── */}
+        {/* ── DERECHA: SELECTOR DE participantesDisponibles ────────────── */}
         <div style={s.rightPanel}>
 
           {/* Encabezado del panel */}
@@ -187,7 +218,7 @@ const CreateStudySession = () => {
             </div>
             <div style={s.panelSubRow}>
               <span style={s.perfilesLabel}>
-                {PARTICIPANTES.length} PERFILES COMPATIBLES ENCONTRADOS
+                {participantesDisponibles.length} PERFILES COMPATIBLES ENCONTRADOS
               </span>
               <span style={s.badgeActiva}>MÍO ACTIVA</span>
             </div>
@@ -197,7 +228,7 @@ const CreateStudySession = () => {
 
           {/* Lista de participantes */}
           <div style={s.participantesList}>
-            {PARTICIPANTES.map((p) => {
+            {participantesDisponibles.map((p) => {
               const seleccionado = seleccionados.has(p.id);
               return (
                 <div
@@ -253,7 +284,7 @@ const CreateStudySession = () => {
           {/* Botón continuar */}
           <button
             style={{ ...s.continuarBtn, ...(totalSeleccionados === 0 ? s.continuarBtnDisabled : {}) }}
-            onClick={() => totalSeleccionados > 0 && navigate('/sesion/iniciar')}
+            onClick={handleSubmit}
           >
             Continuar con {totalSeleccionados} participante{totalSeleccionados !== 1 ? 's' : ''} →
           </button>

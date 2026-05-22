@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import taskService from '../services/taskService';
+import academicService from '../services/academicService';
 
 const ChevronLeft = ({ color }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -48,48 +50,87 @@ const DIAS = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
 const FECHAS = [14, 15, 16, 17, 18, 19, 20];
 const DIA_HOY = 2;
 
-const EVENTOS = {
-  0: [
-    { id: 1, hora: '08:00 - 10:00', nombre: 'Neurociencia I', color: '#3B82F6', tipo: 'clase' },
-  ],
-  1: [
-    { id: 2, hora: '11:00 - 13:00', nombre: 'Examen: Cálculo II', color: '#F00707', tipo: 'examen', badge: 'ALTA PRIORIDAD' },
-    { id: 3, hora: '15:00 - 16:00', nombre: 'Física Teórica', color: '#A855F7', tipo: 'clase' },
-  ],
-  2: [
-    { id: 4, hora: '09:00 - 11:00', nombre: 'IA Aplicada', color: '#FF5B2E', tipo: 'clase' },
-    { id: 5, hora: '13:00 - 14:00', nombre: 'Neurociencia I', color: '#3B82F6', tipo: 'clase' },
-    { id: 6, hora: '14:00 - 15:00', nombre: 'Laboratorio', color: '#22C55E', tipo: 'lab' },
-  ],
-  3: [
-    { id: 7, hora: '10:00 - 11:30', nombre: 'Neurociencia I', color: '#3B82F6', tipo: 'clase' },
-    { id: 8, hora: '14:00 - 16:00', nombre: 'Entrega: Proyecto Final', color: '#EAB308', tipo: 'entrega' },
-    { id: 9, hora: '', nombre: 'Estudio Grupal', color: '#6B7280', tipo: 'estudio' },
-  ],
-  4: [
-    { id: 10, hora: '09:00 - 10:30', nombre: 'Física Teórica', color: '#A855F7', tipo: 'clase' },
-    { id: 11, hora: '16:00 - 17:00', nombre: 'Sesión Mentoría', color: '#FF8430', tipo: 'mentoria', badge: '' },
-    { id: 12, hora: '', nombre: 'Break', color: '#22C55E', tipo: 'break' },
-  ],
-  5: [
-    { id: 13, hora: '', nombre: 'Taller Opcional', color: '#6B7280', tipo: 'opcional' },
-    { id: 14, hora: '', nombre: 'Investigación', color: '#6B7280', tipo: 'estudio' },
-    { id: 15, hora: '', nombre: 'Física Teórica', color: '#A855F7', tipo: 'clase' },
-  ],
-  6: [],
+const TIPO_COLORS = {
+  examen: '#F00707', clase: '#3B82F6', lab: '#22C55E',
+  entrega: '#EAB308', estudio: '#6B7280', mentoria: '#FF8430',
+  break: '#22C55E', opcional: '#6B7280', tarea: '#3B82F6', default: '#6B7280',
 };
-
-const DISTRIBUCION = [
-  { label: 'Estudio', pct: 68, color: isDarkHelper => isDarkHelper ? '#FF5B2E' : '#FF8430' },
-  { label: 'Práctica', pct: 22, color: () => '#C4107A' },
-  { label: 'Descanso', pct: 10, color: () => '#3B82F6' },
-];
 
 const SmartSchedule = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [semana, setSemana] = useState(12);
+  const [eventos, setEventos] = useState({});
+  const [distribucion, setDistribucion] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [tasksRes, subjectsRes] = await Promise.allSettled([
+          taskService.getTasks(),
+          academicService.getSubjects(),
+        ]);
+
+        if (tasksRes.status === 'fulfilled') {
+          const data = tasksRes.value;
+          const items = data.tasks || data || [];
+          const diarios = {};
+          (Array.isArray(items) ? items : []).forEach(t => {
+            const dayMap = [0,1,2,3,4,5,6];
+            const f = t.dueDate || t.fecha || t.startTime || '';
+            const d = t.dayOfWeek ?? t.day ?? (f ? new Date(f).getDay() : null);
+            const dayIdx = d !== null && dayMap.includes(d) ? d : 0;
+            if (!diarios[dayIdx]) diarios[dayIdx] = [];
+            diarios[dayIdx].push({
+              id: t.id,
+              hora: t.time || t.hora || t.schedule || (t.startTime && t.endTime ? `${t.startTime} - ${t.endTime}` : ''),
+              nombre: t.title || t.name || t.nombre,
+              color: t.color || TIPO_COLORS[t.type || t.tipo] || TIPO_COLORS.default,
+              tipo: t.type || t.tipo || 'clase',
+              badge: (t.priority === 'high' || t.urgencia === 'high' || t.prioridad === 'ALTA PRIORIDAD') ? 'ALTA PRIORIDAD' : undefined,
+            });
+          });
+          for (let i = 0; i < 7; i++) { if (!diarios[i]) diarios[i] = []; }
+          setEventos(diarios);
+        }
+
+        if (subjectsRes.status === 'fulfilled') {
+          const data = subjectsRes.value;
+          const items = data.subjects || data || [];
+          if (Array.isArray(items) && items.length > 0) {
+            const total = items.reduce((acc, s) => acc + (s.percentage || s.pct || s.progress || 0), 0) || 1;
+            setDistribucion(items.slice(0, 4).map((s, i) => ({
+              label: s.name || s.nombre,
+              pct: Math.round(((s.percentage || s.pct || s.progress || 0) / total) * 100),
+              color: () => s.color || ['#FF8430', '#C4107A', '#3B82F6', '#22C55E'][i],
+            })));
+          }
+        }
+      } catch {
+        // fallback - state stays as initialized
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const s = getStyles(isDark);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          minHeight: 300, fontSize: 14, color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+          fontFamily: s.fontSecondary || 'sans-serif',
+        }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -130,7 +171,7 @@ const SmartSchedule = () => {
                 </span>
               </div>
               <div style={s.diaEventos}>
-                {(EVENTOS[i] || []).map(ev => (
+                {(eventos[i] || []).map(ev => (
                   <div key={ev.id} style={{
                     ...s.evento,
                     borderLeft: `3px solid ${ev.color}`,
@@ -155,7 +196,7 @@ const SmartSchedule = () => {
         <div style={s.distribucionCard}>
           <div style={s.sectionTitle}>Distribución de Carga</div>
           <div style={s.distribList}>
-            {DISTRIBUCION.map(d => (
+            {(distribucion || []).map(d => (
               <div key={d.label} style={s.distribItem}>
                 <div style={s.distribLabelRow}>
                   <span style={s.distribLabel}>{d.label}</span>

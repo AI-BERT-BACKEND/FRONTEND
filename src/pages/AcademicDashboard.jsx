@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import CircleProgress from '../components/CircleProgress';
@@ -6,6 +6,8 @@ import ProgressBar from '../components/ProgressBar';
 import StatusBadge from '../components/StatusBadge';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import statsService from '../services/statsService';
+import academicService from '../services/academicService';
 
 const StarIcon = () => (
   <svg
@@ -138,31 +140,70 @@ const AcademicDashboard = () => {
   const navigate = useNavigate();
   const s = getStyles(isDark);
 
-  const stats = [
-    {
-      id: 1,
-      IconComp: StarIcon,
-      label: 'Promedio general',
-      value: '4.8',
-      badge: '+0.3 este mes',
-      badgeColor: '#4CAF50',
-    },
-    { id: 2, IconComp: BookIcon, label: 'Materias activas', value: '6', badge: null },
-    { id: 3, IconComp: ClockIcon, label: 'Horas estudiadas', value: '124h', badge: null },
-    { id: 4, IconComp: PinIcon, label: 'Tareas pendientes', value: '12', badge: null },
-  ];
+  const [stats, setStats] = useState([]);
+  const [rendimiento, setRendimiento] = useState([]);
+  const [materias, setMaterias] = useState([]);
+  const [promedio, setPromedio] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const rendimiento = [
-    { id: 1, nombre: 'Arquitectura de Datos', nota: 4.9 },
-    { id: 2, nombre: 'IA Avanzado', nota: 4.7 },
-    { id: 3, nombre: 'Ética Computacional', nota: 4.2 },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [dashboard, summary, subjects] = await Promise.all([
+          statsService.getDashboard().catch(() => null),
+          academicService.getSummary().catch(() => null),
+          academicService.getSubjects().catch(() => []),
+        ]);
 
-  const materias = [
-    { id: 1, nombre: 'Criptografía I', nota: 4.9, progreso: 82, estado: 'ESTABLE', color: '#FF8430' },
-    { id: 2, nombre: 'Sistemas Operativos', nota: 4.2, progreso: 64, estado: 'MEJORANDO', color: '#C4107A' },
-    { id: 3, nombre: 'Redes Neuronales', nota: 3.5, progreso: 45, estado: 'CRÍTICO', color: '#F7306D' },
-  ];
+        const dash = dashboard || summary || {};
+
+        setStats([
+          { id: 1, IconComp: StarIcon, label: 'Promedio general', value: dash.promedioGeneral ?? dash.promedio ?? '—', badge: dash.variacion ? '+' + dash.variacion + ' este mes' : null, badgeColor: '#4CAF50' },
+          { id: 2, IconComp: BookIcon, label: 'Materias activas', value: dash.materiasActivas ?? dash.materias ?? (Array.isArray(subjects) ? subjects.length : '—'), badge: null },
+          { id: 3, IconComp: ClockIcon, label: 'Horas estudiadas', value: dash.horasEstudiadas != null ? dash.horasEstudiadas + 'h' : dash.horas != null ? dash.horas + 'h' : '—', badge: null },
+          { id: 4, IconComp: PinIcon, label: 'Tareas pendientes', value: dash.tareasPendientes ?? dash.tareas ?? '—', badge: null },
+        ]);
+
+        const prom = parseFloat(dash.promedioGeneral ?? dash.promedio ?? 0);
+        setPromedio(prom);
+
+        const subs = Array.isArray(subjects) ? subjects : [];
+
+        setRendimiento(subs.map((s, i) => ({
+          id: s.id ?? i + 1,
+          nombre: s.nombre ?? s.name ?? '',
+          nota: s.nota ?? s.promedio ?? s.average ?? 0,
+        })));
+
+        setMaterias(subs.map((s, i) => ({
+          id: s.id ?? i + 1,
+          nombre: s.nombre ?? s.name ?? '',
+          nota: s.nota ?? s.promedio ?? s.average ?? 0,
+          progreso: s.progreso ?? s.porcentaje ?? s.percentage ?? 0,
+          estado: s.estado ?? s.status ?? 'ESTABLE',
+          color: s.color ?? '#FF8430',
+        })));
+      } catch {
+        setStats([]);
+        setRendimiento([]);
+        setMaterias([]);
+        setPromedio(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: '#888', fontSize: 15 }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -197,7 +238,7 @@ const AcademicDashboard = () => {
           </div>
           <div style={s.rendimientoBody}>
             <div style={s.circleWrap}>
-              <CircleProgress pct={92} isDark={isDark} size={130} label="GLOBAL" />
+              <CircleProgress pct={promedio ? (promedio / 5) * 100 : 0} isDark={isDark} size={130} label="GLOBAL" />
             </div>
             <div style={s.barsList}>
               {rendimiento.map((r) => (

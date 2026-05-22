@@ -4,6 +4,7 @@ import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import api from '../services/api';
 
 const Settings = () => {
   const { isDark } = useTheme();
@@ -32,11 +33,22 @@ const Settings = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSavePassword = () => {
+  const [passwordError, setPasswordError] = useState('');
+
+  const handleSavePassword = async () => {
     if (validatePasswords()) {
-      setPasswordSaved(true);
-      setPasswords({ current: '', new: '', confirm: '' });
-      setTimeout(() => setPasswordSaved(false), 3000);
+      try {
+        setPasswordError('');
+        await api.put('/api/auth/change-password', {
+          currentPassword: passwords.current,
+          newPassword: passwords.new,
+        });
+        setPasswordSaved(true);
+        setPasswords({ current: '', new: '', confirm: '' });
+        setTimeout(() => setPasswordSaved(false), 3000);
+      } catch (err) {
+        setPasswordError(err.response?.data?.message || 'Error al cambiar la contraseña');
+      }
     }
   };
 
@@ -131,6 +143,15 @@ const Settings = () => {
           <div style={s.subsectionTitle}>Cambiar contraseña</div>
           <div style={s.subsectionDesc}>Actualiza tu contraseña regularmente para mayor seguridad.</div>
 
+          {passwordError && (
+            <div style={s.errorMsg}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="7" cy="7" r="6" stroke="#EF4444" strokeWidth="1.3"/>
+                <path d="M5 5l4 4M9 5l-4 4" stroke="#EF4444" strokeWidth="1.3" strokeLinecap="round"/>
+              </svg>
+              {passwordError}
+            </div>
+          )}
           {passwordSaved && (
             <div style={s.successMsg}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -269,6 +290,18 @@ const getStyles = (isDark) => {
       transition: 'border-color 0.2s',
     },
     inputError: { borderColor: t.error, boxShadow: `0 0 0 2px ${t.error}1a` },
+    errorMsg: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      fontSize: 12,
+      color: '#EF4444',
+      background: 'rgba(239,68,68,0.10)',
+      border: '1px solid rgba(239,68,68,0.25)',
+      borderRadius: 8,
+      padding: '8px 12px',
+      marginBottom: 12,
+    },
     successMsg: {
       display: 'flex',
       alignItems: 'center',

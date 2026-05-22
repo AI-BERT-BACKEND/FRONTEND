@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import statsService from '../services/statsService';
 
 // ── ICONS ──
 const InfoIcon = ({ color }) => (
@@ -49,33 +50,63 @@ const BrainIcon = ({ color }) => (
   </svg>
 );
 
-// ── DATA ──
-const SEMESTRES = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6'];
-const NOTAS = [3.2, 3.5, 4.8, 3.8, 3.9, 4.1];
-const NOTA_ACTUAL_IDX = 2; // Sem 3 es el actual (más alto)
-
-const RECOMENDACIONES = [
-  {
-    id: 1,
-    tipo: 'ENFOQUE',
-    titulo: 'Enfoque: Árboles B+',
-    descripcion: 'Tus últimas pruebas muestran debilidad en la rotación de nodos. Dedica 45 min extra a ejercicios de balanceo.',
-  },
-  {
-    id: 2,
-    tipo: 'ALERTA',
-    titulo: 'Próximo Parcial (Impacto 30%)',
-    descripcion: 'El examen final es en 10 días. Inicia el plan de repaso "Estructuras Dinámicas" para subir tu promedio a 4.2.',
-  },
-];
-
 const Statistics = () => {
   const { isDark } = useTheme();
   const [filtroActivo, setFiltroActivo] = useState('GRAFOS & ÁRBOLES');
   const [semestreActivo, setSemestreActivo] = useState('SEM-03');
-  const s = getStyles(isDark);
+  const [loading, setLoading] = useState(true);
 
-  const maxNota = Math.max(...NOTAS);
+  const [semestres, setSemestres] = useState([]);
+  const [notas, setNotas] = useState([]);
+  const [notaActualIdx, setNotaActualIdx] = useState(0);
+  const [recomendaciones, setRecomendaciones] = useState([]);
+  const [statsData, setStatsData] = useState({
+    promedio: '—',
+    tiempoEstudio: '—',
+    progresoTareas: 0,
+    historial: [],
+    flujoSesion: [],
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await statsService.getSubjectsStatistics();
+        const subjects = data.subjects || data || [];
+        if (subjects.length > 0) {
+          const names = subjects.map((s) => s.name || s.nombre || '—');
+          const grades = subjects.map((s) => s.average || s.nota || 0);
+          setSemestres(names);
+          setNotas(grades);
+          setNotaActualIdx(Math.max(0, names.length - 1));
+        }
+      } catch {
+        // fallback
+      }
+      try {
+        const dash = await statsService.getDashboard();
+        if (dash) {
+          setStatsData({
+            promedio: dash.average || dash.promedio || '—',
+            tiempoEstudio: dash.studyHours || dash.tiempoEstudio || '—',
+            progresoTareas: dash.taskProgress || dash.progresoTareas || 0,
+            historial: dash.sessionHistory || dash.historial || [],
+            flujoSesion: dash.sessionFlow || dash.flujoSesion || [],
+          });
+          if (dash.recommendations || dash.recomendaciones) {
+            setRecomendaciones(dash.recommendations || dash.recomendaciones);
+          }
+        }
+      } catch {
+        // fallback
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const s = getStyles(isDark);
 
   return (
     <AppLayout>
@@ -108,7 +139,7 @@ const Statistics = () => {
 
         <div style={s.promedioHeaderCard}>
           <div style={s.promedioHeaderLabel}>Promedio Actual</div>
-          <div style={s.promedioHeaderVal}>3.8 / 5.0</div>
+          <div style={s.promedioHeaderVal}>{statsData.promedio} / 5.0</div>
           <div style={s.riesgoModerado}>
             <AlertTriangle color="#EAB308" />
             <span>RIESGO MODERADO</span>
@@ -136,10 +167,13 @@ const Statistics = () => {
 
           {/* BARRAS */}
           <div style={s.barsWrap}>
-            {SEMESTRES.map((sem, i) => {
-              const nota = NOTAS[i];
+            {semestres.length === 0 && loading && (
+              <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic' }}>Cargando...</span>
+            )}
+            {semestres.map((sem, i) => {
+              const nota = notas[i] || 0;
               const heightPct = (nota / 5.0) * 100;
-              const isActual = i === NOTA_ACTUAL_IDX;
+              const isActual = i === notaActualIdx;
               return (
                 <div key={sem} style={s.barCol}>
                   <div style={s.barOuter}>
@@ -172,7 +206,7 @@ const Statistics = () => {
               <span style={s.statCardTitle}>Tiempo de Estudio</span>
               <InfoIcon color={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)'} />
             </div>
-            <div style={s.statBig}>24.5</div>
+            <div style={s.statBig}>{statsData.tiempoEstudio}</div>
             <div style={s.statUnit}>Horas / Sem</div>
             <div style={s.statTrend}>
               <div style={s.trendTrack}>
@@ -188,12 +222,12 @@ const Statistics = () => {
               <span style={s.statCardTitle}>Progreso de Tareas</span>
               <FilterIcon color={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)'} />
             </div>
-            <div style={s.statBig}>82%</div>
+            <div style={s.statBig}>{statsData.progresoTareas}%</div>
             <div style={s.statUnit}>Completado</div>
             <div style={s.progressTrack}>
-              <div style={{ ...s.progressFill, width: '82%' }} />
+              <div style={{ ...s.progressFill, width: `${statsData.progresoTareas}%` }} />
             </div>
-            <div style={s.statSubText}>Nota: 17 entregadas</div>
+            <div style={s.statSubText}>Nota: {statsData.progresoTareas}% completado</div>
           </div>
         </div>
       </div>
@@ -202,31 +236,20 @@ const Statistics = () => {
       <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
         <div style={{ ...s.chartCard, padding: '18px 20px' }}>
           <div style={{ ...s.chartTitle, fontSize: 13, marginBottom: 14 }}>Historial de Sesiones</div>
-          {[
-            { dia: 'Lun', horas: 2.5, completadas: 3 },
-            { dia: 'Mar', horas: 1.0, completadas: 1 },
-            { dia: 'Mié', horas: 3.0, completadas: 4 },
-            { dia: 'Jue', horas: 0.5, completadas: 1 },
-            { dia: 'Vie', horas: 2.0, completadas: 2 },
-            { dia: 'Sáb', horas: 1.5, completadas: 2 },
-          ].map(d => (
-            <div key={d.dia} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <span style={{ fontSize: 10, color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)', width: 28, fontWeight: 600 }}>{d.dia}</span>
+          {statsData.historial.map(d => (
+            <div key={d.dia || d.day} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: 10, color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)', width: 28, fontWeight: 600 }}>{d.dia || d.day}</span>
               <div style={{ flex: 1, height: 7, borderRadius: 4, background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', borderRadius: 4, width: `${(d.horas / 3.5) * 100}%`, background: isDark ? 'linear-gradient(90deg,#FF5B2E,#C4107A)' : 'linear-gradient(90deg,#FF8430,#F7306D)' }} />
+                <div style={{ height: '100%', borderRadius: 4, width: `${((d.horas || d.hours || 0) / 3.5) * 100}%`, background: isDark ? 'linear-gradient(90deg,#FF5B2E,#C4107A)' : 'linear-gradient(90deg,#FF8430,#F7306D)' }} />
               </div>
-              <span style={{ fontSize: 10, fontWeight: 700, color: isDark ? '#FF5B2E' : '#FF8430', minWidth: 28 }}>{d.horas}h</span>
-              <span style={{ fontSize: 9, color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>{d.completadas} sesiones</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: isDark ? '#FF5B2E' : '#FF8430', minWidth: 28 }}>{d.horas || d.hours || 0}h</span>
+              <span style={{ fontSize: 9, color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)' }}>{d.completadas || d.completed || 0} sesiones</span>
             </div>
           ))}
         </div>
         <div style={{ ...s.statCard, flex: 'none', width: 200 }}>
           <div style={{ fontSize: 12, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', marginBottom: 12 }}>Flujo de Sesión</div>
-          {[
-            { label: 'Iniciadas', val: 18, pct: 100, color: isDark ? '#FF5B2E' : '#FF8430' },
-            { label: 'Completadas', val: 14, pct: 78, color: '#22C55E' },
-            { label: 'Interrumpidas', val: 4, pct: 22, color: '#EAB308' },
-          ].map(r => (
+          {statsData.flujoSesion.map(r => (
             <div key={r.label} style={{ marginBottom: 10 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                 <span style={{ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.60)' }}>{r.label}</span>
@@ -248,7 +271,7 @@ const Statistics = () => {
             <BrainIcon color={isDark ? '#FF5B2E' : '#FF8430'} />
             <span style={s.recomTitle}>Recomendaciones de AIBert</span>
           </div>
-          {RECOMENDACIONES.map(r => (
+          {recomendaciones.map(r => (
             <div key={r.id} style={s.recomItem}>
               <div style={s.recomItemLeft}>
                 <div style={{

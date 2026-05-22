@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
@@ -7,6 +7,7 @@ import {
   Check, AlertTriangle, Clock, Brain, 
   Zap, Book, Scale 
 } from 'lucide-react';
+import taskService from '../services/taskService';
 
 const AlertIcon = ({ color }) => (
   <AlertTriangle size={16} color={color} strokeWidth={2} />
@@ -36,26 +37,7 @@ const BalanceIcon = ({ color }) => (
   <Scale size={14} color={color} strokeWidth={2} />
 );
 
-const TAREAS_CRITICAS = [
-  { id: 1, materia: 'CÁLCULO DIFERENCIAL', nombre: 'Taller de Derivadas', tipo: 'CRITICO', entrega: 'En 2 horas', estimado: '3h necesarias', urgencia: 'high', accion: 'EMPEZAR AHORA' },
-  { id: 2, materia: 'ESTRUCTURA DE DATOS', nombre: 'Proyecto Final Grafos', tipo: 'CRITICO', entrega: 'Mañana 8:00 AM', estimado: '8h necesarias', urgencia: 'medium', accion: 'REVISAR AVANCE' },
-  { id: 3, materia: 'FÍSICA MECÁNICA', nombre: 'Laboratorio Péndulo', tipo: 'CRITICO', entrega: 'En 5 horas', estimado: '2h necesarias', urgencia: 'high', accion: 'REVISAR GUÍA' },
-];
 
-const TAREAS_PRIORIZADAS = [
-  { id: 1, nombre: 'Proyecto Final Estructuras', materia: 'Arquitectura de Datos', prioridad: 'ALTO', tiempoEstudio: '4h necesarios hoy', nota: 'Entrega en 2 días', diasDisponibles: 2, horasEstimadas: 4 },
-  { id: 2, nombre: 'Quiz de Algoritmos', materia: 'Programación', prioridad: 'ALTO', tiempoEstudio: '1.5h de estudio', nota: 'Mañana a las 10h', diasDisponibles: 1, horasEstimadas: 1.5 },
-  { id: 3, nombre: 'Taller de Derivadas', materia: 'Cálculo Diferencial', prioridad: 'ALTO', tiempoEstudio: '2h de práctica', nota: 'Hoy', diasDisponibles: 0.5, horasEstimadas: 2 },
-  { id: 4, nombre: 'Informe Laboratorio', materia: 'Física Mecánica', prioridad: 'BAJO', tiempoEstudio: '1h redacción', nota: 'Esta semana', diasDisponibles: 6, horasEstimadas: 1 },
-  { id: 5, nombre: 'Lectura de Ética', materia: 'Contexto Contemporáneo', prioridad: 'BAJO', tiempoEstudio: '45m lectura', nota: 'Flexible', diasDisponibles: 7, horasEstimadas: 0.75 },
-  { id: 6, nombre: 'Glosario Inglés', materia: 'Inglés', prioridad: 'BAJO', tiempoEstudio: '20m repaso', nota: 'Antes del martes', diasDisponibles: 5, horasEstimadas: 0.33 },
-];
-
-const BALANCE_TIEMPO = [
-  { label: 'Estudio', pct: 75, color: '#FF5B2E' },
-  { label: 'Descanso', pct: 15, color: '#3B82F6' },
-  { label: 'Personal', pct: 10, color: '#22C55E' },
-];
 
 const calcularRiesgo = (diasDisponibles, horasEstimadas) => {
   const horasDisponibles = diasDisponibles * 3;
@@ -65,23 +47,100 @@ const calcularRiesgo = (diasDisponibles, horasEstimadas) => {
   return null;
 };
 
-const RIESGO_ACADEMICO = [
-  { id: 1, nombre: 'Proyecto Estructuras', detalle: 'Solo 6h disponibles para 8h estimadas de trabajo', deadline: 'Hoy (20%)', diasDisponibles: 2, horasEstimadas: 8 },
-  { id: 2, nombre: 'Laboratorio Físico', detalle: 'Tiempo disponible: 1h · Estimado: 1.5h', deadline: 'Hoy (4 hrs)', diasDisponibles: 0.5, horasEstimadas: 1.5 },
-];
+
 
 const Prioritization = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [tareasCompletadas, setTareasCompletadas] = useState({});
   const [notificacionVista, setNotificacionVista] = useState({});
+  const [tareasCriticas, setTareasCriticas] = useState([]);
+  const [tareasPriorizadas, setTareasPriorizadas] = useState([]);
+  const [balanceTiempo, setBalanceTiempo] = useState([]);
+  const [riesgoAcademico, setRiesgoAcademico] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [flashcards, setFlashcards] = useState(null);
+  const [nextBreak, setNextBreak] = useState(null);
+  const [focusState, setFocusState] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [prioritizedRes, summaryRes] = await Promise.allSettled([
+          taskService.getPrioritizedTasks(),
+          taskService.getDailySummary(),
+        ]);
+
+        if (prioritizedRes.status === 'fulfilled') {
+          const data = prioritizedRes.value;
+          const items = data.tasks || data.prioritizedTasks || data || [];
+          const mapped = (Array.isArray(items) ? items : []).map(t => ({
+            id: t.id,
+            nombre: t.title || t.name || t.nombre,
+            materia: t.subject || t.materia,
+            tipo: t.type || t.tipo,
+            urgencia: t.urgency || t.urgencia || (t.priority === 'high' ? 'high' : 'medium'),
+            prioridad: t.priority || t.prioridad || (t.level === 'high' ? 'ALTO' : 'BAJO'),
+            entrega: t.dueDate || t.entrega || t.fecha,
+            estimado: t.estimatedHours ? `${t.estimatedHours}h necesarias` : t.estimado,
+            tiempoEstudio: t.estimatedHours ? `${t.estimatedHours}h necesarios hoy` : t.tiempoEstudio,
+            nota: t.note || t.nota || t.dueDate || t.fecha,
+            diasDisponibles: t.daysAvailable ?? t.diasDisponibles,
+            horasEstimadas: t.estimatedHours ?? t.horasEstimadas,
+            accion: t.action || t.accion || 'REVISAR',
+            completada: t.completed ?? t.completada,
+          }));
+          setTareasCriticas(mapped.filter(t => t.tipo === 'CRITICO' || t.urgencia === 'high'));
+          setTareasPriorizadas(mapped);
+        }
+
+        if (summaryRes.status === 'fulfilled') {
+          const data = summaryRes.value;
+          const summary = data.summary || data;
+
+          const balance = (summary.timeBalance || summary.balance || []).map(b => ({
+            label: b.label || b.name,
+            pct: b.percentage ?? b.pct ?? b.value,
+            color: b.color,
+          }));
+          setBalanceTiempo(balance.length > 0 ? balance : []);
+
+          const risks = (summary.risks || summary.riskAssessment || []).map(r => ({
+            id: r.id,
+            nombre: r.name || r.nombre,
+            detalle: r.detail || r.detalle,
+            deadline: r.deadline,
+            diasDisponibles: r.daysAvailable ?? r.diasDisponibles,
+            horasEstimadas: r.estimatedHours ?? r.horasEstimadas,
+          }));
+          setRiesgoAcademico(risks.length > 0 ? risks : []);
+
+          if (summary.flashcards != null) setFlashcards(summary.flashcards);
+          if (summary.nextBreak != null) setNextBreak(summary.nextBreak);
+          if (summary.focusState != null) setFocusState(summary.focusState);
+        }
+      } catch {
+        // fallback empty
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const s = getStyles(isDark);
 
-  const handleCompletar = (id) => {
+  const handleCompletar = async (id) => {
+    const actualId = typeof id === 'string' && id.startsWith('p_') ? parseInt(id.replace('p_', ''), 10) : id;
     setTareasCompletadas(p => ({ ...p, [id]: !p[id] }));
     if (!tareasCompletadas[id]) {
       setNotificacionVista(p => ({ ...p, [id]: true }));
       setTimeout(() => setNotificacionVista(p => ({ ...p, [id]: false })), 4000);
+      try {
+        await taskService.updateTaskStatus(actualId, 'completed');
+      } catch {
+        // silent fail
+      }
     }
   };
 
@@ -97,6 +156,10 @@ const Prioritization = () => {
         </div>
       ))}
 
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px 0', color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)', fontFamily: 'monospace', fontSize: 13 }}>Cargando...</div>
+      ) : (
+        <>
       <div style={s.secHeader}>
         <div style={s.secTitleRow}>
           <AlertIcon color="#F00707" />
@@ -105,7 +168,7 @@ const Prioritization = () => {
       </div>
 
       <div style={s.criticasGrid}>
-        {TAREAS_CRITICAS.map(tc => (
+        {tareasCriticas.map(tc => (
           <div key={tc.id} style={{
             ...s.criticaCard,
             borderTop: `3px solid ${tc.urgencia === 'high' ? '#F00707' : isDark ? '#FF5B2E' : '#FF8430'}`,
@@ -154,7 +217,7 @@ const Prioritization = () => {
             </button>
           </div>
           <div style={s.tareasLista}>
-            {TAREAS_PRIORIZADAS.map((tarea, idx) => {
+            {tareasPriorizadas.map((tarea, idx) => {
               const completada = tareasCompletadas[`p_${tarea.id}`];
               const prioColor = tarea.prioridad === 'ALTO'
                 ? { bg: 'rgba(240,7,7,0.18)', color: '#F00707' }
@@ -209,7 +272,7 @@ const Prioritization = () => {
               <BalanceIcon color={isDark ? '#FF5B2E' : '#FF8430'} />
               <span style={s.sideCardTitle}>Balance de Tiempo</span>
             </div>
-            {BALANCE_TIEMPO.map(b => (
+            {balanceTiempo.map(b => (
               <div key={b.label} style={s.balanceItem}>
                 <div style={s.balanceLabelRow}>
                   <span style={s.balanceLabel}>{b.label}</span>
@@ -228,7 +291,7 @@ const Prioritization = () => {
               <AlertIcon color="#F00707" />
               <span style={s.sideCardTitle}>Riesgo Académico</span>
             </div>
-            {RIESGO_ACADEMICO.map(r => {
+            {riesgoAcademico.map(r => {
               const riesgo = calcularRiesgo(r.diasDisponibles, r.horasEstimadas);
               const rColor = riesgo === 'ALTO' ? '#F00707' : '#EAB308';
               const rBg = riesgo === 'ALTO' ? 'rgba(240,7,7,0.15)' : 'rgba(234,179,8,0.15)';
@@ -258,20 +321,22 @@ const Prioritization = () => {
       <div style={s.bottomRow}>
         <div style={{ ...s.bottomCard, borderColor: isDark ? 'rgba(196,16,122,0.30)' : 'rgba(255,132,48,0.30)' }}>
           <div style={s.bottomCardLabel}>FLASHCARDS PENDIENTES</div>
-          <div style={s.bottomCardBig}>12 Tarjetas</div>
+          <div style={s.bottomCardBig}>{flashcards ?? '—'}</div>
           <button style={s.flashBtn}>Repasar ahora (5 min)</button>
         </div>
         <div style={{ ...s.bottomCard, borderColor: isDark ? 'rgba(59,130,246,0.30)' : 'rgba(59,130,246,0.25)' }}>
           <div style={s.bottomCardLabel}>PRÓXIMO BREAK EN</div>
-          <div style={{ ...s.bottomCardBig, color: '#3B82F6' }}>En 45 min</div>
+          <div style={{ ...s.bottomCardBig, color: '#3B82F6' }}>{nextBreak ?? '—'}</div>
           <div style={s.bottomCardSub}>Sugerencia: Refrescamiento guiado de 5 min.</div>
         </div>
         <div style={{ ...s.bottomCard, borderColor: isDark ? 'rgba(234,179,8,0.30)' : 'rgba(234,179,8,0.25)' }}>
           <div style={s.bottomCardLabel}>ESTADO DE CONCENTRACIÓN</div>
-          <div style={{ ...s.bottomCardBig, color: '#EAB308' }}>Foco Óptimo</div>
+          <div style={{ ...s.bottomCardBig, color: '#EAB308' }}>{focusState ?? '—'}</div>
           <div style={s.bottomCardSub}>Alta concentración detectada.</div>
         </div>
       </div>
+        </>
+      )}
     </AppLayout>
   );
 };

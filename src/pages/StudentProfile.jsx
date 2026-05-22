@@ -1,8 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
 import { AlertTriangle, Trash2 } from 'lucide-react';
+import api from '../services/api';
+import authService from '../services/authService';
 import { useTheme } from '../context/ThemeContext';
 import { validateEmail, validateRequired } from '../utils/validators';
 import { createStyles } from '../theme/createStyles';
@@ -27,6 +29,19 @@ const StudentProfile = () => {
   const [loading, setLoading] = useState(false);
   const [showDesactivarConfirm, setShowDesactivarConfirm] = useState(false);
   const [showEliminarConfirm, setShowEliminarConfirm] = useState(false);
+  const [saveError, setSaveError] = useState('');
+
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      setForm({
+        nombre: user.nombre || '',
+        username: user.username || '',
+        email: user.email || '',
+        foto: user.foto || null,
+      });
+    }
+  }, []);
 
   const validate = () => {
     const newErrors = {
@@ -41,9 +56,12 @@ const StudentProfile = () => {
   const handleSave = async () => {
     if (!validate()) return;
     setLoading(true);
+    setSaveError('');
     try {
-      await new Promise(r => setTimeout(r, 600));
+      await api.put('/api/v1/students/profile', form);
       navigate('/dashboard');
+    } catch (err) {
+      setSaveError(err.response?.data?.message || 'Error al guardar el perfil');
     } finally {
       setLoading(false);
     }
@@ -162,6 +180,7 @@ const StudentProfile = () => {
               </div>
             </div>
 
+            {saveError && <div style={{ color: createStyles(isDark).error, fontSize: 12, textAlign: 'center' }}>{saveError}</div>}
             <div style={s.actionRow}>
               <button style={s.cancelBtn} onClick={() => navigate('/dashboard')}>Cancelar</button>
               <button style={{ ...s.saveBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSave} disabled={loading}>

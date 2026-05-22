@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import academicService from '../services/academicService';
 
 const IconUser = ({ color }) => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -25,59 +26,6 @@ const IconPin = ({ color }) => (
     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" />
   </svg>
 );
-
-const MATERIA_DATA = {
-  nombre: 'Estructuras Avanzadas II',
-  profesor: 'Prof. Roberto Méndez',
-  promedio: 3.8,
-  promedioMax: 5.0,
-  progresoSemestre: 76,
-  notaParaAprobar: 3.2,
-  estadoDesempeno: 'Aprobado Parcial',
-  mejorNota: 4.5,
-  menorNota: 3.2,
-  inasistencias: '2/4',
-  recomendacion:
-    'Para asegurar una nota final de 4.0, debes obtener al menos 4.3 en el Proyecto Final. Hemos analizado tus talleres previos y te sugerimos enfocarte en los cálculos de carga sísmica.',
-  cortes: [
-    {
-      id: 1,
-      nombre: 'Corte 1',
-      porcentaje: 30,
-      estado: 'completado',
-      fecha: 'Completado el 15 de Sep',
-      puntaje: 4.2,
-      actividades: [
-        { nombre: 'Examen Parcial', peso: 60, nota: 4.5 },
-        { nombre: 'Taller de Maquetas', peso: 40, nota: 3.8 },
-      ],
-    },
-    {
-      id: 2,
-      nombre: 'Corte 2',
-      porcentaje: 30,
-      estado: 'completado',
-      fecha: 'Completado el 28 de Oct',
-      puntaje: 3.4,
-      actividades: [
-        { nombre: 'Análisis Estructural', peso: 50, nota: 3.5 },
-        { nombre: 'Informe de Campo', peso: 50, nota: 3.3 },
-      ],
-    },
-    {
-      id: 3,
-      nombre: 'Corte 3',
-      porcentaje: 40,
-      estado: 'en_progreso',
-      fecha: 'En progreso · Cierra el 12 de Dic',
-      puntaje: null,
-      actividades: [
-        { nombre: 'Proyecto Final de Estructura', peso: 70, nota: null },
-        { nombre: 'Sustentación Oral', peso: 30, nota: null },
-      ],
-    },
-  ],
-};
 
 const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
   const t = createStyles(isDark);
@@ -170,13 +118,82 @@ const SubjectDetail = () => {
   const navigate = useNavigate();
   const [simuladorCorte, setSimuladorCorte] = useState(null);
   const s = getStyles(isDark);
-  const m = MATERIA_DATA;
+  const [materia, setMateria] = useState(null);
+  const [cortes, setCortes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [subjectRes, evalStructure] = await Promise.all([
+          academicService.getSubjectById(id),
+          academicService.getEvaluationStructure(id),
+        ]);
+
+        const s = subjectRes || {};
+        const ev = evalStructure || {};
+
+        setMateria({
+          nombre: s.name || s.nombre || '',
+          profesor: s.teacher || s.profesor || '',
+          promedio: s.average || s.promedio || 0,
+          promedioMax: s.maxAverage || s.promedioMax || 5.0,
+          progresoSemestre: s.semesterProgress || s.progresoSemestre || 0,
+          notaParaAprobar: s.passingGrade || s.notaParaAprobar || 0,
+          estadoDesempeno: s.performanceStatus || s.estadoDesempeno || '',
+          mejorNota: s.bestGrade || s.mejorNota || 0,
+          menorNota: s.worstGrade || s.menorNota || 0,
+          inasistencias: s.absences || s.inasistencias || '0/0',
+          recomendacion: s.recommendation || s.recomendacion || '',
+        });
+
+        const cuts = ev.cuts || ev.cortes || ev.evaluationStructure || [];
+        setCortes(
+          cuts.map((c) => ({
+            id: c.id,
+            nombre: c.name || c.nombre || '',
+            porcentaje: c.percentage || c.porcentaje || 0,
+            estado: c.status || c.estado || 'pendiente',
+            fecha: c.date || c.fecha || '',
+            puntaje: c.score ?? c.puntaje ?? null,
+            actividades: (c.activities || c.actividades || []).map((a) => ({
+              nombre: a.name || a.nombre || '',
+              peso: a.weight || a.peso || 0,
+              nota: a.grade ?? a.nota ?? null,
+            })),
+          }))
+        );
+      } catch {
+        setMateria(null);
+        setCortes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
+
+  const m = materia || {};
 
   const estadoColor = {
     'Aprobado Parcial': { bg: isDark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.12)', color: '#22C55E' },
     'En Riesgo':        { bg: isDark ? 'rgba(240,7,7,0.15)'   : 'rgba(240,7,7,0.10)',   color: '#F00707' },
     'Excelente':        { bg: isDark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.12)', color: '#22C55E' },
   }[m.estadoDesempeno] || { bg: 'rgba(234,179,8,0.15)', color: '#EAB308' };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, color: 'var(--text-muted, #888)' }}>
+            Cargando...
+          </span>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -251,7 +268,7 @@ const SubjectDetail = () => {
       <div style={s.sectionTitle}>Gestión de Cortes</div>
 
       <div style={s.cortesWrap}>
-        {m.cortes.map((corte) => {
+        {cortes.map((corte) => {
           const completado = corte.estado === 'completado';
           const enProgreso = corte.estado === 'en_progreso';
           return (

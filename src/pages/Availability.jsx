@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import socialService from '../services/socialService';
+import { useAuth } from '../context/AuthContext';
 
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
@@ -10,14 +12,6 @@ const HORAS = [
   '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
   '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
   '19:00', '20:00', '21:00', '22:00',
-];
-
-const CATEGORIAS_INIT = [
-  { id: 'libre',    label: 'Tiempo libre',       desc: 'Actividades de ocio y disfrute personal', horas: 2.0, color: '#FF8430' },
-  { id: 'descanso', label: 'Descanso',            desc: 'Sueño y recuperación',                    horas: 8.0, color: '#A855F7' },
-  { id: 'personal', label: 'Tiempo personal',     desc: 'Actividades personales e higiene',        horas: 2.0, color: '#F7306D' },
-  { id: 'social',   label: 'Tiempo social',       desc: 'Tiempo con amigos y familia',             horas: 2.0, color: '#FF8430' },
-  { id: 'estudio',  label: 'Máx. estudio por día',desc: 'Límite máximo de horas de estudio',       horas: 8.0, color: '#00CFFF' },
 ];
 
 const ICONOS = {
@@ -43,12 +37,28 @@ const Availability = () => {
   const { isDark } = useTheme();
   const s = getStyles(isDark);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [selected, setSelected]   = useState(new Set());
-  const [categorias, setCategorias] = useState(CATEGORIAS_INIT);
+  const [categorias, setCategorias] = useState([]);
   const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      try {
+        const data = await socialService.getAvailabilityConfig(user.id);
+        setCategorias(data.categorias ?? []);
+      } catch (err) {
+        console.error('Error loading availability config', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [user]);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
@@ -88,17 +98,25 @@ const Availability = () => {
   };
 
   const handleSave = async () => {
-    setLoading(true);
+    setSaving(true);
     try {
-      await new Promise(r => setTimeout(r, 600));
+      await socialService.saveAvailabilityConfig(user.id, { categorias });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
   const t = createStyles(isDark);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ padding: 40, textAlign: 'center', color: t.textSecondary }}>Cargando...</div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -204,8 +222,8 @@ const Availability = () => {
 
           {/* Botón guardar */}
           <div style={s.saveRow}>
-            <button style={{ ...s.saveBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSave} disabled={loading}>
-              {loading ? 'Guardando...' : (
+            <button style={{ ...s.saveBtn, ...(saving ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSave} disabled={saving}>
+              {saving ? 'Guardando...' : (
                 <>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

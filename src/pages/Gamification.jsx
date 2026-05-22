@@ -1,65 +1,91 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import gamificationService from '../services/gamificationService';
 import AppLayout from '../components/Layout/AppLayout';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import ProgressBar from '../components/ProgressBar';
 import { ChevronRight, Lock, X } from 'lucide-react';
 import aibertGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 
-/* ── datos ── */
-const LOGROS_RECIENTES = [
-  { id: 1, icon: '⚡', iconBg: 'rgba(255,132,48,0.18)', titulo: 'Racha de 7 días',       sub: 'Completado ayer' },
-  { id: 2, icon: '⭐', iconBg: 'rgba(247,48,109,0.18)', titulo: 'Matemáticas Perfectas', sub: 'Examen final 5' },
-];
-
-const INSIGNIAS = [
-  { id: 1, tipo: 'TASK_STREAK',         nombre: 'TASK STREAK',         icon: '⚡', desc: 'Completa tareas sin interrupciones', desbloqueado: true,  color: '#FF8430' },
-  { id: 2, tipo: 'PERFECT_SCORE',       nombre: 'PERFECT SCORE',       icon: '⭐', desc: 'Obtén 5.0 en una evaluación',        desbloqueado: true,  color: '#F7306D' },
-  { id: 3, tipo: 'GOAL_COMPLETED',      nombre: 'GOAL COMPLETED',      icon: '🎯', desc: 'Cumple tu meta semanal',             desbloqueado: false, color: '#A855F7' },
-  { id: 4, tipo: 'SUBJECT_MASTERY',     nombre: 'SUBJECT MASTERY',     icon: '🏆', desc: 'Domina una materia completa',        desbloqueado: false, color: '#00CFFF' },
-  { id: 5, tipo: 'PRODUCTIVITY_STREAK', nombre: 'PRODUCTIVITY STREAK', icon: '🔥', desc: 'Mantén racha de productividad',      desbloqueado: false, color: '#22C55E' },
-];
-
-const CURSOS = [
-  {
-    id: 1, nombre: 'Matemáticas Avanzadas',     sub: 'CÁLCULO MULTIVARIABLE',
-    icon: 'Σ',   iconColor: '#FF8430', pct: 95, barColor: '#FF8430', nivel: 4, rango: 'EXPERT',       xp: [220, 230],
-  },
-  {
-    id: 2, nombre: 'Programación Estructurada', sub: 'ALGORITMOS & C++',
-    icon: '</>', iconColor: '#F7306D', pct: 62, barColor: '#F7306D', nivel: 2, rango: 'INTERMEDIATE',  xp: [140, 150],
-  },
-  {
-    id: 3, nombre: 'Estructuras de Datos',      sub: 'GRAFOS & ÁRBOLES',
-    icon: '⬡',  iconColor: '#A855F7', pct: 45, barColor: '#A855F7', nivel: 1, rango: 'NOVICE',        xp: [90, 100],
-  },
-];
-
 const FILTROS = ['TODOS', 'DESBLOQUEADOS', 'PENDIENTES'];
-
-const XP_ACTIVIDADES = [
-  { icon: '✅', label: 'Completar una tarea',    xp: '+50 XP'  },
-  { icon: '⏰', label: 'Completar a tiempo',     xp: '+30 XP'  },
-  { icon: '🔥', label: 'Cumplir una racha',      xp: '+100 XP' },
-  { icon: '🎯', label: 'Cumplir meta semanal',   xp: '+200 XP' },
-  { icon: '📈', label: 'Avance en una materia',  xp: '+80 XP'  },
-];
 
 /* ── componente ── */
 const Gamification = () => {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const t = createStyles(isDark);
   const [filtro, setFiltro] = useState('TODOS');
   const [showXpModal, setShowXpModal] = useState(false);
   const [hoverAibert, setHoverAibert] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(null);
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [achievements, setAchievements] = useState([]);
+  const [cursos, setCursos] = useState([]);
 
-  const insigniasFiltradas = INSIGNIAS.filter((i) => {
+  useEffect(() => {
+    if (!user?.id) return;
+    const fetchData = async () => {
+      try {
+        const [prog, pts, ach, subs] = await Promise.all([
+          gamificationService.getProgress(user.id),
+          gamificationService.getPoints(user.id),
+          gamificationService.getAchievements(user.id),
+          gamificationService.getSubjectsProgress(user.id),
+        ]);
+        setProgress(prog);
+        setTotalPoints(pts?.totalPoints ?? pts?.points ?? 0);
+        const raw = ach?.achievements ?? ach ?? [];
+        setAchievements(raw.map((a) => ({
+          id: a.id, tipo: a.tipo ?? a.type ?? '', nombre: a.nombre ?? a.name ?? '',
+          icon: a.icon ?? '🏅', desc: a.desc ?? a.description ?? '',
+          desbloqueado: a.desbloqueado ?? a.unlocked ?? false, color: a.color ?? '#FF8430',
+        })));
+        const rawSubs = subs?.subjects ?? subs ?? [];
+        setCursos(rawSubs.map((c) => ({
+          id: c.id, nombre: c.nombre ?? c.name ?? '', sub: c.sub ?? c.subtitle ?? '',
+          icon: c.icon ?? '📘', iconColor: c.iconColor ?? c.color ?? '#FF8430',
+          pct: c.pct ?? c.progress ?? 0, barColor: c.barColor ?? c.color ?? '#FF8430',
+          nivel: c.nivel ?? c.level ?? 1, rango: c.rango ?? c.rank ?? '',
+          xp: c.xp ?? c.xpPoints ?? [],
+        })));
+      } catch {
+        setProgress(null); setTotalPoints(0); setAchievements([]); setCursos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user?.id]);
+
+  const logrosRecientes = progress?.recentAchievements?.map((l) => ({
+    id: l.id, icon: l.icon ?? '🏅', iconBg: l.iconBg ?? (l.color ? l.color + '30' : 'rgba(255,132,48,0.18)'),
+    titulo: l.titulo ?? l.title ?? l.name ?? '', sub: l.sub ?? l.description ?? '',
+  })) ?? [];
+
+  const nivel = progress?.level ?? 0;
+  const xpActual = progress?.currentXp ?? 0;
+  const xpParaSiguiente = progress?.xpToNextLevel ?? 2500;
+  const pctProgreso = progress?.progressPercent ?? 0;
+
+  const insigniasFiltradas = achievements.filter((i) => {
     if (filtro === 'DESBLOQUEADOS') return i.desbloqueado;
     if (filtro === 'PENDIENTES')    return !i.desbloqueado;
     return true;
   });
+
+  const xpActividadesInfo = [
+    { icon: '✅', label: 'Completar una tarea',    xp: '+50 XP'  },
+    { icon: '⏰', label: 'Completar a tiempo',     xp: '+30 XP'  },
+    { icon: '🔥', label: 'Cumplir una racha',      xp: '+100 XP' },
+    { icon: '🎯', label: 'Cumplir meta semanal',   xp: '+200 XP' },
+    { icon: '📈', label: 'Avance en una materia',  xp: '+80 XP'  },
+  ];
+
+  if (loading) return <AppLayout><div style={{ padding: 40, textAlign: 'center', fontFamily: "'Poppins',sans-serif", color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>Cargando...</div></AppLayout>;
 
   const s = st(isDark, t);
 
@@ -79,31 +105,31 @@ const Gamification = () => {
           {/* Hero card */}
           <div style={s.heroCard}>
             <div style={s.levelWrap}>
-              <LevelCircle isDark={isDark} level={12} />
+              <LevelCircle isDark={isDark} level={nivel} />
             </div>
             <div style={s.heroInfo}>
               <div style={s.heroRangoRow}>
-                <span style={s.heroRango(isDark)}>Estudiante Experto</span>
+                <span style={s.heroRango(isDark)}>{progress?.rank ?? 'Estudiante Experto'}</span>
                 <span style={s.proBadge}>PRO</span>
               </div>
               <div style={s.xpBar}>
-                <ProgressBar value={74} isDark={isDark} color="linear-gradient(90deg,#FF5B2E,#C4107A)" />
+                <ProgressBar value={pctProgreso} isDark={isDark} color="linear-gradient(90deg,#FF5B2E,#C4107A)" />
               </div>
               <div style={s.xpLabels(isDark)}>
-                <span>1858 XP</span>
-                <span>2500 XP para Nivel 13</span>
+                <span>{xpActual.toLocaleString()} XP</span>
+                <span>{xpParaSiguiente.toLocaleString()} XP para Nivel {nivel + 1}</span>
               </div>
             </div>
             <div style={s.totalPuntosWrap}>
               <span style={s.totalLabel(isDark)}>TOTAL PUNTOS</span>
-              <span style={s.totalNum(isDark)}>14,240</span>
+              <span style={s.totalNum(isDark)}>{totalPoints.toLocaleString()}</span>
             </div>
           </div>
 
           {/* Logros recientes */}
           <div style={s.logrosPanel}>
             <div style={s.logrosPanelTitle(isDark)}>LOGROS RECIENTES</div>
-            {LOGROS_RECIENTES.map((l) => (
+                        {logrosRecientes.length > 0 ? logrosRecientes.map((l) => (
               <div key={l.id} style={s.logroItem(isDark)}>
                 <div style={{ ...s.logroIcon, background: l.iconBg }}>
                   <span style={{ fontSize: 16 }}>{l.icon}</span>
@@ -114,7 +140,7 @@ const Gamification = () => {
                 </div>
                 <ChevronRight size={15} color={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.25)'} />
               </div>
-            ))}
+            )) : <div style={{ ...s.logroItem(isDark), justifyContent: 'center', cursor: 'default', color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 12 }}>Sin logros recientes</div>}
           </div>
 
         </div>
@@ -166,7 +192,7 @@ const Gamification = () => {
           <div style={s.cursosCol}>
             <h2 style={{ ...s.sectionTitle(isDark), marginBottom: 16 }}>Cursos en progreso</h2>
             <div style={s.cursosGrid}>
-              {CURSOS.map((c) => (
+              {cursos.map((c) => (
                 <div key={c.id} style={s.cursoCard(isDark, t)}>
                   <div style={s.cursoTop}>
                     <div>
@@ -259,7 +285,7 @@ const Gamification = () => {
             <div style={s.modalSection}>
               <div style={s.modalSectionTitle(isDark)}>Actividades válidas</div>
               <div style={s.actividadesList}>
-                {XP_ACTIVIDADES.map((a, i) => (
+                {xpActividadesInfo.map((a, i) => (
                   <div key={i} style={s.actividadItem(isDark)}>
                     <span style={s.actividadIcon}>{a.icon}</span>
                     <span style={s.actividadLabel(isDark)}>{a.label}</span>

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ProgressBar from '../components/ProgressBar';
+import academicService from '../services/academicService';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
@@ -397,11 +398,27 @@ const StudyPreferences = () => {
   const [showToast, setShowToast] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const prefs = await academicService.getStudyPreferences();
+        if (prefs.modalidad) setModalidad(prefs.modalidad);
+        if (prefs.metodo) setMetodo(prefs.metodo);
+        if (prefs.ambiente) setAmbiente(prefs.ambiente);
+      } catch {
+        // Usar defaults
+      } finally {
+        setInitialLoading(false);
+      }
+    })();
+  }, []);
 
   const handleGuardar = async () => {
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 600));
+      await academicService.saveStudyPreferences({ modalidad, metodo, ambiente });
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3500);
     } finally {
@@ -412,6 +429,16 @@ const StudyPreferences = () => {
   const s = getStyles(isDark);
 
   const t = createStyles(isDark);
+
+  if (initialLoading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300, color: t.textSecondary, fontFamily: t.fontPrimary, fontSize: 14 }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
