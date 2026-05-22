@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
 import { useTheme } from '../context/ThemeContext';
@@ -6,6 +7,7 @@ import { createStyles } from '../theme/createStyles';
 
 const Settings = () => {
   const { isDark } = useTheme();
+  const navigate = useNavigate();
   const [passwords, setPasswords] = useState({
     current: '',
     new: '',
@@ -49,153 +51,142 @@ const Settings = () => {
 
   return (
     <AppLayout>
-      <h1 style={s.pageTitle}>Configuracion</h1>
+      <div style={s.pageWrapper}>
+        <h1 style={s.pageTitle}>Configuración</h1>
 
-      {/* SEGURIDAD */}
-      <div style={s.section}>
-        <div style={s.sectionHeader}>
-          <span style={s.sectionIcon}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-          </span>
-          <span style={s.sectionTitle}>Seguridad</span>
-        </div>
+        {/* PRIVACIDAD */}
+        <div style={s.section}>
+          <div style={s.sectionHeader}>
+            <span style={s.sectionIcon}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </span>
+            <span style={s.sectionTitle}>Privacidad</span>
+          </div>
 
-        <div style={s.subsectionTitle}>Cambiar contraseña</div>
-        <div style={s.subsectionDesc}>Actualiza tu contraseña regularmente para mayor seguridad.</div>
+          <div style={s.settingRow}>
+            <div style={s.settingInfo}>
+              <div style={s.settingLabel}>Visibilidad del perfil</div>
+              <div style={s.settingDesc}>Controla quién puede ver tus publicaciones e historial.</div>
+            </div>
+            <div style={s.visibilidadSelector}>
+              {['Solo amigos', 'Todos', 'Nadie'].map((opt) => (
+                <button
+                  key={opt}
+                  style={{ ...s.visibilidadBtn, ...(privacy.visibilidad === opt ? s.visibilidadBtnActive : {}) }}
+                  onClick={() => setPrivacy((p) => ({ ...p, visibilidad: opt }))}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
 
-        {passwordSaved && (
-          <div style={s.successMsg}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <circle cx="7" cy="7" r="6" stroke="#22C55E" strokeWidth="1.3"/>
-              <path d="M4.5 7l2 2 3-3" stroke="#22C55E" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Contraseña actualizada correctamente
-          </div>
-        )}
+          <div style={s.divider} />
 
-        <div style={s.passwordFields}>
-          <div style={s.fieldGroup}>
-            <input
-              style={{ ...s.input, ...(passwordErrors.current ? s.inputError : {}) }}
-              type="password"
-              placeholder="Contraseña actual"
-              value={passwords.current}
-              onChange={(e) => {
-                setPasswords((p) => ({ ...p, current: e.target.value }));
-                if (passwordErrors.current) setPasswordErrors((p) => ({ ...p, current: '' }));
-              }}
-            />
-            <ErrorMsg message={passwordErrors.current} />
+          <div style={s.settingRow}>
+            <div style={s.settingInfo}>
+              <div style={s.settingLabel}>Compartir disponibilidad</div>
+              <div style={s.settingDesc}>Permite que otros vean cuando estás conectado.</div>
+            </div>
+            <Toggle value={privacy.compartirDisponibilidad} onChange={(v) => setPrivacy((p) => ({ ...p, compartirDisponibilidad: v }))} />
           </div>
-          <div style={s.fieldGroup}>
-            <input
-              style={{ ...s.input, ...(passwordErrors.new ? s.inputError : {}) }}
-              type="password"
-              placeholder="Nueva contraseña"
-              value={passwords.new}
-              onChange={(e) => {
-                setPasswords((p) => ({ ...p, new: e.target.value }));
-                if (passwordErrors.new) setPasswordErrors((p) => ({ ...p, new: '' }));
-              }}
-            />
-            <ErrorMsg message={passwordErrors.new} />
+
+          <div style={s.divider} />
+
+          <div style={s.settingRow}>
+            <div style={s.settingInfo}>
+              <div style={s.settingLabel}>Mostrar estadísticas a amigos</div>
+              <div style={s.settingDesc}>Comparte tus logros y tiempo de estudio con tu red.</div>
+            </div>
+            <Toggle value={privacy.mostrarEstadisticas} onChange={(v) => setPrivacy((p) => ({ ...p, mostrarEstadisticas: v }))} />
           </div>
-          <div style={s.fieldGroup}>
-            <input
-              style={{ ...s.input, ...(passwordErrors.confirm ? s.inputError : {}) }}
-              type="password"
-              placeholder="Confirmar nueva contraseña"
-              value={passwords.confirm}
-              onChange={(e) => {
-                setPasswords((p) => ({ ...p, confirm: e.target.value }));
-                if (passwordErrors.confirm) setPasswordErrors((p) => ({ ...p, confirm: '' }));
-              }}
-            />
-            <ErrorMsg message={passwordErrors.confirm} />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button style={s.saveBtn} onClick={handleSavePassword}>
-              Guardar contraseña
-            </button>
+
+          <div style={s.divider} />
+
+          <div style={s.settingRow}>
+            <div style={s.settingInfo}>
+              <div style={s.settingLabel}>Datos y actividad</div>
+              <div style={s.settingDesc}>Descarga o gestiona todo tu historial de aprendizaje.</div>
+            </div>
+            <button style={s.linkBtn} onClick={() => navigate('/estadisticas')}>Ver mis datos →</button>
           </div>
         </div>
-      </div>
 
-      {/* PRIVACIDAD */}
-      <div style={s.section}>
-        <div style={s.sectionHeader}>
-          <span style={s.sectionIcon}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-              stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </span>
-          <span style={s.sectionTitle}>Privacidad</span>
-        </div>
-
-        {/* Visibilidad del perfil */}
-        <div style={s.settingRow}>
-          <div style={s.settingInfo}>
-            <div style={s.settingLabel}>Visibilidad del perfil</div>
-            <div style={s.settingDesc}>Controla quién puede ver tus publicaciones e historial.</div>
+        {/* CONTRASEÑA */}
+        <div style={s.section}>
+          <div style={s.sectionHeader}>
+            <span style={s.sectionIcon}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <span style={s.sectionTitle}>Contraseña</span>
           </div>
-          <div style={s.visibilidadSelector}>
-            {['Solo amigos', 'Todos', 'Nadie'].map((opt) => (
-              <button
-                key={opt}
-                style={{
-                  ...s.visibilidadBtn,
-                  ...(privacy.visibilidad === opt ? s.visibilidadBtnActive : {}),
+
+          <div style={s.subsectionTitle}>Cambiar contraseña</div>
+          <div style={s.subsectionDesc}>Actualiza tu contraseña regularmente para mayor seguridad.</div>
+
+          {passwordSaved && (
+            <div style={s.successMsg}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="7" cy="7" r="6" stroke="#22C55E" strokeWidth="1.3"/>
+                <path d="M4.5 7l2 2 3-3" stroke="#22C55E" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Contraseña actualizada correctamente
+            </div>
+          )}
+
+          <div style={s.passwordFields}>
+            <div style={s.fieldGroup}>
+              <input
+                style={{ ...s.input, ...(passwordErrors.current ? s.inputError : {}) }}
+                type="password"
+                placeholder="Contraseña actual"
+                value={passwords.current}
+                onChange={(e) => {
+                  setPasswords((p) => ({ ...p, current: e.target.value }));
+                  if (passwordErrors.current) setPasswordErrors((p) => ({ ...p, current: '' }));
                 }}
-                onClick={() => setPrivacy((p) => ({ ...p, visibilidad: opt }))}
-              >
-                {opt}
+              />
+              <ErrorMsg message={passwordErrors.current} />
+            </div>
+            <div style={s.fieldGroup}>
+              <input
+                style={{ ...s.input, ...(passwordErrors.new ? s.inputError : {}) }}
+                type="password"
+                placeholder="Nueva contraseña"
+                value={passwords.new}
+                onChange={(e) => {
+                  setPasswords((p) => ({ ...p, new: e.target.value }));
+                  if (passwordErrors.new) setPasswordErrors((p) => ({ ...p, new: '' }));
+                }}
+              />
+              <ErrorMsg message={passwordErrors.new} />
+            </div>
+            <div style={s.fieldGroup}>
+              <input
+                style={{ ...s.input, ...(passwordErrors.confirm ? s.inputError : {}) }}
+                type="password"
+                placeholder="Confirmar nueva contraseña"
+                value={passwords.confirm}
+                onChange={(e) => {
+                  setPasswords((p) => ({ ...p, confirm: e.target.value }));
+                  if (passwordErrors.confirm) setPasswordErrors((p) => ({ ...p, confirm: '' }));
+                }}
+              />
+              <ErrorMsg message={passwordErrors.confirm} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button style={s.saveBtn} onClick={handleSavePassword}>
+                Guardar contraseña
               </button>
-            ))}
+            </div>
           </div>
-        </div>
-
-        <div style={s.divider} />
-
-        {/* Compartir disponibilidad */}
-        <div style={s.settingRow}>
-          <div style={s.settingInfo}>
-            <div style={s.settingLabel}>Compartir disponibilidad</div>
-            <div style={s.settingDesc}>Permite que otros vean cuando estás conectado.</div>
-          </div>
-          <Toggle
-            value={privacy.compartirDisponibilidad}
-            onChange={(v) => setPrivacy((p) => ({ ...p, compartirDisponibilidad: v }))}
-          />
-        </div>
-
-        <div style={s.divider} />
-
-        {/* Mostrar estadísticas */}
-        <div style={s.settingRow}>
-          <div style={s.settingInfo}>
-            <div style={s.settingLabel}>Mostrar estadísticas a amigos</div>
-            <div style={s.settingDesc}>Comparte tus logros y tiempo de estudio con tu red.</div>
-          </div>
-          <Toggle
-            value={privacy.mostrarEstadisticas}
-            onChange={(v) => setPrivacy((p) => ({ ...p, mostrarEstadisticas: v }))}
-          />
-        </div>
-
-        <div style={s.divider} />
-
-        {/* Datos y actividad */}
-        <div style={s.settingRow}>
-          <div style={s.settingInfo}>
-            <div style={s.settingLabel}>Datos y actividad</div>
-            <div style={s.settingDesc}>Descarga o gestiona todo tu historial de aprendizaje.</div>
-          </div>
-          <button style={s.linkBtn}>Ver mis datos →</button>
         </div>
       </div>
     </AppLayout>
@@ -205,6 +196,11 @@ const Settings = () => {
 const getStyles = (isDark) => {
   const t = createStyles(isDark);
   return {
+    pageWrapper: {
+      maxWidth: 680,
+      margin: '0 auto',
+      width: '100%',
+    },
     pageTitle: {
       fontFamily: t.fontPrimary,
       fontSize: 32,

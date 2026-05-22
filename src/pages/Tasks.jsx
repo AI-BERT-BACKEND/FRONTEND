@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import { formatDate } from '../utils/dateUtils';
 
 import { 
   Search, Edit2, Trash2, Clock, ChevronDown, 
@@ -93,6 +94,16 @@ const INITIAL_TASKS = [
   },
 ];
 
+const Spinner = () => (
+  <>
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <svg style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+    </svg>
+  </>
+);
+
 const Tasks = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -101,6 +112,9 @@ const Tasks = () => {
   const [filtroMateria, setFiltroMateria] = useState('Todos los materias');
   const [showModal, setShowModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [detailTask, setDetailTask] = useState(null);
+  const [editTask, setEditTask] = useState(null);
   const [form, setForm] = useState({
     nombre: '', materia: 'Matemáticas II', tipo: 'TAREA',
     descripcion: '', fecha: '', horas: '', estimado: '',
@@ -108,6 +122,7 @@ const Tasks = () => {
   const [formErrors, setFormErrors] = useState({});
 
   const s = getStyles(isDark);
+  const t = createStyles(isDark);
 
   const tareasFiltradas = tasks.filter(t => {
     const matchBusqueda = t.nombre.toLowerCase().includes(busqueda.toLowerCase());
@@ -129,27 +144,38 @@ const Tasks = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleCrear = () => {
+  const handleCrear = async () => {
     if (!validateForm()) return;
-    const nueva = {
-      id: Date.now(),
-      nombre: form.nombre,
-      descripcion: form.descripcion,
-      materia: form.materia,
-      tipo: form.tipo,
-      fecha: form.fecha,
-      horasEstudio: form.horas || '1:00',
-      estimado: form.estimado || '—',
-    };
-    setTasks(p => [...p, nueva]);
-    setForm({ nombre: '', materia: 'Matemáticas II', tipo: 'TAREA', descripcion: '', fecha: '', horas: '', estimado: '' });
-    setFormErrors({});
-    setShowModal(false);
-    setShowSuccess(true);
-    setTimeout(() => setShowSuccess(false), 6000);
+    setLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 500));
+      const nueva = {
+        id: Date.now(),
+        nombre: form.nombre,
+        descripcion: form.descripcion,
+        materia: form.materia,
+        tipo: form.tipo,
+        fecha: form.fecha,
+        horasEstudio: form.horas || '1:00',
+        estimado: form.estimado || '—',
+      };
+      setTasks(p => [...p, nueva]);
+      setForm({ nombre: '', materia: 'Matemáticas II', tipo: 'TAREA', descripcion: '', fecha: '', horas: '', estimado: '' });
+      setFormErrors({});
+      setShowModal(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 6000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEliminar = (id) => setTasks(p => p.filter(t => t.id !== id));
+
+  const handleEditSave = (updated) => {
+    setTasks(p => p.map(t => t.id === updated.id ? updated : t));
+    setEditTask(null);
+  };
 
   return (
     <AppLayout>
@@ -222,16 +248,16 @@ const Tasks = () => {
         {tareasFiltradas.map(t => {
           const ec = ESTADO_CONFIG[t.tipo] || { bg: 'rgba(255,255,255,0.08)', color: '#fff' };
           return (
-            <div key={t.id} style={s.taskCard}>
+            <div key={t.id} style={{ ...s.taskCard, cursor: 'pointer' }} onClick={() => setDetailTask(t)}>
               <div style={s.cardTop}>
                 <span style={{ ...s.tipoBadge, background: ec.bg, color: ec.color }}>
                   {t.tipo}
                 </span>
                 <div style={s.cardActions}>
-                  <button style={s.actionBtn} title="Editar">
-                    <EditIcon color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
+                  <button style={s.actionBtn} title="Editar" onClick={(e) => { e.stopPropagation(); setEditTask({ ...t }); }}>
+                    <EditIcon color={isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'} />
                   </button>
-                  <button style={s.actionBtn} title="Eliminar" onClick={() => handleEliminar(t.id)}>
+                  <button style={s.actionBtn} title="Eliminar" onClick={(e) => { e.stopPropagation(); handleEliminar(t.id); }}>
                     <TrashIcon color="#F00707" />
                   </button>
                 </div>
@@ -246,8 +272,8 @@ const Tasks = () => {
                   <span style={s.footerText}>TIEMPO: {t.horasEstudio}</span>
                 </div>
                 <div style={s.footerItem}>
-                  <span style={s.entregaLabel}>ENTREGA:</span>
-                  <span style={{ ...s.entregaVal, color: ec.color }}>{t.estimado}</span>
+                  <span style={s.entregaLabel}>FECHA:</span>
+                  <span style={{ ...s.entregaVal, color: ec.color }}>{formatDate(t.fecha)}</span>
                 </div>
               </div>
             </div>
@@ -291,6 +317,119 @@ const Tasks = () => {
           <span style={s.resumenTotal}>{totalHoras} Horas</span>
         </div>
       </div>
+
+      {/* ── MODAL DETALLE ── */}
+      {detailTask && (
+        <div style={s.modalOverlay} onClick={() => setDetailTask(null)}>
+          <div style={s.modalCard} onClick={e => e.stopPropagation()}>
+            <div style={s.modalHeader}>
+              <span style={s.modalTitle}>Detalle de Tarea</span>
+              <button style={s.modalClose} onClick={() => setDetailTask(null)}>✕</button>
+            </div>
+            <div style={{ ...s.modalBody, display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {(() => {
+                const ec = ESTADO_CONFIG[detailTask.tipo] || { bg: 'rgba(255,255,255,0.08)', color: '#fff' };
+                return (
+                  <>
+                    <span style={{ ...s.tipoBadge, background: ec.bg, color: ec.color, alignSelf: 'flex-start' }}>
+                      {detailTask.tipo}
+                    </span>
+                    <div style={{ fontFamily: t.fontPrimary, fontSize: 16, fontWeight: 700, color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.87)' }}>
+                      {detailTask.nombre}
+                    </div>
+                    {detailTask.descripcion && (
+                      <p style={{ fontSize: 13, color: t.textSecondary, lineHeight: 1.6, margin: 0 }}>
+                        {detailTask.descripcion}
+                      </p>
+                    )}
+                    <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.07em', color: t.textMuted, marginBottom: 3 }}>MATERIA</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.87)' }}>{detailTask.materia}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.07em', color: t.textMuted, marginBottom: 3 }}>FECHA</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: ec.color }}>{formatDate(detailTask.fecha)}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.07em', color: t.textMuted, marginBottom: 3 }}>HORAS</div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.87)' }}>{detailTask.horasEstudio}</div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+            <div style={s.modalFooter}>
+              <button style={s.mCancelBtn} onClick={() => setDetailTask(null)}>Cerrar</button>
+              <button style={s.mCreateBtn} onClick={() => { setEditTask({ ...detailTask }); setDetailTask(null); }}>Editar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL EDITAR TAREA ── */}
+      {editTask && (
+        <div style={s.modalOverlay} onClick={() => setEditTask(null)}>
+          <div style={s.modalCard} onClick={e => e.stopPropagation()}>
+            <div style={s.modalHeader}>
+              <span style={s.modalTitle}>Editar Tarea</span>
+              <button style={s.modalClose} onClick={() => setEditTask(null)}>✕</button>
+            </div>
+            <div style={s.modalBody}>
+              <div style={s.mField}>
+                <label style={s.mLabel}>NOMBRE DE LA TAREA</label>
+                <input style={s.mInput} value={editTask.nombre}
+                  onChange={e => setEditTask(p => ({ ...p, nombre: e.target.value }))} />
+              </div>
+              <div style={s.mRow}>
+                <div style={{ ...s.mField, flex: 1 }}>
+                  <label style={s.mLabel}>MATERIA</label>
+                  <div style={{ position: 'relative' }}>
+                    <select style={{ ...s.mInput, ...s.mSelect }} value={editTask.materia}
+                      onChange={e => setEditTask(p => ({ ...p, materia: e.target.value }))}>
+                      {MATERIAS_OPCIONES.map(m => <option key={m}>{m}</option>)}
+                    </select>
+                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
+                  </div>
+                </div>
+                <div style={{ ...s.mField, flex: 1 }}>
+                  <label style={s.mLabel}>TIPO</label>
+                  <div style={{ position: 'relative' }}>
+                    <select style={{ ...s.mInput, ...s.mSelect }} value={editTask.tipo}
+                      onChange={e => setEditTask(p => ({ ...p, tipo: e.target.value }))}>
+                      {Object.keys(ESTADO_CONFIG).map(k => <option key={k}>{k}</option>)}
+                    </select>
+                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
+                  </div>
+                </div>
+              </div>
+              <div style={s.mField}>
+                <label style={s.mLabel}>DESCRIPCIÓN</label>
+                <textarea style={{ ...s.mInput, height: 72, resize: 'none', paddingTop: 10 }}
+                  value={editTask.descripcion}
+                  onChange={e => setEditTask(p => ({ ...p, descripcion: e.target.value }))} />
+              </div>
+              <div style={s.mRow}>
+                <div style={{ ...s.mField, flex: 1 }}>
+                  <label style={s.mLabel}>FECHA</label>
+                  <input type="date" style={s.mInput} value={editTask.fecha}
+                    onChange={e => setEditTask(p => ({ ...p, fecha: e.target.value }))} />
+                </div>
+                <div style={{ ...s.mField, flex: 1 }}>
+                  <label style={s.mLabel}>HORAS</label>
+                  <input type="text" style={s.mInput} value={editTask.horasEstudio}
+                    onChange={e => setEditTask(p => ({ ...p, horasEstudio: e.target.value }))} />
+                </div>
+              </div>
+            </div>
+            <div style={s.modalFooter}>
+              <button style={s.mCancelBtn} onClick={() => setEditTask(null)}>Cancelar</button>
+              <button style={s.mCreateBtn} onClick={() => handleEditSave(editTask)}>Guardar cambios</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── MODAL NUEVA TAREA ── */}
       {showModal && (
@@ -376,8 +515,10 @@ const Tasks = () => {
             </div>
 
             <div style={s.modalFooter}>
-              <button style={s.mCancelBtn} onClick={() => setShowModal(false)}>Cancelar</button>
-              <button style={s.mCreateBtn} onClick={handleCrear}>Crear Tarea</button>
+              <button style={s.mCancelBtn} onClick={() => setShowModal(false)} disabled={loading}>Cancelar</button>
+              <button style={{ ...s.mCreateBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleCrear} disabled={loading}>
+                {loading ? <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Spinner /> Guardando...</span> : 'Registrar Tarea'}
+              </button>
             </div>
           </div>
         </div>
@@ -575,12 +716,12 @@ const getStyles = (isDark) => {
       fontFamily: t.fontPrimary,
       fontSize: 14,
       fontWeight: 700,
-      color: t.textPrimary,
+      color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.87)',
       lineHeight: 1.3,
     },
     taskDesc: {
       fontSize: 12,
-      color: t.textSecondary,
+      color: isDark ? 'rgba(255,255,255,0.65)' : 'rgba(0,0,0,0.58)',
       lineHeight: 1.5,
     },
     taskFooter: {
