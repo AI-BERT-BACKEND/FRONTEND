@@ -39,11 +39,11 @@ const CURSOS = [
 const FILTROS = ['TODOS', 'DESBLOQUEADOS', 'PENDIENTES'];
 
 const XP_ACTIVIDADES = [
-  { icon: '✅', label: 'Completar una tarea',    xp: '+50 XP'  },
-  { icon: '⏰', label: 'Completar a tiempo',     xp: '+30 XP'  },
-  { icon: '🔥', label: 'Cumplir una racha',      xp: '+100 XP' },
-  { icon: '🎯', label: 'Cumplir meta semanal',   xp: '+200 XP' },
-  { icon: '📈', label: 'Avance en una materia',  xp: '+80 XP'  },
+  { icon: '✅', label: 'Completar una tarea',             xp: '+10 XP'  },
+  { icon: '⏰', label: 'Completar una tarea a tiempo',    xp: '+15 XP'  },
+  { icon: '🔥', label: 'Cumplir una racha',               xp: '+20 XP'  },
+  { icon: '🎯', label: 'Cumplir una meta semanal',        xp: '+25 XP'  },
+  { icon: '📈', label: 'Avance en una materia',           xp: '+8 XP'   },
 ];
 
 /* ── componente ── */
@@ -160,65 +160,63 @@ const Gamification = () => {
           </div>
         </section>
 
-        {/* ── CURSOS + AIBERT ── */}
-        <div style={s.cursosAibertRow}>
-
-          <div style={s.cursosCol}>
-            <h2 style={{ ...s.sectionTitle(isDark), marginBottom: 16 }}>Cursos en progreso</h2>
-            <div style={s.cursosGrid}>
-              {CURSOS.map((c) => (
-                <div key={c.id} style={s.cursoCard(isDark, t)}>
-                  <div style={s.cursoTop}>
-                    <div>
-                      <div style={s.cursoNombre(isDark)}>{c.nombre}</div>
-                      <div style={s.cursoSub(isDark)}>{c.sub}</div>
-                    </div>
-                    <div style={s.cursoIconWrap(c.iconColor)}>
-                      <span style={{ fontSize: 14, fontWeight: 800, color: c.iconColor, fontFamily: 'monospace' }}>
-                        {c.icon}
-                      </span>
-                    </div>
+        {/* ── CURSOS ── */}
+        <div style={{ ...s.cursosCol, marginBottom: 24 }}>
+          <h2 style={{ ...s.sectionTitle(isDark), marginBottom: 16 }}>Cursos en progreso</h2>
+          <div style={s.cursosGrid}>
+            {CURSOS.map((c) => (
+              <div key={c.id} style={s.cursoCard(isDark, t)}>
+                <div style={s.cursoTop}>
+                  <div>
+                    <div style={s.cursoNombre(isDark)}>{c.nombre}</div>
+                    <div style={s.cursoSub(isDark)}>{c.sub}</div>
                   </div>
-                  <div style={{ marginTop: 'auto' }}>
-                    <div style={s.cursoPctRow(isDark, c.barColor)}>
-                      <span style={{ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)', fontFamily: "'Poppins',sans-serif" }}>{c.pct}%</span>
-                    </div>
-                    <ProgressBar value={c.pct} isDark={isDark} color={c.barColor} />
-                    <div style={s.cursoFooter}>
-                      <div style={s.xpPillRow}>
-                        {c.xp.map((x, i) => (
-                          <span key={i} style={s.xpPill(c.barColor)}>{x} XP</span>
-                        ))}
-                      </div>
-                      <span style={s.nivelBadge(c.barColor)}>LVL {c.nivel} {c.rango}</span>
-                    </div>
+                  <div style={s.cursoIconWrap(c.iconColor)}>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: c.iconColor, fontFamily: 'monospace' }}>
+                      {c.icon}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div style={{ marginTop: 'auto' }}>
+                  <div style={s.cursoPctRow(isDark, c.barColor)}>
+                    <span style={{ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)', fontFamily: "'Poppins',sans-serif" }}>{c.pct}%</span>
+                  </div>
+                  <ProgressBar value={c.pct} isDark={isDark} color={c.barColor} />
+                  <div style={s.cursoFooter}>
+                    <div style={s.xpPillRow}>
+                      {c.xp.map((x, i) => (
+                        <span key={i} style={s.xpPill(c.barColor)}>{x} XP</span>
+                      ))}
+                    </div>
+                    <span style={s.nivelBadge(c.barColor)}>LVL {c.nivel} {c.rango}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          {/* ── AIBERT WIDGET ── */}
-          <div style={s.aibertCol}>
-            <div
-              style={{ ...s.aibertWidget(isDark), ...(hoverAibert ? s.aibertWidgetHover(isDark) : {}) }}
-              onMouseEnter={() => setHoverAibert(true)}
-              onMouseLeave={() => setHoverAibert(false)}
-              onClick={() => setShowXpModal(true)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && setShowXpModal(true)}
-              aria-label="Ver cómo funciona el XP"
-            >
-              <img src={aibertGif} alt="Aibert" style={s.aibertWidgetGif} />
-              <span style={s.aibertWidgetLabel(isDark)}>ASISTENTE</span>
+        {/* ── AIBERT WIDGET ── */}
+        <div style={{ width: '100%', marginBottom: 32 }}>
+          <div
+            style={{ ...s.aibertWidget(isDark), ...(hoverAibert ? s.aibertWidgetHover(isDark) : {}) }}
+            onMouseEnter={() => setHoverAibert(true)}
+            onMouseLeave={() => setHoverAibert(false)}
+          >
+            <img src={aibertGif} alt="Aibert" style={s.aibertWidgetGif} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+              <span style={s.aibertWidgetLabel(isDark)}>ASISTENTE ACADÉMICO</span>
               <p style={s.aibertWidgetText(isDark)}>
-                Gana XP completando tareas, manteniendo rachas y cumpliendo metas.
+                Gana puntos XP completando tus tareas, manteniendo rachas y cumpliendo metas. Cada actividad cuenta para subir de nivel y desbloquear nuevos logros.
               </p>
-              <span style={s.aibertWidgetCta(isDark)}>¿Cómo gano XP? →</span>
+              <button
+                style={s.aibertWidgetBtn(isDark)}
+                onClick={() => setShowXpModal(true)}
+              >
+                ¿Cómo funciona el XP?
+              </button>
             </div>
           </div>
-
         </div>
 
         {/* ── CTA BANNER ── */}
@@ -579,7 +577,8 @@ const st = (isDark, t) => ({
   /* Galería */
   insigniasGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+    gridTemplateColumns: 'repeat(5, 140px)',
+    justifyContent: 'center',
     gap: 14,
   },
 
@@ -645,7 +644,7 @@ const st = (isDark, t) => ({
   /* Cursos */
   cursosGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gap: 14,
   },
 
@@ -742,14 +741,14 @@ const st = (isDark, t) => ({
 
   /* Aibert widget compacto */
   aibertWidget: (isDark) => ({
-    background: isDark ? 'rgba(196,16,122,0.06)' : 'rgba(255,132,48,0.05)',
+    background: isDark ? '#1A0614' : '#FFF0E8',
     border: `1px solid ${isDark ? 'rgba(196,16,122,0.22)' : 'rgba(255,132,48,0.22)'}`,
     borderRadius: 16,
-    padding: '20px 16px',
+    padding: '28px 36px',
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 32,
     cursor: 'pointer',
     transition: 'box-shadow 0.2s, transform 0.2s',
     userSelect: 'none',
@@ -763,18 +762,18 @@ const st = (isDark, t) => ({
   }),
 
   aibertWidgetGif: {
-    width: 72,
-    height: 72,
+    width: 90,
+    height: 90,
     objectFit: 'contain',
     borderRadius: '50%',
   },
 
   aibertWidgetLabel: (isDark) => ({
-    fontSize: 8,
-    letterSpacing: '0.14em',
-    fontWeight: 700,
+    fontSize: 13,
+    letterSpacing: '0.08em',
+    fontWeight: 800,
     textTransform: 'uppercase',
-    color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
+    color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.55)',
     fontFamily: "'Poppins',sans-serif",
   }),
 
@@ -783,7 +782,7 @@ const st = (isDark, t) => ({
     color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
     fontFamily: "'Poppins',sans-serif",
     lineHeight: 1.55,
-    textAlign: 'center',
+    textAlign: 'left',
     margin: 0,
   }),
 
@@ -793,6 +792,24 @@ const st = (isDark, t) => ({
     color: isDark ? '#FF5B2E' : '#FF8430',
     fontFamily: "'Poppins',sans-serif",
     letterSpacing: '0.02em',
+  }),
+
+  aibertWidgetBtn: (isDark) => ({
+    background: isDark
+      ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
+      : 'linear-gradient(90deg,#FF8430,#F7306D)',
+    border: 'none',
+    borderRadius: 10,
+    padding: '10px 22px',
+    color: '#fff',
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+    boxShadow: isDark
+      ? '0 4px 16px rgba(196,16,122,0.35)'
+      : '0 4px 16px rgba(247,48,109,0.25)',
+    marginTop: 4,
   }),
 
   /* CTA Banner */
