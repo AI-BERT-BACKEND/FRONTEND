@@ -359,6 +359,8 @@ const getStyles = (isDark) => {
       color: t.textPrimary,
       whiteSpace: 'nowrap',
       flexShrink: 0,
+      minWidth: 140,
+      textAlign: 'center',
     },
     dangerBtnFill: {
       padding: '7px 14px',
@@ -372,9 +374,13 @@ const getStyles = (isDark) => {
       color: '#fff',
       whiteSpace: 'nowrap',
       flexShrink: 0,
+      minWidth: 140,
+      textAlign: 'center',
     },
-    actionRow: { display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 },
+    actionRow: { display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 },
     cancelBtn: {
+      flex: 1,
+      maxWidth: 180,
       padding: '10px 24px',
       borderRadius: 10,
       border: `1px solid ${t.inputBorder}`,
@@ -386,6 +392,8 @@ const getStyles = (isDark) => {
       color: t.textSecondary,
     },
     saveBtn: {
+      flex: 1,
+      maxWidth: 180,
       padding: '10px 24px',
       borderRadius: 10,
       border: 'none',
