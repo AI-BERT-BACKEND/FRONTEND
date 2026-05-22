@@ -5,12 +5,18 @@ import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import { useNavigate } from 'react-router-dom';
+import { 
+  ChevronDown, BookOpen, User, Clipboard, 
+  Star, Calendar, MoreVertical, Layout, Trash2 
+} from 'lucide-react';
 
-const ChevronDown = ({ color }) => (
-  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"
-    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-    <path d="M2 4l3.5 3.5L9 4" stroke={color || 'currentColor'} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
+const LocalChevronDown = ({ color }) => (
+  <ChevronDown 
+    size={11} 
+    color={color || 'currentColor'} 
+    strokeWidth={2}
+    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+  />
 );
 
 const COLORS = ['#FF8430','#F7306D','#00CFFF','#A855F7','#22C55E','#EAB308','#FF5B2E','#C4107A'];
@@ -29,6 +35,7 @@ const Spinner = () => (
 
 const Subjects = () => {
   const { isDark } = useTheme();
+  const t = createStyles(isDark);
   const [showModal, setShowModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -189,7 +196,7 @@ const Subjects = () => {
       <div style={s.materiasGrid}>
         {materias.length === 0 && (
           <div style={s.emptyState}>
-            <span style={{ fontSize: 32 }}>📚</span>
+            <BookOpen size={32} color={isDark ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.15)'} />
             <p style={s.emptyText}>Aún no tienes materias. ¡Agrega tu primera materia!</p>
           </div>
         )}
@@ -206,7 +213,7 @@ const Subjects = () => {
               </div>
               <div style={{ position: 'relative' }} ref={menuOpen === m.id ? menuRef : null}>
                 <button style={s.menuBtn} onClick={() => setMenuOpen(menuOpen === m.id ? null : m.id)}>
-                  ⋮
+                  <MoreVertical size={16} />
                 </button>
                 {menuOpen === m.id && (
                   <div style={s.dropdown}>
@@ -214,7 +221,7 @@ const Subjects = () => {
                       📊 Ver detalle
                     </button>
                     <button style={{ ...s.dropdownItem, color: '#F00707' }} onClick={() => handleEliminar(m.id)}>
-                      🗑 Eliminar materia
+                      <Trash2 size={12} style={{ marginRight: 6 }} /> Eliminar materia
                     </button>
                   </div>
                 )}
@@ -222,21 +229,21 @@ const Subjects = () => {
             </div>
 
             <div style={{ ...s.materiaIcon, background: m.color + '22', border: `2px solid ${m.color}44` }}>
-              <span style={{ fontSize: 22 }}>📖</span>
+              <BookOpen size={22} color={m.color} />
             </div>
             <div style={s.materiaName}>{m.nombre}</div>
             <div style={s.materiaSemestre}>{m.semestre?.toUpperCase()}</div>
 
             <div style={s.materiaFooter}>
               <div style={s.materiaInfo}>
-                <span style={s.infoIcon}>👤</span>
+                <User size={14} color={t.textMuted} />
                 <div>
                   <div style={s.infoLabel}>DOCENTE</div>
                   <div style={s.infoVal}>{m.profesor || '—'}</div>
                 </div>
               </div>
               <div style={s.materiaInfo}>
-                <span style={s.infoIcon}>📋</span>
+                <Clipboard size={14} color={t.textMuted} />
                 <div>
                   <div style={s.infoLabel}>CRÉDITOS</div>
                   <div style={s.infoVal}>{m.creditos} Créditos</div>
@@ -250,7 +257,7 @@ const Subjects = () => {
         <div style={s.creditosCard}>
           <div style={s.creditosHeader}>
             <span style={s.creditosTitle}>RESUMEN DE CRÉDITOS</span>
-            <span style={{ fontSize: 16 }}>⭐</span>
+            <Star size={16} color={isDark ? '#FF5B2E' : '#F7306D'} />
           </div>
           <div style={s.creditosNum}>
             <span style={s.creditosBig}>{totalCreditos}</span>
@@ -273,7 +280,7 @@ const Subjects = () => {
       <div style={s.proximosCard}>
         <div style={s.proximosImg}>
           <div style={s.proximosImgPlaceholder}>
-            <span style={{ fontSize: 24 }}>🗓</span>
+            <Calendar size={24} color={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.30)'} />
           </div>
         </div>
         <div style={s.proximosInfo}>
@@ -318,7 +325,7 @@ const Subjects = () => {
               <div style={s.mField}>
                 <label style={s.mLabel}>Profesor titular</label>
                 <div style={{ position: 'relative' }}>
-                  <span style={s.inputIcon}>👤</span>
+                  <User size={14} color={t.textMuted} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                   <input
                     style={{ ...s.mInput, paddingLeft: 32 }}
                     placeholder="Dr. Alberto García"
@@ -345,7 +352,7 @@ const Subjects = () => {
                         <option key={c} value={c}>{c} crédito{c !== '1' ? 's' : ''}</option>
                       ))}
                     </select>
-                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
+                    <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                   <ErrorMsg message={formErrors.creditos} />
                 </div>
@@ -366,7 +373,7 @@ const Subjects = () => {
                         <option key={sem} value={sem}>{sem}</option>
                       ))}
                     </select>
-                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
+                    <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                   <ErrorMsg message={formErrors.semestre} />
                 </div>
@@ -707,9 +714,7 @@ const getStyles = (isDark) => {
     },
     modalBody: { padding: '16px 24px', overflowY: 'auto', flex: 1 },
     modalFooter: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      gap: 12,
+      display: 'flex', justifyContent: 'flex-end', gap: 12,
       padding: '12px 24px 20px',
       borderTop: `1px solid ${t.cardBorder}`,
       flexShrink: 0,

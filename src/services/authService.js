@@ -27,7 +27,6 @@ const authService = {
 
   logout: () => {
     localStorage.removeItem('token');
-    window.location.href = '/login';
   },
 
   getCurrentUser: async () => {

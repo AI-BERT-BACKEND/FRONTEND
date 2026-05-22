@@ -108,6 +108,7 @@ const UNIVERSITY_BLOCKS = {
 
 const Calendar = () => {
   const { isDark } = useTheme();
+  const t = createStyles(isDark);
   const [view, setView] = useState('month');
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 4, 1));
   const [events, setEvents] = useState(EVENTS_INIT);

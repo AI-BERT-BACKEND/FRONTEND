@@ -6,7 +6,7 @@ import { createStyles } from '../theme/createStyles';
 import CircleProgress from '../components/CircleProgress';
 import ProgressBar from '../components/ProgressBar';
 import AibertGif from '../assets/aibert-logo-sin-negro-corregido.gif';
-import { ArrowRight, Plus, Clock, AlertTriangle, TrendingDown, X } from 'lucide-react';
+import { ArrowRight, Plus, Clock, AlertTriangle, TrendingDown, X, Bell, Sparkles } from 'lucide-react';
 
 
 const ALERTAS_INIT = [
@@ -90,14 +90,14 @@ const Dashboard = () => {
     <AppLayout>
 
       {/* ── SALUDO ── */}
-      <h1 style={s.greeting}>Hola, Juan 👋</h1>
+      <h1 style={s.greeting}>Hola, Juan</h1>
 
       {/* ── CENTRO DE ALERTAS ── */}
       {alertas.length > 0 && (
         <section style={s.card} aria-label="Centro de Alertas">
           <div style={s.cardHeader}>
             <div style={s.cardTitleRow}>
-              <span style={s.alertBell}>🔔</span>
+              <Bell size={18} color={isDark ? '#FF5B2E' : '#FF8430'} />
               <span style={s.cardTitle}>Centro de Alertas</span>
               {alertas.length > 0 && (
                 <span style={s.alertBadge(isDark)}>{alertas.length}</span>

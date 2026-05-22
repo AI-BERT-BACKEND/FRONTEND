@@ -5,51 +5,38 @@ import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import { formatDate } from '../utils/dateUtils';
 
+import { 
+  Search, Edit2, Trash2, Clock, ChevronDown, 
+  Zap, ClipboardList 
+} from 'lucide-react';
+
 const SearchIcon = ({ color }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-  </svg>
+  <Search size={14} color={color} strokeWidth={2} />
 );
 
 const EditIcon = ({ color }) => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-  </svg>
+  <Edit2 size={13} color={color} strokeWidth={2} />
 );
 
 const TrashIcon = ({ color }) => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-    <path d="M10 11v6"/><path d="M14 11v6"/>
-    <path d="M9 6V4h6v2"/>
-  </svg>
+  <Trash2 size={13} color={color} strokeWidth={2} />
 );
 
 const ClockIcon = ({ color }) => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"/>
-    <polyline points="12 6 12 12 16 14"/>
-  </svg>
+  <Clock size={11} color={color} strokeWidth={2} />
 );
 
-const ChevronDown = ({ color }) => (
-  <svg width="11" height="11" viewBox="0 0 11 11" fill="none"
-    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-    <path d="M2 4l3.5 3.5L9 4" stroke={color || 'currentColor'} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
+const LocalChevronDown = ({ color }) => (
+  <ChevronDown 
+    size={11} 
+    color={color || 'currentColor'} 
+    strokeWidth={2}
+    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
+  />
 );
 
 const LightningIcon = ({ color }) => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-    stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-  </svg>
+  <Zap size={14} color={color} strokeWidth={2} />
 );
 
 const ESTADO_CONFIG = {
@@ -245,7 +232,7 @@ const Tasks = () => {
               <option>Todos los materias</option>
               {MATERIAS_OPCIONES.map(m => <option key={m}>{m}</option>)}
             </select>
-            <ChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
+            <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
           </div>
         </div>
       </div>
@@ -254,7 +241,7 @@ const Tasks = () => {
       <div style={s.tasksGrid}>
         {tareasFiltradas.length === 0 && (
           <div style={s.emptyState}>
-            <span style={{ fontSize: 32 }}>📋</span>
+            <ClipboardList size={42} color={isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)'} />
             <p style={s.emptyText}>No hay tareas. ¡Crea tu primera tarea!</p>
           </div>
         )}
@@ -476,7 +463,7 @@ const Tasks = () => {
                       onChange={e => setForm(p => ({ ...p, materia: e.target.value }))}>
                       {MATERIAS_OPCIONES.map(m => <option key={m}>{m}</option>)}
                     </select>
-                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
+                    <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                 </div>
                 <div style={{ ...s.mField, flex: 1 }}>
@@ -487,7 +474,7 @@ const Tasks = () => {
                       onChange={e => setForm(p => ({ ...p, tipo: e.target.value }))}>
                       {Object.keys(ESTADO_CONFIG).map(k => <option key={k}>{k}</option>)}
                     </select>
-                    <ChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
+                    <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                 </div>
               </div>

@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
-import { ChevronDown } from 'lucide-react';
+import { 
+  ChevronDown, BookOpen, FileText, Target, 
+  GraduationCap, Scale, Trophy, Clock, Briefcase, Quote 
+} from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
@@ -40,9 +43,9 @@ const AcademicProfile = () => {
   const semestres = Array.from({ length: 10 }, (_, i) => `${i + 1}° Semestre`);
 
   const objetivos = [
-    { id: 'PASAR', label: 'Pasar Materias', icon: '🎓' },
-    { id: 'EQUILIBRIO', label: 'Equilibrio', icon: '⚖️' },
-    { id: 'EXCELENCIA', label: 'Excelencia', icon: '🏆' },
+    { id: 'PASAR', label: 'Pasar Materias', icon: GraduationCap },
+    { id: 'EQUILIBRIO', label: 'Equilibrio', icon: Scale },
+    { id: 'EXCELENCIA', label: 'Excelencia', icon: Trophy },
   ];
 
   const disp = [
@@ -99,7 +102,7 @@ const AcademicProfile = () => {
         <div style={s.leftCol}>
           <div style={s.card}>
             <div style={s.cardHeader}>
-              <span style={s.cardIcon}>📚</span>
+              <BookOpen size={18} color={isDark ? '#FF5B2E' : '#FF8430'} />
               <span style={s.cardTitle}>Carrera y Avance</span>
             </div>
 
@@ -225,7 +228,7 @@ const AcademicProfile = () => {
 
           <div style={s.card}>
             <div style={s.cardHeader}>
-              <span style={s.cardIcon}>📝</span>
+              <FileText size={18} color={isDark ? '#FF5B2E' : '#FF8430'} />
               <span style={s.cardTitle}>Materias del Semestre</span>
             </div>
             <div style={s.tagRow}>
@@ -249,7 +252,7 @@ const AcademicProfile = () => {
 
           <div style={s.card}>
             <div style={s.cardHeader}>
-              <span style={s.cardIcon}>🎯</span>
+              <Target size={18} color={isDark ? '#FF5B2E' : '#FF8430'} />
               <span style={s.cardTitle}>Objetivo del Ciclo</span>
             </div>
             <div style={s.objetivoRow}>
@@ -262,7 +265,7 @@ const AcademicProfile = () => {
                     ...(form.objetivo === obj.id ? s.objetivoBtnActive : {}),
                   }}
                 >
-                  <span style={{ fontSize: 20 }}>{obj.icon}</span>
+                  <obj.icon size={20} color={form.objetivo === obj.id ? '#fff' : (isDark ? '#FF5B2E' : '#FF8430')} />
                   <span style={s.objetivoLabel}>{obj.label}</span>
                 </button>
               ))}
@@ -274,7 +277,7 @@ const AcademicProfile = () => {
         <div style={s.rightCol}>
           <div style={s.card}>
             <div style={s.cardHeader}>
-              <span style={s.cardIcon}>⏰</span>
+              <Clock size={18} color={isDark ? '#FF5B2E' : '#FF8430'} />
               <span style={s.cardTitle}>Disponibilidad</span>
             </div>
             {disp.map((d) => (
@@ -314,7 +317,7 @@ const AcademicProfile = () => {
 
           <div style={s.card}>
             <div style={s.cardHeader}>
-              <span style={s.cardIcon}>💼</span>
+              <Briefcase size={18} color={isDark ? '#FF5B2E' : '#FF8430'} />
               <span style={s.cardTitle}>¿Trabajas actualmente?</span>
             </div>
             <div style={s.trabajaRow}>
@@ -341,7 +344,7 @@ const AcademicProfile = () => {
           </div>
 
           <div style={s.quoteCard}>
-            <span style={s.quoteIcon}>💬</span>
+            <Quote size={16} color={isDark ? '#FF5B2E' : '#FF8430'} style={{ flexShrink: 0, marginTop: 2 }} />
             <p style={s.quoteText}>
               "El 80% del éxito se basa simplemente en insistir." — Woody Allen
             </p>

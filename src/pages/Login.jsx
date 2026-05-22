@@ -27,6 +27,8 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const { login } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -53,7 +55,7 @@ const Login = () => {
 
   return (
     <AuthLayout>
-      <div style={s.page}>
+      <div style={s.page} className={isExiting ? 'exit-transition' : ''}>
         <div style={s.card}>
           <h1 style={s.title}>¡Bienvenido de vuelta!</h1>
           <p style={s.subtitle}>Ingresa a tu cuenta</p>
@@ -163,28 +165,29 @@ const getStyles = (isDark) => {
       gap: 56,
       padding: '32px 24px',
       width: '100%',
-      maxWidth: 900,
+      maxWidth: 1200,
       flexWrap: 'wrap',
     },
     card: {
       background: t.cardBg,
       border: `1px solid ${t.cardBorder}`,
       borderRadius: t.xxl,
-      padding: '40px 36px',
+      padding: 'clamp(32px, 5vh, 48px) clamp(28px, 4vw, 42px)',
       width: '100%',
-      maxWidth: 360,
+      maxWidth: 480,
       boxShadow: t.cardShadow,
       flexShrink: 0,
     },
     title: {
       fontFamily: t.fontPrimary,
-      fontSize: 22,
+      fontSize: 'clamp(26px, 2.5vw, 36px)',
       fontWeight: 800,
       backgroundImage: t.primaryGradient,
       WebkitBackgroundClip: 'text',
       WebkitTextFillColor: 'transparent',
       backgroundClip: 'text',
-      width: 'fit-content',
+      width: '100%',
+      whiteSpace: 'nowrap',
       lineHeight: 1.2,
       margin: '0 auto 6px',
       whiteSpace: 'nowrap',
@@ -198,24 +201,24 @@ const getStyles = (isDark) => {
       textAlign: 'center',
       width: '100%',
     },
-    field: { marginBottom: 18 },
+    field: { marginBottom: 22 },
     label: {
       display: 'block',
-      fontSize: 10,
+      fontSize: 'clamp(10px, 0.8vw, 11px)',
       fontWeight: 600,
       letterSpacing: '0.08em',
       textTransform: 'uppercase',
       color: t.textSecondary,
-      marginBottom: 6,
+      marginBottom: 8,
     },
     input: {
       width: '100%',
       background: t.inputBg,
       border: `1px solid ${t.inputBorder}`,
       borderRadius: t.md,
-      padding: '11px 14px',
+      padding: '13px 16px',
       fontFamily: t.fontSecondary,
-      fontSize: 13,
+      fontSize: 'clamp(13px, 1vw, 15px)',
       color: t.textPrimary,
       outline: 'none',
       transition: 'border-color 0.2s',
@@ -252,18 +255,18 @@ const getStyles = (isDark) => {
     },
     btn: {
       width: '100%',
-      padding: 13,
+      padding: 15,
       border: 'none',
       borderRadius: t.md,
       background: t.primaryGradient,
       color: '#fff',
       fontFamily: t.fontPrimary,
-      fontSize: 14,
+      fontSize: 'clamp(14px, 1.2vw, 16px)',
       fontWeight: 700,
       letterSpacing: '0.05em',
       textTransform: 'uppercase',
       cursor: 'pointer',
-      marginBottom: 18,
+      marginBottom: 20,
     },
     registerRow: {
       textAlign: 'center',
@@ -286,8 +289,8 @@ const getStyles = (isDark) => {
     },
     mascotWrap: {
       flexShrink: 0,
-      width: 380,
-      height: 380,
+      width: 'clamp(300px, 30vw, 500px)',
+      height: 'clamp(300px, 30vw, 500px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',

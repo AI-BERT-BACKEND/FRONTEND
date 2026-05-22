@@ -5,156 +5,20 @@ import CircleProgress from '../components/CircleProgress';
 import ProgressBar from '../components/ProgressBar';
 import StatusBadge from '../components/StatusBadge';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
+import { 
+  Library, Target, AlertTriangle, Check, 
+  BarChart3, TrendingUp, Plus, Save, 
+  X, Crosshair, Sparkles, ChevronDown 
+} from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
-const WarningIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#FF5B2E"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-    <line x1="12" y1="9" x2="12" y2="13" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
-  </svg>
-);
-const CheckIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#22C55E"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-const BarIcon = ({ color }) => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={color || '#FF8430'}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="20" x2="18" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="6" y1="20" x2="6" y2="14" />
-  </svg>
-);
-const TrendIcon = ({ isDark }) => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)'}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-    <polyline points="17 6 23 6 23 12" />
-  </svg>
-);
-const PlusIcon = ({ isDark }) => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)'}
-    strokeWidth="2"
-    strokeLinecap="round"
-  >
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-const SaveIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#fff"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-    <polyline points="17 21 17 13 7 13 7 21" />
-    <polyline points="7 3 7 8 15 8" />
-  </svg>
-);
-const CloseIcon = ({ isDark }) => (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'}
-    strokeWidth="2"
-    strokeLinecap="round"
-  >
-    <line x1="18" y1="6" x2="6" y2="18" />
-    <line x1="6" y1="6" x2="18" y2="18" />
-  </svg>
-);
-const MetaModalIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#fff"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <circle cx="12" cy="12" r="6" />
-    <circle cx="12" cy="12" r="2" />
-  </svg>
-);
-const SugerenciaIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#FF5B2E"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-  </svg>
-);
-const ChevronDown = ({ isDark }) => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'}
-    strokeWidth="2"
-    strokeLinecap="round"
-  >
-    <polyline points="6 9 12 15 18 9" />
-  </svg>
+const LocalChevronDown = ({ isDark }) => (
+  <ChevronDown 
+    size={14} 
+    color={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'} 
+    strokeWidth={2} 
+  />
 );
 
 const Spinner = () => (
@@ -206,7 +70,7 @@ const AddMetaModal = ({ isDark, onClose }) => {
       <div style={m.modal}>
         <div style={m.modalHeader}>
           <div style={m.modalIconWrap}>
-            <MetaModalIcon />
+            <Crosshair size={20} color="#fff" />
           </div>
           <div style={m.modalTitleGroup}>
             <h2 style={m.modalTitle}>Agregar Nueva Meta</h2>
@@ -215,7 +79,7 @@ const AddMetaModal = ({ isDark, onClose }) => {
             </p>
           </div>
           <button style={m.closeBtn} onClick={onClose} aria-label="Cerrar">
-            <CloseIcon isDark={isDark} />
+            <X size={18} color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
           </button>
         </div>
 
@@ -274,7 +138,7 @@ const AddMetaModal = ({ isDark, onClose }) => {
                 <option value="bd">Bases de Datos</option>
               </select>
               <div style={m.selectChevron}>
-                <ChevronDown isDark={isDark} />
+                <LocalChevronDown isDark={isDark} />
               </div>
             </div>
           </div>
@@ -290,7 +154,7 @@ const AddMetaModal = ({ isDark, onClose }) => {
           </div>
           <div style={m.sugerenciaContent}>
             <div style={m.sugerenciaHeader}>
-              <SugerenciaIcon />
+              <Sparkles size={14} color="#FF5B2E" />
               <span style={m.sugerenciaTag}>Sugerencia Inteligente IA</span>
             </div>
             <p style={m.sugerenciaText}>
@@ -302,12 +166,7 @@ const AddMetaModal = ({ isDark, onClose }) => {
 
         <div style={m.modalFooter}>
           <div style={m.autoSaveNote}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-              stroke={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)'} strokeWidth="2">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
-            </svg>
+            <Save size={12} color={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)'} />
             <span style={m.autoSaveText}>
               Todos los cambios se guardarán
               <br />
@@ -567,7 +426,7 @@ const AcademicGoals = () => {
       estado: 'EN CAMINO',
       estadoColor: isDark ? '#FF5B2E' : '#FF8430',
       estadoBg: isDark ? 'rgba(255,91,46,0.15)' : 'rgba(255,132,48,0.12)',
-      icon: '🏛️',
+      icon: Library,
       iconColor: isDark ? '#FF5B2E' : '#FF8430',
     },
     {
@@ -579,7 +438,7 @@ const AcademicGoals = () => {
       estado: 'META ALTA',
       estadoColor: '#22C55E',
       estadoBg: 'rgba(34,197,94,0.15)',
-      icon: '🎯',
+      icon: Target,
       iconColor: '#22C55E',
     },
   ];
@@ -620,7 +479,7 @@ const AcademicGoals = () => {
           <ProgressBar value={82} isDark={isDark} />
         </div>
         <div style={s.trendBtn}>
-          <TrendIcon isDark={isDark} />
+          <TrendingUp size={24} color={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.30)'} />
         </div>
         <div style={s.statsCol}>
           <div style={s.statCard}>
@@ -629,7 +488,7 @@ const AcademicGoals = () => {
               <div style={s.statCardNum}>01</div>
             </div>
             <div style={s.statCardIcon}>
-              <WarningIcon />
+              <AlertTriangle size={20} color="#FF5B2E" />
             </div>
           </div>
           <div style={s.statCard}>
@@ -638,7 +497,7 @@ const AcademicGoals = () => {
               <div style={{ ...s.statCardNum, color: '#22C55E' }}>12</div>
             </div>
             <div style={s.statCardIcon}>
-              <CheckIcon />
+              <Check size={20} color="#22C55E" />
             </div>
           </div>
           <div style={s.statCard}>
@@ -649,7 +508,7 @@ const AcademicGoals = () => {
               </div>
             </div>
             <div style={s.statCardIcon}>
-              <BarIcon color={isDark ? '#FF5B2E' : '#FF8430'} />
+              <BarChart3 size={20} color={isDark ? '#FF5B2E' : '#FF8430'} />
             </div>
           </div>
         </div>
@@ -657,21 +516,7 @@ const AcademicGoals = () => {
 
       <div style={s.sectionHeader}>
         <div style={s.sectionTitleRow}>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke={isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)'}
-            strokeWidth="2"
-          >
-            <line x1="8" y1="6" x2="21" y2="6" />
-            <line x1="8" y1="12" x2="21" y2="12" />
-            <line x1="8" y1="18" x2="21" y2="18" />
-            <line x1="3" y1="6" x2="3.01" y2="6" />
-            <line x1="3" y1="12" x2="3.01" y2="12" />
-            <line x1="3" y1="18" x2="3.01" y2="18" />
-          </svg>
+          <X size={14} color={isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)'} />
           <span style={s.sectionTitle}>Metas por Materia</span>
         </div>
         <button style={s.verTodasBtn}>VER TODAS</button>
@@ -682,7 +527,7 @@ const AcademicGoals = () => {
           <div key={m.id} style={s.materiaMetaCard}>
             <div style={s.materiaMetaTop}>
               <div style={{ ...s.materiaMetaIcon, background: m.iconColor + '20' }}>
-                <span style={{ fontSize: 18 }}>{m.icon}</span>
+                <m.icon size={18} color={m.iconColor} />
               </div>
               <StatusBadge label={m.estado} color={m.estadoColor} bgColor={m.estadoBg} />
             </div>
@@ -706,7 +551,7 @@ const AcademicGoals = () => {
         ))}
 
         <div style={s.addMetaCard} onClick={() => setShowModal(true)}>
-          <PlusIcon isDark={isDark} />
+          <Plus size={24} color={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.25)'} />
           <span style={s.addMetaText}>Agregar Nueva Meta</span>
         </div>
       </div>
@@ -729,7 +574,7 @@ const AcademicGoals = () => {
           </p>
         </div>
         <button style={s.saveBtn}>
-          <SaveIcon /> GUARDAR METAS
+          <Save size={16} color="#fff" /> GUARDAR METAS
         </button>
       </div>
 
