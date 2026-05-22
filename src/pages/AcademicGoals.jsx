@@ -5,19 +5,20 @@ import CircleProgress from '../components/CircleProgress';
 import ProgressBar from '../components/ProgressBar';
 import StatusBadge from '../components/StatusBadge';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
-import { 
-  Library, Target, AlertTriangle, Check, 
-  BarChart3, TrendingUp, Plus, Save, 
-  X, Crosshair, Sparkles, ChevronDown 
+import {
+  Library, Target, AlertTriangle, Check,
+  BarChart3, TrendingUp, Plus, Save,
+  X, Crosshair, Sparkles, ChevronDown,
+  List
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
 const LocalChevronDown = ({ isDark }) => (
-  <ChevronDown 
-    size={14} 
-    color={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'} 
-    strokeWidth={2} 
+  <ChevronDown
+    size={14}
+    color={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'}
+    strokeWidth={2}
   />
 );
 
@@ -220,23 +221,13 @@ const getModalStyles = (isDark) => ({
       ? '0 0 0 1px rgba(196,16,122,0.20), 0 24px 60px rgba(0,0,0,0.70)'
       : '0 24px 60px rgba(0,0,0,0.14)',
   },
-  modalHeader: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: 14,
-    marginBottom: 20,
-  },
+  modalHeader: { display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 20 },
   modalIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    flexShrink: 0,
+    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
     background: isDark
       ? 'linear-gradient(135deg, #C4107A, #FF5B2E)'
       : 'linear-gradient(135deg, #FF8430, #F7306D)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: isDark
       ? '0 4px 16px rgba(196,16,122,0.40)'
       : '0 4px 16px rgba(255,132,48,0.35)',
@@ -244,28 +235,20 @@ const getModalStyles = (isDark) => ({
   modalTitleGroup: { flex: 1 },
   modalTitle: {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 18,
-    fontWeight: 800,
-    margin: '0 0 4px 0',
+    fontSize: 18, fontWeight: 800, margin: '0 0 4px 0',
     color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
   },
   modalSubtitle: {
-    fontSize: 12,
-    margin: 0,
+    fontSize: 12, margin: 0,
     color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)',
     fontFamily: "'Poppins', sans-serif",
   },
   closeBtn: {
     background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
-    borderRadius: 8,
-    width: 34,
-    height: 34,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    flexShrink: 0,
+    borderRadius: 8, width: 34, height: 34,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', flexShrink: 0,
   },
   divider: {
     height: 1,
@@ -275,15 +258,11 @@ const getModalStyles = (isDark) => ({
   fieldGroup: { display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 },
   labelRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   label: {
-    fontSize: 12,
-    fontWeight: 600,
+    fontSize: 12, fontWeight: 600,
     color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.70)',
     fontFamily: "'Poppins', sans-serif",
   },
-  opcional: {
-    color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
-    fontWeight: 400,
-  },
+  opcional: { color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)', fontWeight: 400 },
   charCount: {
     fontSize: 10,
     color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.30)',
@@ -292,19 +271,12 @@ const getModalStyles = (isDark) => ({
   input: {
     background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
-    borderRadius: 10,
-    padding: '11px 14px',
+    borderRadius: 10, padding: '11px 14px',
     color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-    fontSize: 13,
-    fontFamily: "'Poppins', sans-serif",
-    outline: 'none',
-    width: '100%',
-    boxSizing: 'border-box',
+    fontSize: 13, fontFamily: "'Poppins', sans-serif",
+    outline: 'none', width: '100%', boxSizing: 'border-box',
   },
-  inputError: {
-    border: '1px solid rgba(240,7,7,0.60)',
-    background: 'rgba(240,7,7,0.06)',
-  },
+  inputError: { border: '1px solid rgba(240,7,7,0.60)', background: 'rgba(240,7,7,0.06)' },
   errorRow: { display: 'flex', justifyContent: 'space-between' },
   errorText: { fontSize: 10, color: '#F00707', fontFamily: "'Poppins', sans-serif" },
   hint: {
@@ -315,64 +287,42 @@ const getModalStyles = (isDark) => ({
   row2: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 4 },
   selectWrap: { position: 'relative' },
   select: {
-    width: '100%',
-    appearance: 'none',
+    width: '100%', appearance: 'none',
     background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
-    borderRadius: 10,
-    padding: '11px 36px 11px 14px',
+    borderRadius: 10, padding: '11px 36px 11px 14px',
     color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.65)',
-    fontSize: 13,
-    fontFamily: "'Poppins', sans-serif",
-    outline: 'none',
-    cursor: 'pointer',
-    boxSizing: 'border-box',
+    fontSize: 13, fontFamily: "'Poppins', sans-serif",
+    outline: 'none', cursor: 'pointer', boxSizing: 'border-box',
   },
   selectChevron: {
-    position: 'absolute',
-    right: 12,
-    top: '50%',
-    transform: 'translateY(-50%)',
-    pointerEvents: 'none',
+    position: 'absolute', right: 12, top: '50%',
+    transform: 'translateY(-50%)', pointerEvents: 'none',
   },
   sugerenciaBox: {
-    display: 'flex',
-    gap: 14,
-    alignItems: 'center',
+    display: 'flex', gap: 14, alignItems: 'center',
     background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.07)',
     border: `1px solid ${isDark ? 'rgba(196,16,122,0.20)' : 'rgba(255,132,48,0.25)'}`,
-    borderRadius: 12,
-    padding: '14px 16px',
-    marginBottom: 22,
+    borderRadius: 12, padding: '14px 16px', marginBottom: 22,
   },
   sugerenciaContent: { flex: 1 },
   sugerenciaHeader: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 },
   sugerenciaTag: {
-    fontSize: 11,
-    fontWeight: 700,
-    letterSpacing: '0.04em',
-    color: isDark ? '#FF5B2E' : '#FF8430',
-    fontFamily: "'Poppins', sans-serif",
+    fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+    color: isDark ? '#FF5B2E' : '#FF8430', fontFamily: "'Poppins', sans-serif",
   },
   sugerenciaText: {
-    fontSize: 11,
-    lineHeight: 1.55,
-    margin: 0,
+    fontSize: 11, lineHeight: 1.55, margin: 0,
     color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
     fontFamily: "'Poppins', sans-serif",
   },
   modalFooter: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 4,
-    flexWrap: 'wrap',
-    gap: 12,
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    paddingTop: 4, flexWrap: 'wrap', gap: 12,
   },
   autoSaveNote: { display: 'flex', alignItems: 'flex-start', gap: 7 },
   autoSaveText: {
-    fontSize: 10,
-    lineHeight: 1.5,
+    fontSize: 10, lineHeight: 1.5,
     color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.35)',
     fontFamily: "'Poppins', sans-serif",
   },
@@ -383,26 +333,16 @@ const getModalStyles = (isDark) => ({
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
     borderRadius: 10,
     color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)',
-    fontFamily: "'Poppins', sans-serif",
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: 'pointer',
+    fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer',
   },
   guardarBtn: {
     padding: '10px 20px',
     background: isDark
       ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
       : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    border: 'none',
-    borderRadius: 10,
-    color: '#fff',
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 7,
+    border: 'none', borderRadius: 10, color: '#fff',
+    fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 700,
+    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7,
     boxShadow: isDark
       ? '0 4px 16px rgba(196,16,122,0.40)'
       : '0 4px 16px rgba(247,48,109,0.30)',
@@ -448,6 +388,7 @@ const AcademicGoals = () => {
       <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
         ← Volver
       </button>
+
       <div style={s.metaGeneralCard}>
         <CircleProgress pct={82} isDark={isDark} size={120} label="GLOBAL" />
         <div style={s.metaGeneralInfo}>
@@ -457,22 +398,14 @@ const AcademicGoals = () => {
               <div style={s.statLabel}>PROMEDIO OBJETIVO</div>
               <div style={s.statVal}>
                 4.5
-                <StatusBadge
-                  label="ALTO"
-                  color="#FF8430"
-                  bgColor={isDark ? 'rgba(255,132,48,0.18)' : 'rgba(255,132,48,0.12)'}
-                />
+                <StatusBadge label="ALTO" color="#FF8430" bgColor={isDark ? 'rgba(255,132,48,0.18)' : 'rgba(255,132,48,0.12)'} />
               </div>
             </div>
             <div style={s.metaGeneralStat}>
               <div style={s.statLabel}>PROMEDIO ACTUAL</div>
               <div style={s.statVal}>
                 4.1
-                <StatusBadge
-                  label="EN CAMINO"
-                  color="#FF5B2E"
-                  bgColor={isDark ? 'rgba(255,91,46,0.18)' : 'rgba(255,91,46,0.10)'}
-                />
+                <StatusBadge label="EN CAMINO" color="#FF5B2E" bgColor={isDark ? 'rgba(255,91,46,0.18)' : 'rgba(255,91,46,0.10)'} />
               </div>
             </div>
           </div>
@@ -503,9 +436,7 @@ const AcademicGoals = () => {
           <div style={s.statCard}>
             <div>
               <div style={s.statCardLabel}>RENDIMIENTO</div>
-              <div style={{ ...s.statCardNum, color: isDark ? '#FF5B2E' : '#FF8430' }}>
-                A+
-              </div>
+              <div style={{ ...s.statCardNum, color: isDark ? '#FF5B2E' : '#FF8430' }}>A+</div>
             </div>
             <div style={s.statCardIcon}>
               <BarChart3 size={20} color={isDark ? '#FF5B2E' : '#FF8430'} />
@@ -516,7 +447,7 @@ const AcademicGoals = () => {
 
       <div style={s.sectionHeader}>
         <div style={s.sectionTitleRow}>
-          <X size={14} color={isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)'} />
+          <List size={14} color={isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)'} />
           <span style={s.sectionTitle}>Metas por Materia</span>
         </div>
         <button style={s.verTodasBtn}>VER TODAS</button>
@@ -534,17 +465,8 @@ const AcademicGoals = () => {
             <div style={s.materiaNombre}>{m.materia}</div>
             <div style={s.materiaFacultad}>{m.facultad}</div>
             <div style={s.metaRow}>
-              <span style={s.metaLabel}>
-                Actual: <strong style={{ color: m.estadoColor }}>{m.actual}</strong>
-              </span>
-              <span style={s.metaLabel}>
-                Meta:{' '}
-                <strong
-                  style={{ color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)' }}
-                >
-                  {m.meta}
-                </strong>
-              </span>
+              <span style={s.metaLabel}>Actual: <strong style={{ color: m.estadoColor }}>{m.actual}</strong></span>
+              <span style={s.metaLabel}>Meta: <strong style={{ color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)' }}>{m.meta}</strong></span>
             </div>
             <ProgressBar value={(m.actual / m.meta) * 100} isDark={isDark} color={m.estadoColor} />
           </div>
@@ -556,14 +478,9 @@ const AcademicGoals = () => {
         </div>
       </div>
 
-      {/* IA */}
       <div style={s.iaCard}>
         <div style={s.iaImgWrap}>
-          <img
-            src={MascotaGif}
-            alt="ALBERT"
-            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-          />
+          <img src={MascotaGif} alt="ALBERT" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
         <div style={s.iaContent}>
           <div style={s.iaTitle}>Recomendaciones IA</div>
@@ -587,195 +504,78 @@ const getStyles = (isDark) => {
   const t = createStyles(isDark);
   return {
     metaGeneralCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      padding: '20px 24px',
-      marginBottom: 20,
-      boxShadow: t.cardShadow,
-      display: 'flex',
-      alignItems: 'center',
-      gap: 24,
-      flexWrap: 'wrap',
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 16, padding: '20px 24px', marginBottom: 20,
+      boxShadow: t.cardShadow, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
     },
     metaGeneralInfo: { flex: 1, minWidth: 200 },
     metaGeneralTitle: {
-      fontFamily: t.fontPrimary,
-      fontSize: 15,
-      fontWeight: 700,
-      color: t.textPrimary,
-      marginBottom: 14,
+      fontFamily: t.fontPrimary, fontSize: 15, fontWeight: 700,
+      color: t.textPrimary, marginBottom: 14,
     },
     metaGeneralRow: { display: 'flex', gap: 24, marginBottom: 14 },
     metaGeneralStat: {},
     statLabel: {
-      fontSize: 9,
-      letterSpacing: '0.08em',
-      textTransform: 'uppercase',
-      color: t.textSecondary,
-      marginBottom: 4,
+      fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+      color: t.textSecondary, marginBottom: 4,
     },
     statVal: {
-      fontFamily: t.fontPrimary,
-      fontSize: 22,
-      fontWeight: 800,
-      color: t.textPrimary,
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
+      fontFamily: t.fontPrimary, fontSize: 22, fontWeight: 800,
+      color: t.textPrimary, display: 'flex', alignItems: 'center', gap: 8,
     },
-    trendBtn: {
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      padding: 4,
-      display: 'flex',
-      alignItems: 'center',
-    },
+    trendBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' },
     statsCol: { display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 },
     statCard: {
-      background: t.inputBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 10,
-      padding: '10px 14px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: 16,
-      minWidth: 160,
+      background: t.inputBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 10, padding: '10px 14px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, minWidth: 160,
     },
     statCardLabel: {
-      fontSize: 9,
-      letterSpacing: '0.08em',
-      textTransform: 'uppercase',
-      color: t.textSecondary,
-      marginBottom: 2,
+      fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+      color: t.textSecondary, marginBottom: 2,
     },
-    statCardNum: {
-      fontFamily: t.fontPrimary,
-      fontSize: 24,
-      fontWeight: 800,
-      color: t.textPrimary,
-    },
+    statCardNum: { fontFamily: t.fontPrimary, fontSize: 24, fontWeight: 800, color: t.textPrimary },
     statCardIcon: { display: 'flex', alignItems: 'center' },
-    sectionHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 14,
-    },
+    sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
     sectionTitleRow: { display: 'flex', alignItems: 'center', gap: 8 },
-    sectionTitle: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: t.textPrimary,
-      fontFamily: t.fontSecondary,
-    },
+    sectionTitle: { fontSize: 14, fontWeight: 700, color: t.textPrimary, fontFamily: t.fontSecondary },
     verTodasBtn: {
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      fontSize: 11,
-      fontWeight: 700,
-      letterSpacing: '0.08em',
-      color: isDark ? '#FF5B2E' : '#F7306D',
-      fontFamily: t.fontSecondary,
+      background: 'none', border: 'none', cursor: 'pointer',
+      fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
+      color: isDark ? '#FF5B2E' : '#F7306D', fontFamily: t.fontSecondary,
     },
     metasGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginBottom: 20 },
     materiaMetaCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 14,
-      padding: '16px',
-      boxShadow: t.cardShadow,
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 14, padding: '16px', boxShadow: t.cardShadow,
     },
-    materiaMetaTop: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: 10,
-    },
-    materiaMetaIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 10,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    materiaNombre: {
-      fontSize: 13,
-      fontWeight: 700,
-      color: t.textPrimary,
-      fontFamily: t.fontSecondary,
-      marginBottom: 3,
-    },
-    materiaFacultad: {
-      fontSize: 10,
-      color: t.textSecondary,
-      marginBottom: 12,
-    },
+    materiaMetaTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+    materiaMetaIcon: { width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    materiaNombre: { fontSize: 13, fontWeight: 700, color: t.textPrimary, fontFamily: t.fontSecondary, marginBottom: 3 },
+    materiaFacultad: { fontSize: 10, color: t.textSecondary, marginBottom: 12 },
     metaRow: { display: 'flex', justifyContent: 'space-between', marginBottom: 6 },
     metaLabel: { fontSize: 11, color: t.textSecondary },
     addMetaCard: {
-      background: 'transparent',
-      border: `1.5px dashed ${t.cardBorder}`,
-      borderRadius: 14,
-      padding: '16px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      cursor: 'pointer',
-      minHeight: 120,
+      background: 'transparent', border: `1.5px dashed ${t.cardBorder}`,
+      borderRadius: 14, padding: '16px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      gap: 8, cursor: 'pointer', minHeight: 120,
     },
-    addMetaText: {
-      fontSize: 12,
-      fontWeight: 500,
-      color: t.textMuted,
-    },
+    addMetaText: { fontSize: 12, fontWeight: 500, color: t.textMuted },
     iaCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      padding: '20px 24px',
-      boxShadow: t.cardShadow,
-      display: 'flex',
-      alignItems: 'center',
-      gap: 20,
-      flexWrap: 'wrap',
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 16, padding: '20px 24px', boxShadow: t.cardShadow,
+      display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
     },
     iaImgWrap: { width: 80, height: 80, flexShrink: 0 },
     iaContent: { flex: 1 },
-    iaTitle: {
-      fontFamily: t.fontPrimary,
-      fontSize: 14,
-      fontWeight: 700,
-      color: isDark ? '#FF5B2E' : '#FF8430',
-      marginBottom: 8,
-    },
-    iaText: {
-      fontSize: 12,
-      color: t.textSecondary,
-      lineHeight: 1.6,
-      margin: 0,
-    },
+    iaTitle: { fontFamily: t.fontPrimary, fontSize: 14, fontWeight: 700, color: isDark ? '#FF5B2E' : '#FF8430', marginBottom: 8 },
+    iaText: { fontSize: 12, color: t.textSecondary, lineHeight: 1.6, margin: 0 },
     saveBtn: {
-      flexShrink: 0,
-      background: t.primaryGradient,
-      border: 'none',
-      borderRadius: 10,
-      padding: '12px 20px',
-      color: '#fff',
-      fontFamily: t.fontPrimary,
-      fontSize: 13,
-      fontWeight: 700,
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      letterSpacing: '0.04em',
+      flexShrink: 0, background: t.primaryGradient, border: 'none',
+      borderRadius: 10, padding: '12px 20px', color: '#fff',
+      fontFamily: t.fontPrimary, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+      display: 'flex', alignItems: 'center', gap: 8, letterSpacing: '0.04em',
     },
   };
 };
