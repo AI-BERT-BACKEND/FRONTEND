@@ -209,10 +209,7 @@ const AcademicManagement = () => {
 
   return (
     <AppLayout>
-      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
-        ← Volver
-      </button>
-      {!isDark && <h1 style={s.pageTitle}>Gestión Académica</h1>}
+      <h1 style={s.pageTitle}>Gestión Académica</h1>
 
       <div style={s.grid2}>
         {SECCIONES.map((sec) => (
@@ -274,6 +271,7 @@ const getStyles = (isDark) => {
       fontWeight: 800,
       margin: '0 0 28px 0',
       color: isDark ? '#FF5B2E' : '#FF8430',
+      letterSpacing: '-0.02em',
     },
     grid2: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 },
     card: {

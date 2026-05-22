@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
@@ -86,11 +87,13 @@ const DISTRIBUCION = [
 
 const SmartSchedule = () => {
   const { isDark } = useTheme();
+  const navigate = useNavigate();
   const [semana, setSemana] = useState(12);
   const s = getStyles(isDark);
 
   return (
     <AppLayout>
+      <button style={s.volverBtn} onClick={() => navigate(-1)}>← Volver</button>
       <div style={s.alertBanner}>
         <div style={s.alertLeft}>
           <div style={s.alertDot} />
@@ -205,6 +208,13 @@ const SmartSchedule = () => {
 const getStyles = (isDark) => {
   const t = createStyles(isDark);
   return {
+    volverBtn: {
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      background: 'none', border: 'none', cursor: 'pointer',
+      fontSize: 13, fontWeight: 600,
+      color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)',
+      fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 12,
+    },
     alertBanner: {
       display: 'flex',
       alignItems: 'center',
