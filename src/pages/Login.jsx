@@ -190,7 +190,6 @@ const getStyles = (isDark) => {
       whiteSpace: 'nowrap',
       lineHeight: 1.2,
       margin: '0 auto 6px',
-      whiteSpace: 'nowrap',
       textAlign: 'center',
     },
     subtitle: {
