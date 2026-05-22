@@ -45,7 +45,8 @@ const Availability = () => {
   const navigate = useNavigate();
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
-  const [selected, setSelected]   = useState(new Set());
+  const [cellBlocks, setCellBlocks] = useState({});
+  const [activeCategory, setActiveCategory] = useState(null);
   const [categorias, setCategorias] = useState(CATEGORIAS_INIT);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -57,12 +58,21 @@ const Availability = () => {
   });
 
   const toggleCell = (dayIdx, hora) => {
-    const key = `${dayIdx}-${hora}`;
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+    if (!activeCategory) return;
+    const cellKey = `${dayIdx}-${hora}`;
+    setCellBlocks((prev) => {
+      const next = { ...prev };
+      if (next[cellKey] === activeCategory) {
+        delete next[cellKey];
+      } else {
+        next[cellKey] = activeCategory;
+      }
       return next;
     });
+  };
+
+  const selectCategory = (id) => {
+    setActiveCategory((prev) => (prev === id ? null : id));
   };
 
   const prevWeek = () => {
@@ -117,6 +127,19 @@ const Availability = () => {
             <button style={s.navBtn} onClick={nextWeek}>Sig →</button>
           </div>
 
+          {/* Leyenda */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, flexWrap: 'wrap' }}>
+            {CATEGORIAS_INIT.map((cat) => (
+              <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{
+                  width: 16, height: 12, borderRadius: 4, flexShrink: 0,
+                  background: cat.color + (isDark ? 'CC' : '80'),
+                }} />
+                <span style={{ fontSize: 10, color: t.textSecondary, fontFamily: t.fontSecondary }}>{cat.label}</span>
+              </div>
+            ))}
+          </div>
+
           {/* Grid */}
           <div style={s.gridCard}>
             {/* Cabecera de días */}
@@ -136,11 +159,19 @@ const Availability = () => {
                 <div key={hora} style={s.gridRow}>
                   <div style={s.timeLabel}>{hora}</div>
                   {weekDays.map((_, di) => {
-                    const isOn = selected.has(`${di}-${hora}`);
+                    const cellKey = `${di}-${hora}`;
+                    const catId = cellBlocks[cellKey];
+                    const catColor = catId ? CATEGORIAS_INIT.find((c) => c.id === catId)?.color : null;
                     return (
                       <div
                         key={di}
-                        style={{ ...s.cell, ...(isOn ? s.cellOn : {}) }}
+                        style={{
+                          ...s.cell,
+                          ...(catColor ? {
+                            background: catColor + '40',
+                            borderLeft: `2px solid ${catColor}`,
+                          } : {}),
+                        }}
                         onClick={() => toggleCell(di, hora)}
                       />
                     );
@@ -173,7 +204,19 @@ const Availability = () => {
           {/* Lista de categorías */}
           <div style={s.catList}>
             {categorias.map((cat) => (
-              <div key={cat.id} style={s.catRow}>
+              <div key={cat.id} style={{
+                ...s.catRow,
+                ...(activeCategory === cat.id ? {
+                  border: `2px solid ${cat.color}`,
+                  background: cat.color + '22',
+                  borderRadius: 10,
+                  padding: '8px 10px',
+                  marginBottom: 4,
+                } : {
+                  borderBottom: `1px solid ${t.cardBorder}`,
+                }),
+                cursor: 'pointer',
+              }} onClick={() => selectCategory(cat.id)}>
                 <div style={{ ...s.catIcon, background: `${cat.color}22`, color: cat.color }}>
                   {ICONOS[cat.id]}
                 </div>
@@ -182,9 +225,9 @@ const Availability = () => {
                   <div style={s.catDesc}>{cat.desc}</div>
                 </div>
                 <div style={s.horasRow}>
-                  <button style={s.horasBtn} onClick={() => adjustHoras(cat.id, -0.5)}>−</button>
+                  <button style={s.horasBtn} onClick={(e) => { e.stopPropagation(); adjustHoras(cat.id, -0.5); }}>−</button>
                   <span style={s.horasVal}>{cat.horas.toFixed(1)}</span>
-                  <button style={s.horasBtn} onClick={() => adjustHoras(cat.id, +0.5)}>+</button>
+                  <button style={s.horasBtn} onClick={(e) => { e.stopPropagation(); adjustHoras(cat.id, +0.5); }}>+</button>
                   <span style={s.horasUnit}>horas</span>
                 </div>
               </div>
@@ -325,10 +368,6 @@ const getStyles = (isDark) => {
       cursor: 'pointer',
       transition: 'background 0.15s',
     },
-    cellOn: {
-      background: isDark ? 'rgba(196,16,122,0.22)' : 'rgba(255,132,48,0.16)',
-      borderLeft: `1px solid ${isDark ? 'rgba(255,91,46,0.45)' : 'rgba(255,132,48,0.45)'}`,
-    },
 
     // ── PANEL DERECHO ─────────────────────────────────────────
     panel: {
@@ -372,7 +411,6 @@ const getStyles = (isDark) => {
       alignItems: 'center',
       gap: 10,
       padding: '10px 0',
-      borderBottom: `1px solid ${t.cardBorder}`,
     },
     catIcon: {
       width: 32,

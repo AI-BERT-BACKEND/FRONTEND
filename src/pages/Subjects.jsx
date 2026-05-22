@@ -40,6 +40,7 @@ const Subjects = () => {
   const [menuOpen, setMenuOpen] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
@@ -137,8 +138,13 @@ const Subjects = () => {
   };
 
   const handleEliminar = (id) => {
-    setMaterias((prev) => prev.filter((m) => m.id !== id));
+    setDeleteConfirm(id);
     setMenuOpen(null);
+  };
+
+  const confirmDelete = () => {
+    setMaterias((prev) => prev.filter((m) => m.id !== deleteConfirm));
+    setDeleteConfirm(null);
   };
 
   const handleEditar = (id) => {
@@ -202,7 +208,7 @@ const Subjects = () => {
         )}
 
         {materias.map((m) => (
-          <div key={m.id} style={s.materiaCard}>
+          <div key={m.id} style={{ ...s.materiaCard, cursor: 'pointer' }} onClick={() => navigate(`/materias/${m.id}`)}>
             <div style={s.cardTop}>
               <div style={{
                 ...s.activoBadge,
@@ -212,14 +218,11 @@ const Subjects = () => {
                 {m.activo ? '● Activo' : '● Inactivo'}
               </div>
               <div style={{ position: 'relative' }} ref={menuOpen === m.id ? menuRef : null}>
-                <button style={s.menuBtn} onClick={() => setMenuOpen(menuOpen === m.id ? null : m.id)}>
+                <button style={s.menuBtn} onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === m.id ? null : m.id); }}>
                   <MoreVertical size={16} />
                 </button>
                 {menuOpen === m.id && (
-                  <div style={s.dropdown}>
-                    <button style={s.dropdownItem} onClick={() => navigate(`/materias/${m.id}`)}>
-                      📊 Ver detalle
-                    </button>
+                  <div style={s.dropdown} onClick={(e) => e.stopPropagation()}>
                     <button style={{ ...s.dropdownItem, color: '#F00707' }} onClick={() => handleEliminar(m.id)}>
                       <Trash2 size={12} style={{ marginRight: 6 }} /> Eliminar materia
                     </button>
@@ -294,6 +297,33 @@ const Subjects = () => {
           </div>
         </div>
       </div>
+
+      {/* MODAL CONFIRMAR ELIMINAR */}
+      {deleteConfirm && (
+        <div style={s.modalOverlay} onClick={() => setDeleteConfirm(null)}>
+          <div style={s.deleteModal} onClick={(e) => e.stopPropagation()}>
+            <div style={s.deleteModalIcon}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <defs>
+                  <linearGradient id="delGradSubj" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor={isDark ? '#FF5B2E' : '#FF8430'} />
+                    <stop offset="100%" stopColor={isDark ? '#C4107A' : '#F7306D'} />
+                  </linearGradient>
+                </defs>
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="url(#delGradSubj)" />
+                <line x1="12" y1="9" x2="12" y2="13" stroke="url(#delGradSubj)" />
+                <line x1="12" y1="17" x2="12.01" y2="17" stroke="url(#delGradSubj)" />
+              </svg>
+            </div>
+            <div style={s.deleteModalTitle}>¿Eliminar esta materia?</div>
+            <p style={s.deleteModalDesc}>Esta acción no se puede deshacer. Se perderán todas las notas y cortes asociados.</p>
+            <div style={s.deleteModalFooter}>
+              <button style={s.mCancelBtn} onClick={() => setDeleteConfirm(null)}>Cancelar</button>
+              <button style={s.deleteBtn} onClick={confirmDelete}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL NUEVA MATERIA */}
       {showModal && (
@@ -811,6 +841,50 @@ const getStyles = (isDark) => {
       fontWeight: 700,
       color: '#fff',
       letterSpacing: '0.03em',
+    },
+    deleteModal: {
+      background: t.cardBg,
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: 16,
+      width: '100%',
+      maxWidth: 340,
+      margin: '0 20px',
+      boxShadow: t.modalShadow,
+      padding: '32px 28px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+      gap: 12,
+    },
+    deleteModalIcon: { marginBottom: 4 },
+    deleteModalTitle: {
+      fontFamily: t.fontPrimary,
+      fontSize: 18,
+      fontWeight: 800,
+      color: t.textPrimary,
+    },
+    deleteModalDesc: {
+      fontSize: 13,
+      color: t.textSecondary,
+      lineHeight: 1.5,
+      margin: 0,
+    },
+    deleteModalFooter: {
+      display: 'flex',
+      gap: 10,
+      marginTop: 8,
+    },
+    deleteBtn: {
+      padding: '9px 20px',
+      borderRadius: 8,
+      border: 'none',
+      background: '#F00707',
+      cursor: 'pointer',
+      fontFamily: t.fontPrimary,
+      fontSize: 13,
+      fontWeight: 700,
+      color: '#fff',
     },
   };
 };

@@ -90,12 +90,36 @@ const CheckCircleIcon = ({ color, size = 15 }) => (
 );
 
 const SEMESTRES_DATA = [
-  { sem: 'Semestre 1', nota: 3.2 },
-  { sem: 'Semestre 2', nota: 3.5 },
-  { sem: 'Semestre 3', nota: 3.8 },
-  { sem: 'Semestre 4', nota: 4.1 },
-  { sem: 'Semestre 5', nota: 4.5 },
-  { sem: 'Semestre 6', nota: 4.2 },
+  { sem: 'Semestre 1', nota: 3.2, materias: [
+    { nombre: 'Cálculo I', nota: 3.0 },
+    { nombre: 'Álgebra Lineal', nota: 3.4 },
+    { nombre: 'Programación I', nota: 3.2 },
+  ]},
+  { sem: 'Semestre 2', nota: 3.5, materias: [
+    { nombre: 'Cálculo II', nota: 3.5 },
+    { nombre: 'Física I', nota: 3.5 },
+    { nombre: 'Programación II', nota: 3.6 },
+  ]},
+  { sem: 'Semestre 3', nota: 3.8, materias: [
+    { nombre: 'Estructuras de Datos', nota: 4.0 },
+    { nombre: 'Bases de Datos', nota: 3.7 },
+    { nombre: 'Cálculo III', nota: 3.6 },
+  ]},
+  { sem: 'Semestre 4', nota: 4.1, materias: [
+    { nombre: 'Redes I', nota: 4.2 },
+    { nombre: 'Algoritmos', nota: 4.0 },
+    { nombre: 'Ing. de Software', nota: 4.1 },
+  ]},
+  { sem: 'Semestre 5', nota: 4.5, materias: [
+    { nombre: 'Inteligencia Artificial', nota: 4.7 },
+    { nombre: 'Sistemas Operativos', nota: 4.3 },
+    { nombre: 'Compiladores', nota: 4.5 },
+  ]},
+  { sem: 'Semestre 6', nota: 4.2, materias: [
+    { nombre: 'DOSW', nota: 4.5 },
+    { nombre: 'AYSR', nota: 3.9 },
+    { nombre: 'FUPR', nota: 4.2 },
+  ]},
 ];
 
 const SEMANAS_DATA = [
@@ -190,12 +214,22 @@ const MINI_CARDS = [
   },
 ];
 
+const SEMESTRE_DETALLE = {
+  1: { promedio: 3.2, materias: [{ nombre: 'Cálculo I', nota: 3.0 }, { nombre: 'Álgebra', nota: 3.5 }, { nombre: 'Introducción a Programación', nota: 3.1 }] },
+  2: { promedio: 3.5, materias: [{ nombre: 'Cálculo II', nota: 3.4 }, { nombre: 'Física I', nota: 3.6 }, { nombre: 'Estructuras de Datos', nota: 3.5 }] },
+  3: { promedio: 3.8, materias: [{ nombre: 'Bases de Datos', nota: 4.0 }, { nombre: 'Física II', nota: 3.5 }, { nombre: 'Algoritmos', nota: 3.9 }] },
+  4: { promedio: 4.1, materias: [{ nombre: 'Redes', nota: 4.2 }, { nombre: 'SO', nota: 4.0 }, { nombre: 'Ingeniería de Software', nota: 4.1 }] },
+  5: { promedio: 4.5, materias: [{ nombre: 'Arquitectura', nota: 4.8 }, { nombre: 'Seguridad', nota: 4.2 }, { nombre: 'Proyecto I', nota: 4.5 }] },
+  6: { promedio: 4.2, materias: [{ nombre: 'Compiladores', nota: 4.0 }, { nombre: 'IA', nota: 4.3 }, { nombre: 'Proyecto II', nota: 4.3 }] },
+};
+
 const CHART_H = 148;
 
 const Statistics = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [vistaChart, setVistaChart] = useState('semestre');
+  const [selectedSemestre, setSelectedSemestre] = useState(null);
   const s = getStyles(isDark);
   const t = createStyles(isDark);
 
@@ -399,27 +433,35 @@ const Statistics = () => {
         <div style={{ ...s.card, flex: 1 }}>
           <div style={s.cardTitle}>Promedio por Semestre</div>
           <div style={s.semGrid}>
-            {SEMESTRES_DATA.map((d) => {
+            {SEMESTRES_DATA.map((d, i) => {
+              const semNum = i + 1;
               const isBest = d.nota === maxSemNota;
+              const isSelected = selectedSemestre === semNum;
               return (
                 <div
                   key={d.sem}
                   style={{
                     ...s.semGridItem,
-                    background: isBest
-                      ? (isDark
-                          ? 'linear-gradient(135deg, rgba(255,91,46,0.20), rgba(196,16,122,0.14))'
-                          : 'linear-gradient(135deg, rgba(255,132,48,0.14), rgba(247,48,109,0.09))')
-                      : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
-                    border: isBest
-                      ? `1px solid ${isDark ? 'rgba(255,91,46,0.35)' : 'rgba(255,132,48,0.28)'}`
-                      : `1px solid ${t.cardBorder}`,
+                    cursor: 'pointer',
+                    background: isSelected
+                      ? (isDark ? 'rgba(255,91,46,0.10)' : 'rgba(255,132,48,0.10)')
+                      : isBest
+                        ? (isDark
+                            ? 'linear-gradient(135deg, rgba(255,91,46,0.20), rgba(196,16,122,0.14))'
+                            : 'linear-gradient(135deg, rgba(255,132,48,0.14), rgba(247,48,109,0.09))')
+                        : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+                    border: isSelected
+                      ? `2px solid ${isDark ? '#FF5B2E' : '#FF8430'}`
+                      : isBest
+                        ? `1px solid ${isDark ? 'rgba(255,91,46,0.35)' : 'rgba(255,132,48,0.28)'}`
+                        : `1px solid ${t.cardBorder}`,
                   }}
+                  onClick={() => setSelectedSemestre((prev) => prev === semNum ? null : semNum)}
                 >
                   <div style={s.semGridLabel}>{d.sem}</div>
                   <div style={{
                     ...s.semGridNota,
-                    color: isBest ? (isDark ? '#FF5B2E' : '#FF8430') : t.textPrimary,
+                    color: isSelected || isBest ? (isDark ? '#FF5B2E' : '#FF8430') : t.textPrimary,
                   }}>
                     {d.nota.toFixed(1)}
                   </div>
@@ -427,6 +469,33 @@ const Statistics = () => {
               );
             })}
           </div>
+
+          {selectedSemestre !== null && SEMESTRE_DETALLE[selectedSemestre] && (() => {
+            const detalle = SEMESTRE_DETALLE[selectedSemestre];
+            return (
+              <div style={s.semDetallePanel}>
+                <div style={s.semDetalleTitulo}>
+                  Semestre {selectedSemestre} — Promedio {detalle.promedio.toFixed(1)}
+                </div>
+                <div style={{ maxHeight: 180, overflowY: 'auto' }}>
+                  {detalle.materias.map((mat, idx) => (
+                    <div key={mat.nombre} style={{
+                      ...s.semDetalleRow,
+                      borderBottom: idx < detalle.materias.length - 1 ? `1px solid ${t.cardBorder}` : 'none',
+                    }}>
+                      <span style={{ fontSize: 12, color: t.textPrimary, fontFamily: t.fontSecondary }}>{mat.nombre}</span>
+                      <span style={{
+                        fontSize: 13, fontWeight: 700, fontFamily: t.fontPrimary,
+                        color: mat.nota >= 3.5 ? '#22C55E' : mat.nota >= 3.0 ? '#EAB308' : '#F00707',
+                      }}>
+                        {mat.nota.toFixed(1)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         <div style={{ ...s.card, flex: 1.2 }}>
@@ -745,6 +814,24 @@ const getStyles = (isDark) => {
       fontFamily: t.fontPrimary,
       fontSize: 18,
       fontWeight: 800,
+    },
+    semDetallePanel: {
+      borderTop: `1px solid ${t.cardBorder}`,
+      marginTop: 14,
+      paddingTop: 14,
+    },
+    semDetalleTitulo: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: isDark ? '#FF5B2E' : '#FF8430',
+      fontFamily: t.fontSecondary,
+      marginBottom: 10,
+    },
+    semDetalleRow: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '6px 0',
     },
     recomItem: {
       display: 'flex',
