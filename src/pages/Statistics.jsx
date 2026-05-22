@@ -432,40 +432,21 @@ const Statistics = () => {
 
         <div style={{ ...s.card, flex: 1 }}>
           <div style={s.cardTitle}>Promedio por Semestre</div>
-          <div style={s.semGrid}>
+          <div style={s.semFiltroRow}>
             {SEMESTRES_DATA.map((d, i) => {
               const semNum = i + 1;
-              const isBest = d.nota === maxSemNota;
               const isSelected = selectedSemestre === semNum;
               return (
-                <div
+                <button
                   key={d.sem}
                   style={{
-                    ...s.semGridItem,
-                    cursor: 'pointer',
-                    background: isSelected
-                      ? (isDark ? 'rgba(255,91,46,0.10)' : 'rgba(255,132,48,0.10)')
-                      : isBest
-                        ? (isDark
-                            ? 'linear-gradient(135deg, rgba(255,91,46,0.20), rgba(196,16,122,0.14))'
-                            : 'linear-gradient(135deg, rgba(255,132,48,0.14), rgba(247,48,109,0.09))')
-                        : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
-                    border: isSelected
-                      ? `2px solid ${isDark ? '#FF5B2E' : '#FF8430'}`
-                      : isBest
-                        ? `1px solid ${isDark ? 'rgba(255,91,46,0.35)' : 'rgba(255,132,48,0.28)'}`
-                        : `1px solid ${t.cardBorder}`,
+                    ...s.semFiltroBtn,
+                    ...(isSelected ? s.semFiltroBtnActivo : {}),
                   }}
                   onClick={() => setSelectedSemestre((prev) => prev === semNum ? null : semNum)}
                 >
-                  <div style={s.semGridLabel}>{d.sem}</div>
-                  <div style={{
-                    ...s.semGridNota,
-                    color: isSelected || isBest ? (isDark ? '#FF5B2E' : '#FF8430') : t.textPrimary,
-                  }}>
-                    {d.nota.toFixed(1)}
-                  </div>
-                </div>
+                  {d.sem}
+                </button>
               );
             })}
           </div>
@@ -790,30 +771,30 @@ const getStyles = (isDark) => {
       gap: 16,
       alignItems: 'stretch',
     },
-    semGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)',
-      gap: 8,
-      marginTop: 14,
-    },
-    semGridItem: {
-      borderRadius: 10,
-      padding: '10px 12px',
+    semFiltroRow: {
       display: 'flex',
-      flexDirection: 'column',
-      gap: 3,
+      flexWrap: 'wrap',
+      gap: 6,
+      marginTop: 12,
+      marginBottom: 4,
     },
-    semGridLabel: {
-      fontSize: 9,
-      fontWeight: 600,
-      color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)',
+    semFiltroBtn: {
+      background: t.inputBg,
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: 20,
+      padding: '5px 14px',
+      cursor: 'pointer',
       fontFamily: t.fontSecondary,
-      letterSpacing: '0.03em',
+      fontSize: 11,
+      fontWeight: 500,
+      color: t.textSecondary,
+      transition: 'all 0.15s ease',
     },
-    semGridNota: {
-      fontFamily: t.fontPrimary,
-      fontSize: 18,
-      fontWeight: 800,
+    semFiltroBtnActivo: {
+      background: isDark ? 'rgba(255,91,46,0.15)' : 'rgba(255,132,48,0.12)',
+      border: `1px solid ${isDark ? '#FF5B2E' : '#FF8430'}`,
+      color: isDark ? '#FF5B2E' : '#FF8430',
+      fontWeight: 700,
     },
     semDetallePanel: {
       borderTop: `1px solid ${t.cardBorder}`,
