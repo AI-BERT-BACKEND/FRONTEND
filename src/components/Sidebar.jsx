@@ -20,7 +20,7 @@ const NAV_PERSONAL = [
   { label: 'Calendario',            IconComp: Calendar,  path: '/calendario'   },
   { label: 'Estadísticas',          IconComp: BarChart3,  path: '/estadisticas' },
   { label: 'Motor de Priorización', IconComp: Zap,        path: '/priorizacion' },
-  { label: 'Gamificación',          IconComp: Trophy,     path: '/gamificacion' },
+  { label: 'AI.BERT Juega',         IconComp: Trophy,     path: '/gamificacion' },
   { label: 'Sesión de Estudio',     IconComp: BookOpen,   path: '/sesion'       },
 ];
 

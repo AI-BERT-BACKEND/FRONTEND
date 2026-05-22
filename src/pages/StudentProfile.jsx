@@ -7,6 +7,16 @@ import { useTheme } from '../context/ThemeContext';
 import { validateEmail, validateRequired } from '../utils/validators';
 import { createStyles } from '../theme/createStyles';
 
+const Spinner = () => (
+  <>
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <svg style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+    </svg>
+  </>
+);
+
 const StudentProfile = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -14,6 +24,7 @@ const StudentProfile = () => {
 
   const [form, setForm] = useState({ nombre: '', username: '', email: '', foto: null });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const [showDesactivarConfirm, setShowDesactivarConfirm] = useState(false);
   const [showEliminarConfirm, setShowEliminarConfirm] = useState(false);
 
@@ -27,8 +38,15 @@ const StudentProfile = () => {
     return !Object.values(newErrors).some((msg) => msg !== '');
   };
 
-  const handleSave = () => {
-    if (validate()) navigate('/dashboard');
+  const handleSave = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 600));
+      navigate('/dashboard');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFotoChange = (e) => {
@@ -45,6 +63,7 @@ const StudentProfile = () => {
     <AppLayout>
       {/* Wrapper centrado */}
       <div style={s.pageWrapper}>
+        <button style={s.volverBtn} onClick={() => navigate(-1)}>← Volver</button>
         <h1 style={s.pageTitle}>Perfil de estudiante</h1>
 
         <div style={s.card}>
@@ -145,7 +164,9 @@ const StudentProfile = () => {
 
             <div style={s.actionRow}>
               <button style={s.cancelBtn} onClick={() => navigate('/dashboard')}>Cancelar</button>
-              <button style={s.saveBtn} onClick={handleSave}>Guardar cambios</button>
+              <button style={{ ...s.saveBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSave} disabled={loading}>
+                {loading ? <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Spinner /> Guardando...</span> : 'Guardar cambios'}
+              </button>
             </div>
           </div>
         </div>
@@ -219,6 +240,13 @@ const getStyles = (isDark) => {
       maxWidth: 620,
       margin: '0 auto',
     },
+    volverBtn: {
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      background: 'none', border: 'none', cursor: 'pointer',
+      fontSize: 13, fontWeight: 600,
+      color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)',
+      fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 12,
+    },
     pageTitle: {
       fontFamily: t.fontPrimary,
       fontSize: 28,
@@ -242,35 +270,40 @@ const getStyles = (isDark) => {
       gap: 10,
     },
     fotoCircle: {
-      width: 90,
-      height: 90,
+      width: 120,
+      height: 120,
       borderRadius: '50%',
-      border: `2px solid ${isDark ? 'rgba(196,16,122,0.50)' : 'rgba(247,48,109,0.35)'}`,
+      border: `3px solid ${isDark ? 'rgba(196,16,122,0.55)' : 'rgba(247,48,109,0.40)'}`,
       background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.06)',
       cursor: 'pointer',
       position: 'relative',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      boxShadow: isDark
+        ? '0 0 0 4px rgba(196,16,122,0.12)'
+        : '0 0 0 4px rgba(247,48,109,0.08)',
+      transition: 'box-shadow 0.2s',
     },
     fotoPlaceholder: {
-      width: 60,
-      height: 60,
+      width: 80,
+      height: 80,
       borderRadius: '50%',
       background: t.inputBg,
     },
     fotoBadge: {
       position: 'absolute',
-      bottom: 2,
-      right: 2,
-      width: 22,
-      height: 22,
+      bottom: 4,
+      right: 4,
+      width: 28,
+      height: 28,
       borderRadius: '50%',
       background: t.primaryGradient,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       border: `2px solid ${t.cardBg}`,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
     },
     fotoLabel: {
       fontSize: 10,
@@ -326,12 +359,14 @@ const getStyles = (isDark) => {
       color: t.textPrimary,
       whiteSpace: 'nowrap',
       flexShrink: 0,
+      minWidth: 140,
+      textAlign: 'center',
     },
     dangerBtnFill: {
       padding: '7px 14px',
       borderRadius: 8,
-      border: 'none',
-      background: t.primaryGradient,
+      border: '1px solid rgba(220,38,38,0.40)',
+      background: '#DC2626',
       cursor: 'pointer',
       fontFamily: t.fontSecondary,
       fontSize: 11,
@@ -339,9 +374,13 @@ const getStyles = (isDark) => {
       color: '#fff',
       whiteSpace: 'nowrap',
       flexShrink: 0,
+      minWidth: 140,
+      textAlign: 'center',
     },
-    actionRow: { display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 },
+    actionRow: { display: 'flex', justifyContent: 'center', gap: 12, marginTop: 8 },
     cancelBtn: {
+      flex: 1,
+      maxWidth: 180,
       padding: '10px 24px',
       borderRadius: 10,
       border: `1px solid ${t.inputBorder}`,
@@ -353,6 +392,8 @@ const getStyles = (isDark) => {
       color: t.textSecondary,
     },
     saveBtn: {
+      flex: 1,
+      maxWidth: 180,
       padding: '10px 24px',
       borderRadius: 10,
       border: 'none',

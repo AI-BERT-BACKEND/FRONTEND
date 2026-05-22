@@ -21,15 +21,26 @@ const LocalChevronDown = ({ isDark }) => (
   />
 );
 
+const Spinner = () => (
+  <>
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <svg style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+    </svg>
+  </>
+);
+
 const AddMetaModal = ({ isDark, onClose }) => {
   const [nombre, setNombre] = useState('');
   const [nota, setNota] = useState('');
   const [materia, setMateria] = useState('');
   const [nombreError, setNombreError] = useState('');
   const [notaError, setNotaError] = useState('');
+  const [loading, setLoading] = useState(false);
   const m = getModalStyles(isDark);
 
-  const handleGuardar = () => {
+  const handleGuardar = async () => {
     let valid = true;
     if (!nombre.trim()) {
       setNombreError('El nombre no puede estar vacío.');
@@ -44,7 +55,14 @@ const AddMetaModal = ({ isDark, onClose }) => {
       valid = false;
     } else setNotaError('');
 
-    if (valid) onClose();
+    if (!valid) return;
+    setLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 500));
+      onClose();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -156,12 +174,21 @@ const AddMetaModal = ({ isDark, onClose }) => {
             </span>
           </div>
           <div style={m.footerBtns}>
-            <button style={m.cancelBtn} onClick={onClose}>
+            <button style={m.cancelBtn} onClick={onClose} disabled={loading}>
               Cancelar
             </button>
-            <button style={m.guardarBtn} onClick={handleGuardar}>
-              <Target size={13} color="#fff" strokeWidth={2.5} />
-              Guardar Meta
+            <button style={{ ...m.guardarBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleGuardar} disabled={loading}>
+              {loading ? <><Spinner /> Guardando...</> : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                    stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="12" r="6" />
+                    <circle cx="12" cy="12" r="2" />
+                  </svg>
+                  Guardar Meta
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -387,6 +414,7 @@ const AcademicGoals = () => {
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
   const s = getStyles(isDark);
+  const t = createStyles(isDark);
 
   const metas = [
     {
@@ -417,6 +445,9 @@ const AcademicGoals = () => {
 
   return (
     <AppLayout>
+      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
+        ← Volver
+      </button>
       <div style={s.metaGeneralCard}>
         <CircleProgress pct={82} isDark={isDark} size={120} label="GLOBAL" />
         <div style={s.metaGeneralInfo}>

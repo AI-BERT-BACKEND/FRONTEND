@@ -131,6 +131,7 @@ const AcademicManagement = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const s = getStyles(isDark);
+  const t = createStyles(isDark);
 
   const renderExtra = (extra) => {
     if (extra === 'promedio') {
@@ -213,11 +214,11 @@ const AcademicManagement = () => {
 
   return (
     <AppLayout>
-      {!isDark && <h1 style={s.pageTitle}>Gestión Académica</h1>}
+      <h1 style={s.pageTitle}>Gestión Académica</h1>
 
       <div style={s.grid2}>
         {SECCIONES.map((sec) => (
-          <div key={sec.id} style={s.card}>
+          <div key={sec.id} style={{ ...s.card, cursor: 'pointer' }} onClick={() => navigate(sec.path)}>
             <div style={s.cardTop}>
               <div style={s.cardIcon}>
                 <sec.IconComp isDark={isDark} />
@@ -227,12 +228,41 @@ const AcademicManagement = () => {
             <div style={s.cardTitle}>{sec.titulo}</div>
             <div style={s.cardDesc}>{sec.descripcion}</div>
             {renderExtra(sec.extra)}
-            <button style={s.cardBtn} onClick={() => navigate(sec.path)}>
+            <button style={s.cardBtn} onClick={(e) => { e.stopPropagation(); navigate(sec.path); }}>
               {sec.accion}
             </button>
           </div>
         ))}
       </div>
+
+      {/* ── PANEL ESTADÍSTICAS RÁPIDAS ── */}
+      <div style={{ ...s.grid2, marginTop: 20 }}>
+        <div style={{ ...s.card }}>
+          <div style={{ fontSize: 11, color: t.textMuted, letterSpacing: '0.07em', marginBottom: 8 }}>HISTORIAL DE SESIONES</div>
+          {[{ dia: 'Lunes', horas: 2.5 }, { dia: 'Miércoles', horas: 1.8 }, { dia: 'Viernes', horas: 3.0 }].map(d => (
+            <div key={d.dia} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: 11, color: t.textSecondary, width: 80 }}>{d.dia}</span>
+              <div style={{ flex: 1, height: 6, borderRadius: 3, background: t.inputBg, overflow: 'hidden' }}>
+                <div style={{ height: '100%', borderRadius: 3, width: `${(d.horas / 4) * 100}%`, background: isDark ? 'linear-gradient(90deg,#FF5B2E,#C4107A)' : 'linear-gradient(90deg,#FF8430,#F7306D)' }} />
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: isDark ? '#FF5B2E' : '#FF8430', minWidth: 32 }}>{d.horas}h</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ ...s.card }}>
+          <div style={{ fontSize: 11, color: t.textMuted, letterSpacing: '0.07em', marginBottom: 8 }}>EVOLUCIÓN DE NOTAS</div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 80 }}>
+            {[3.2, 3.8, 4.1, 4.5, 4.8].map((n, i) => (
+              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: '100%', borderRadius: 4, height: `${(n / 5) * 72}px`, background: i === 4 ? (isDark ? 'linear-gradient(180deg,#FF5B2E,#C4107A)' : 'linear-gradient(180deg,#FF8430,#F7306D)') : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)') }} />
+                <span style={{ fontSize: 9, color: t.textMuted }}>{n}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 11, color: '#22C55E', fontWeight: 600, marginTop: 8 }}>↑ Tendencia positiva</div>
+        </div>
+      </div>
+
     </AppLayout>
   );
 };
@@ -246,6 +276,7 @@ const getStyles = (isDark) => {
       fontWeight: 800,
       margin: '0 0 28px 0',
       color: isDark ? '#FF5B2E' : '#FF8430',
+      letterSpacing: '-0.02em',
     },
     grid2: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 },
     card: {

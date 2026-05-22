@@ -94,8 +94,17 @@ const EVENTS_INIT = [
   },
 ];
 
-const SUBJECTS = ['All subjects', 'DOSW', 'AYSR', 'FUPR', 'TPRO', 'IPRO'];
+const SUBJECTS_INIT = ['All subjects', 'DOSW', 'AYSR', 'FUPR', 'TPRO', 'IPRO'];
 const STATUSES = ['All', 'pendiente', 'urgente', 'examen', 'completado'];
+
+// Bloques bloqueados por horario universitario: { diaSemana(0-6): [horas] }
+const UNIVERSITY_BLOCKS = {
+  1: ['07:00', '08:00', '11:00', '12:00'],  // Lunes
+  2: ['08:00', '09:00', '14:00', '15:00'],  // Martes
+  3: ['11:00', '12:00', '16:00'],            // Miércoles
+  4: ['07:00', '08:00', '10:00'],            // Jueves
+  5: ['09:00', '10:00', '14:00'],            // Viernes
+};
 
 const Calendar = () => {
   const { isDark } = useTheme();
@@ -103,11 +112,13 @@ const Calendar = () => {
   const [view, setView] = useState('month');
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 4, 1));
   const [events, setEvents] = useState(EVENTS_INIT);
+  const [subjects, setSubjects] = useState(SUBJECTS_INIT);
   const [filterSubject, setFilterSubject] = useState('All subjects');
   const [filterStatus, setFilterStatus] = useState('All');
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
+  const [blockConflict, setBlockConflict] = useState(null);
 
   const s = getStyles(isDark);
 
@@ -168,14 +179,32 @@ const Calendar = () => {
     e.preventDefault();
     setDragOver(key);
   };
+  const isBlockedHour = (fecha, hora) => {
+    const d = new Date(fecha + 'T00:00:00');
+    const dayOfWeek = d.getDay();
+    return (UNIVERSITY_BLOCKS[dayOfWeek] || []).includes(hora);
+  };
+
   const handleDrop = (e, fecha, hora = null) => {
     e.preventDefault();
-    if (dragging)
+    if (dragging) {
+      if (hora && isBlockedHour(fecha, hora)) {
+        setBlockConflict('Este horario está bloqueado por clases universitarias.');
+        setTimeout(() => setBlockConflict(null), 3000);
+        setDragging(null);
+        setDragOver(null);
+        return;
+      }
       setEvents((prev) =>
         prev.map((ev) => (ev.id === dragging.id ? { ...ev, fecha, ...(hora ? { hora } : {}) } : ev))
       );
+    }
     setDragging(null);
     setDragOver(null);
+  };
+
+  const autoAddSubject = (materia) => {
+    setSubjects((prev) => prev.includes(materia) ? prev : [...prev, materia]);
   };
 
   const today = new Date(2026, 4, 18);
@@ -351,7 +380,7 @@ const Calendar = () => {
               value={filterSubject}
               onChange={(e) => setFilterSubject(e.target.value)}
             >
-              {SUBJECTS.map((m) => (
+              {subjects.map((m) => (
                 <option key={m} value={m}>
                   {m}
                 </option>
@@ -379,6 +408,16 @@ const Calendar = () => {
           </div>
         </div>
       </div>
+
+      {blockConflict && (
+        <div style={{
+          background: 'rgba(239,68,68,0.14)', border: '1px solid rgba(239,68,68,0.35)',
+          borderRadius: 10, padding: '10px 16px', marginBottom: 14,
+          fontSize: 12, color: '#EF4444', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          🔒 {blockConflict}
+        </div>
+      )}
 
       <div style={s.calLayout}>
         {/* MONTH VIEW */}
@@ -477,12 +516,23 @@ const Calendar = () => {
                       (e) => e.fecha === fecha && e.hora === hour
                     );
                     const isDragTarget = dragOver === `${fecha}-${hour}`;
+                    const isBlocked = isBlockedHour(fecha, hour);
                     return (
                       <div
                         key={i}
-                        style={{ ...s.weekCell, ...(isDragTarget ? s.dragOverCell : {}) }}
-                        onDragOver={(e) => handleDragOver(e, `${fecha}-${hour}`)}
+                        style={{
+                          ...s.weekCell,
+                          ...(isDragTarget ? s.dragOverCell : {}),
+                          ...(isBlocked ? {
+                            background: isDark
+                              ? 'repeating-linear-gradient(45deg, rgba(239,68,68,0.06), rgba(239,68,68,0.06) 3px, transparent 3px, transparent 8px)'
+                              : 'repeating-linear-gradient(45deg, rgba(239,68,68,0.05), rgba(239,68,68,0.05) 3px, transparent 3px, transparent 8px)',
+                            cursor: 'not-allowed',
+                          } : {}),
+                        }}
+                        onDragOver={(e) => !isBlocked && handleDragOver(e, `${fecha}-${hour}`)}
                         onDrop={(e) => handleDrop(e, fecha, hour)}
+                        title={isBlocked ? '🔒 Horario universitario bloqueado' : undefined}
                       >
                         {ev && (
                           <div
@@ -970,7 +1020,7 @@ const getStyles = (isDark) => {
       fontFamily: t.fontPrimary,
       fontSize: 17,
       fontWeight: 700,
-      color: t.textPrimary,
+      color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.87)',
       marginBottom: 4,
     },
     modalBadge: { fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10 },
@@ -994,7 +1044,7 @@ const getStyles = (isDark) => {
       color: t.textMuted,
       marginBottom: 2,
     },
-    modalRowVal: { fontSize: 13, fontWeight: 500, color: t.textPrimary },
+    modalRowVal: { fontSize: 13, fontWeight: 500, color: isDark ? 'rgba(255,255,255,0.88)' : 'rgba(0,0,0,0.80)' },
     modalFooter: {
       display: 'flex',
       justifyContent: 'flex-end',

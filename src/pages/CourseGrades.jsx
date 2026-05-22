@@ -99,11 +99,22 @@ const INITIAL_DATA = {
   },
 };
 
+const Spinner = () => (
+  <>
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <svg style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+    </svg>
+  </>
+);
+
 const ActividadModal = ({ corteNombre, actividad, isDark, onSave, onClose }) => {
   const t = createStyles(isDark);
   const [nombre, setNombre]   = useState(actividad?.nombre || '');
   const [nota,   setNota]     = useState(actividad?.nota   != null ? String(actividad.nota) : '');
   const [peso,   setPeso]     = useState(actividad?.peso   || '');
+  const [loading, setLoading] = useState(false);
   const isEdit = !!actividad;
 
   const s = {
@@ -145,11 +156,17 @@ const ActividadModal = ({ corteNombre, actividad, isDark, onSave, onClose }) => 
     },
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!nombre.trim()) return;
-    const notaNum = parseFloat(nota);
-    const notaColor = isNaN(notaNum) ? null : notaNum >= 6 ? '#22C55E' : notaNum >= 4 ? '#EAB308' : '#F00707';
-    onSave({ nombre: nombre.trim(), nota: isNaN(notaNum) ? null : notaNum, peso: peso || '—', color: notaColor });
+    setLoading(true);
+    try {
+      await new Promise(r => setTimeout(r, 400));
+      const notaNum = parseFloat(nota);
+      const notaColor = isNaN(notaNum) ? null : notaNum >= 6 ? '#22C55E' : notaNum >= 4 ? '#EAB308' : '#F00707';
+      onSave({ nombre: nombre.trim(), nota: isNaN(notaNum) ? null : notaNum, peso: peso || '—', color: notaColor });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -171,8 +188,10 @@ const ActividadModal = ({ corteNombre, actividad, isDark, onSave, onClose }) => 
           </div>
         </div>
         <div style={s.footer}>
-          <button style={s.cancel} onClick={onClose}>Cancelar</button>
-          <button style={s.save} onClick={handleSave}>{isEdit ? 'Guardar cambios' : 'Agregar'}</button>
+          <button style={s.cancel} onClick={onClose} disabled={loading}>Cancelar</button>
+          <button style={{ ...s.save, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSave} disabled={loading}>
+            {loading ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Spinner /> Guardando...</span> : isEdit ? 'Guardar cambios' : 'Registrar'}
+          </button>
         </div>
       </div>
     </div>
@@ -384,6 +403,11 @@ const CourseGrades = () => {
 
   return (
     <AppLayout>
+      {/* ── VOLVER ── */}
+      <button style={s.volverBtn} onClick={() => navigate(-1)}>
+        ← Volver
+      </button>
+
       {/* ── HEADER ── */}
       <div style={s.pageHeader}>
         <div>
@@ -482,6 +506,13 @@ const CourseGrades = () => {
 const getStyles = (isDark) => {
   const t = createStyles(isDark);
   return {
+    volverBtn: {
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      background: 'none', border: 'none', cursor: 'pointer',
+      fontSize: 13, fontWeight: 600,
+      color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)',
+      fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14,
+    },
     pageHeader: {
       display: 'flex', alignItems: 'flex-start',
       justifyContent: 'space-between', marginBottom: 20,
