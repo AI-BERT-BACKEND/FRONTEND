@@ -11,6 +11,14 @@ import aibertGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 
 const FILTROS = ['TODOS', 'DESBLOQUEADOS', 'PENDIENTES'];
 
+const DEFAULT_INSIGNIAS = [
+  { id: 1, tipo: 'TASK_STREAK',         nombre: 'TASK STREAK',         icon: '⚡', desc: 'Completa tareas sin interrupciones', desbloqueado: false, color: '#FF8430' },
+  { id: 2, tipo: 'PERFECT_SCORE',       nombre: 'PERFECT SCORE',       icon: '⭐', desc: 'Obtén 5.0 en una evaluación',        desbloqueado: false, color: '#F7306D' },
+  { id: 3, tipo: 'GOAL_COMPLETED',      nombre: 'GOAL COMPLETED',      icon: '🎯', desc: 'Cumple tu meta semanal',             desbloqueado: false, color: '#A855F7' },
+  { id: 4, tipo: 'SUBJECT_MASTERY',     nombre: 'SUBJECT MASTERY',     icon: '🏆', desc: 'Domina una materia completa',        desbloqueado: false, color: '#00CFFF' },
+  { id: 5, tipo: 'PRODUCTIVITY_STREAK', nombre: 'PRODUCTIVITY STREAK', icon: '🔥', desc: 'Mantén racha de productividad',      desbloqueado: false, color: '#22C55E' },
+];
+
 /* ── componente ── */
 const Gamification = () => {
   const { isDark } = useTheme();
@@ -39,11 +47,12 @@ const Gamification = () => {
         setProgress(prog);
         setTotalPoints(pts?.totalPoints ?? pts?.points ?? 0);
         const raw = ach?.achievements ?? ach ?? [];
-        setAchievements(raw.map((a) => ({
+        const mapped = raw.map((a) => ({
           id: a.id, tipo: a.tipo ?? a.type ?? '', nombre: a.nombre ?? a.name ?? '',
           icon: a.icon ?? '🏅', desc: a.desc ?? a.description ?? '',
           desbloqueado: a.desbloqueado ?? a.unlocked ?? false, color: a.color ?? '#FF8430',
-        })));
+        }));
+        setAchievements(mapped.length > 0 ? mapped : DEFAULT_INSIGNIAS);
         const rawSubs = subs?.subjects ?? subs ?? [];
         setCursos(rawSubs.map((c) => ({
           id: c.id, nombre: c.nombre ?? c.name ?? '', sub: c.sub ?? c.subtitle ?? '',
@@ -78,11 +87,11 @@ const Gamification = () => {
   });
 
   const xpActividadesInfo = [
-    { icon: '✅', label: 'Completar una tarea',    xp: '+50 XP'  },
-    { icon: '⏰', label: 'Completar a tiempo',     xp: '+30 XP'  },
-    { icon: '🔥', label: 'Cumplir una racha',      xp: '+100 XP' },
-    { icon: '🎯', label: 'Cumplir meta semanal',   xp: '+200 XP' },
-    { icon: '📈', label: 'Avance en una materia',  xp: '+80 XP'  },
+    { icon: '✅', label: 'Completar una tarea',             xp: '+10 XP'  },
+    { icon: '⏰', label: 'Completar una tarea a tiempo',    xp: '+15 XP'  },
+    { icon: '🔥', label: 'Cumplir una racha',               xp: '+20 XP'  },
+    { icon: '🎯', label: 'Cumplir una meta semanal',        xp: '+25 XP'  },
+    { icon: '📈', label: 'Avance en una materia',           xp: '+8 XP'   },
   ];
 
   if (loading) return <AppLayout><div style={{ padding: 40, textAlign: 'center', fontFamily: "'Poppins',sans-serif", color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>Cargando...</div></AppLayout>;
@@ -129,7 +138,7 @@ const Gamification = () => {
           {/* Logros recientes */}
           <div style={s.logrosPanel}>
             <div style={s.logrosPanelTitle(isDark)}>LOGROS RECIENTES</div>
-                        {logrosRecientes.length > 0 ? logrosRecientes.map((l) => (
+            {logrosRecientes.length > 0 ? logrosRecientes.map((l) => (
               <div key={l.id} style={s.logroItem(isDark)}>
                 <div style={{ ...s.logroIcon, background: l.iconBg }}>
                   <span style={{ fontSize: 16 }}>{l.icon}</span>
@@ -165,32 +174,49 @@ const Gamification = () => {
             </div>
           </div>
 
-          <div style={s.insigniasGrid}>
-            {insigniasFiltradas.map((ins) => (
-              <div
-                key={ins.id}
-                style={s.insigniaCard(isDark, ins.desbloqueado)}
-                title={ins.desbloqueado ? ins.nombre : 'Insignia bloqueada'}
-              >
-                <div style={s.insigniaCircle(ins.desbloqueado, ins.color, isDark)}>
-                  {ins.desbloqueado
-                    ? <span style={{ fontSize: 24 }}>{ins.icon}</span>
-                    : <Lock size={18} color={isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.20)'} />}
+          {insigniasFiltradas.length > 0 ? (
+            <div style={s.insigniasGrid}>
+              {insigniasFiltradas.map((ins) => (
+                <div
+                  key={ins.id}
+                  style={s.insigniaCard(isDark, ins.desbloqueado)}
+                  title={ins.desbloqueado ? ins.nombre : 'Insignia bloqueada'}
+                >
+                  <div style={s.insigniaCircle(ins.desbloqueado, ins.color, isDark)}>
+                    {ins.desbloqueado
+                      ? <span style={{ fontSize: 24 }}>{ins.icon}</span>
+                      : <Lock size={18} color={isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.20)'} />}
+                  </div>
+                  <div style={s.insigniaTextGroup}>
+                    <span style={s.insigniaNombre(isDark, ins.desbloqueado)}>{ins.nombre}</span>
+                    <span style={s.insigniaDesc(isDark, ins.desbloqueado)}>{ins.desc}</span>
+                  </div>
                 </div>
-                <div style={s.insigniaTextGroup}>
-                  <span style={s.insigniaNombre(isDark, ins.desbloqueado)}>{ins.nombre}</span>
-                  <span style={s.insigniaDesc(isDark, ins.desbloqueado)}>{ins.desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div style={s.insigniasEmpty(isDark)}>
+              <span style={{ fontSize: 32 }}>🏅</span>
+              <span style={s.insigniasEmptyText(isDark)}>
+                {filtro === 'DESBLOQUEADOS'
+                  ? 'Aún no has desbloqueado ninguna insignia'
+                  : filtro === 'PENDIENTES'
+                  ? 'No tienes insignias pendientes'
+                  : 'Aún no hay insignias disponibles'}
+              </span>
+              <span style={s.insigniasEmptySubText(isDark)}>
+                {filtro === 'DESBLOQUEADOS'
+                  ? 'Completa tareas y cumple metas para ganar tu primera insignia.'
+                  : 'Sigue así, vas por buen camino.'}
+              </span>
+            </div>
+          )}
         </section>
 
-        {/* ── CURSOS + AIBERT ── */}
-        <div style={s.cursosAibertRow}>
-
-          <div style={s.cursosCol}>
-            <h2 style={{ ...s.sectionTitle(isDark), marginBottom: 16 }}>Cursos en progreso</h2>
+        {/* ── CURSOS ── */}
+        <div style={{ ...s.cursosCol, marginBottom: 24 }}>
+          <h2 style={{ ...s.sectionTitle(isDark), marginBottom: 16 }}>Cursos en progreso</h2>
+          {cursos.length > 0 ? (
             <div style={s.cursosGrid}>
               {cursos.map((c) => (
                 <div key={c.id} style={s.cursoCard(isDark, t)}>
@@ -222,29 +248,40 @@ const Gamification = () => {
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <div style={s.cursosEmpty(isDark)}>
+              <span style={{ fontSize: 32 }}>📚</span>
+              <span style={s.cursosEmptyText(isDark)}>
+                Aún no tienes cursos en progreso
+              </span>
+              <span style={s.cursosEmptySubText(isDark)}>
+                Tus materias aparecerán aquí una vez que comiences el semestre.
+              </span>
+            </div>
+          )}
+        </div>
 
-          {/* ── AIBERT WIDGET ── */}
-          <div style={s.aibertCol}>
-            <div
-              style={{ ...s.aibertWidget(isDark), ...(hoverAibert ? s.aibertWidgetHover(isDark) : {}) }}
-              onMouseEnter={() => setHoverAibert(true)}
-              onMouseLeave={() => setHoverAibert(false)}
-              onClick={() => setShowXpModal(true)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && setShowXpModal(true)}
-              aria-label="Ver cómo funciona el XP"
-            >
-              <img src={aibertGif} alt="Aibert" style={s.aibertWidgetGif} />
-              <span style={s.aibertWidgetLabel(isDark)}>ASISTENTE</span>
+        {/* ── AIBERT WIDGET ── */}
+        <div style={{ width: '100%', marginBottom: 32 }}>
+          <div
+            style={{ ...s.aibertWidget(isDark), ...(hoverAibert ? s.aibertWidgetHover(isDark) : {}) }}
+            onMouseEnter={() => setHoverAibert(true)}
+            onMouseLeave={() => setHoverAibert(false)}
+          >
+            <img src={aibertGif} alt="Aibert" style={s.aibertWidgetGif} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+              <span style={s.aibertWidgetLabel(isDark)}>ASISTENTE ACADÉMICO</span>
               <p style={s.aibertWidgetText(isDark)}>
-                Gana XP completando tareas, manteniendo rachas y cumpliendo metas.
+                Gana puntos XP completando tus tareas, manteniendo rachas y cumpliendo metas. Cada actividad cuenta para subir de nivel y desbloquear nuevos logros.
               </p>
-              <span style={s.aibertWidgetCta(isDark)}>¿Cómo gano XP? →</span>
+              <button
+                style={s.aibertWidgetBtn(isDark)}
+                onClick={() => setShowXpModal(true)}
+              >
+                ¿Cómo funciona el XP?
+              </button>
             </div>
           </div>
-
         </div>
 
         {/* ── CTA BANNER ── */}
@@ -542,18 +579,8 @@ const st = (isDark, t) => ({
     fontFamily: "'Poppins',sans-serif",
   }),
 
-  /* Layout cursos + aibert */
-  cursosAibertRow: {
-    display: 'flex',
-    gap: 24,
-    alignItems: 'flex-start',
-    flexWrap: 'wrap',
-    marginBottom: 32,
-  },
-
+  /* Columna de cursos */
   cursosCol: { flex: '1 1 360px', minWidth: 0 },
-
-  aibertCol: { flex: '0 1 220px', minWidth: 190 },
 
   /* Secciones */
   section: { marginBottom: 32 },
@@ -603,9 +630,38 @@ const st = (isDark, t) => ({
   }),
 
   /* Galería */
+  insigniasEmpty: (isDark) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '40px 20px',
+    background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+    border: `1px dashed ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
+    borderRadius: 16,
+    gap: 10,
+    textAlign: 'center',
+  }),
+
+  insigniasEmptyText: (isDark) => ({
+    fontSize: 15,
+    fontWeight: 600,
+    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+  }),
+
+  insigniasEmptySubText: (isDark) => ({
+    fontSize: 12,
+    color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)',
+    fontFamily: "'Poppins',sans-serif",
+    maxWidth: 320,
+    lineHeight: 1.5,
+  }),
+
   insigniasGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+    gridTemplateColumns: 'repeat(5, 140px)',
+    justifyContent: 'center',
     gap: 14,
   },
 
@@ -669,9 +725,37 @@ const st = (isDark, t) => ({
   }),
 
   /* Cursos */
+  cursosEmpty: (isDark) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '40px 20px',
+    background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+    border: `1px dashed ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
+    borderRadius: 16,
+    gap: 10,
+    textAlign: 'center',
+  }),
+
+  cursosEmptyText: (isDark) => ({
+    fontSize: 15,
+    fontWeight: 600,
+    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+  }),
+
+  cursosEmptySubText: (isDark) => ({
+    fontSize: 12,
+    color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)',
+    fontFamily: "'Poppins',sans-serif",
+    maxWidth: 320,
+    lineHeight: 1.5,
+  }),
+
   cursosGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gap: 14,
   },
 
@@ -766,17 +850,17 @@ const st = (isDark, t) => ({
     fontFamily: "'Poppins',sans-serif",
   }),
 
-  /* Aibert widget compacto */
+  /* Aibert widget banner */
   aibertWidget: (isDark) => ({
-    background: isDark ? 'rgba(196,16,122,0.06)' : 'rgba(255,132,48,0.05)',
+    background: isDark ? '#1A0614' : '#FFF0E8',
     border: `1px solid ${isDark ? 'rgba(196,16,122,0.22)' : 'rgba(255,132,48,0.22)'}`,
     borderRadius: 16,
-    padding: '20px 16px',
+    padding: '28px 36px',
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    cursor: 'pointer',
+    gap: 32,
+    cursor: 'default',
     transition: 'box-shadow 0.2s, transform 0.2s',
     userSelect: 'none',
   }),
@@ -789,18 +873,18 @@ const st = (isDark, t) => ({
   }),
 
   aibertWidgetGif: {
-    width: 72,
-    height: 72,
+    width: 90,
+    height: 90,
     objectFit: 'contain',
     borderRadius: '50%',
   },
 
   aibertWidgetLabel: (isDark) => ({
-    fontSize: 8,
-    letterSpacing: '0.14em',
-    fontWeight: 700,
+    fontSize: 13,
+    letterSpacing: '0.08em',
+    fontWeight: 800,
     textTransform: 'uppercase',
-    color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
+    color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.55)',
     fontFamily: "'Poppins',sans-serif",
   }),
 
@@ -809,16 +893,26 @@ const st = (isDark, t) => ({
     color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
     fontFamily: "'Poppins',sans-serif",
     lineHeight: 1.55,
-    textAlign: 'center',
+    textAlign: 'left',
     margin: 0,
   }),
 
-  aibertWidgetCta: (isDark) => ({
-    fontSize: 10,
+  aibertWidgetBtn: (isDark) => ({
+    background: isDark
+      ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
+      : 'linear-gradient(90deg,#FF8430,#F7306D)',
+    border: 'none',
+    borderRadius: 10,
+    padding: '10px 22px',
+    color: '#fff',
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+    fontSize: 13,
     fontWeight: 700,
-    color: isDark ? '#FF5B2E' : '#FF8430',
-    fontFamily: "'Poppins',sans-serif",
-    letterSpacing: '0.02em',
+    cursor: 'pointer',
+    boxShadow: isDark
+      ? '0 4px 16px rgba(196,16,122,0.35)'
+      : '0 4px 16px rgba(247,48,109,0.25)',
+    marginTop: 4,
   }),
 
   /* CTA Banner */
