@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
 import ScrollToTop from '../components/ScrollToTop';
 
+import Landing from '../pages/Landing';
 import Login from '../pages/Login';
 import ForgotPassword from '../pages/ForgotPassword';
 import EmailSent from '../pages/EmailSent';
@@ -37,7 +38,7 @@ const AppRouter = () => {
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/forgot-password/sent" element={<EmailSent />} />
