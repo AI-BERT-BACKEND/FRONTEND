@@ -693,23 +693,23 @@ const st = (isDark, t) => ({
     margin: 0,
   }),
 
-  aibertWidgetBtn: (isDark) => ({
-    background: isDark
-      ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
-      : 'linear-gradient(90deg,#FF8430,#F7306D)',
-    border: 'none',
-    borderRadius: 10,
-    padding: '10px 22px',
-    color: '#fff',
-    fontFamily: "'Plus Jakarta Sans',sans-serif",
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: 'pointer',
-    boxShadow: isDark
-      ? '0 4px 16px rgba(196,16,122,0.35)'
-      : '0 4px 16px rgba(247,48,109,0.25)',
-    marginTop: 4,
-  }),
+   aibertWidgetBtn: (isDark) => ({
+     background: isDark
+       ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
+       : 'linear-gradient(90deg,#FF8430,#F7306D)',
+     border: 'none',
+     borderRadius: 10,
+     padding: '10px 22px',
+     color: '#fff',
+     fontFamily: "'Plus Jakarta Sans',sans-serif",
+     fontSize: 13,
+     fontWeight: 700,
+     cursor: 'pointer',
+     boxShadow: isDark
+       ? '0 4px 16px rgba(196,16,122,0.35)'
+       : '0 4px 16px rgba(247,48,109,0.25)',
+     marginTop: 4,
+   }),
 
   /* CTA Banner */
   ctaBanner: (isDark) => ({
