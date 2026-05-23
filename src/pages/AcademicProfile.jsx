@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
+import { useAuth } from '../context/AuthContext';
+import profileService from '../services/profileService';
 import { 
   ChevronDown, BookOpen, FileText, Target, 
   GraduationCap, Scale, Trophy, Clock, Briefcase, Quote 
@@ -11,10 +13,12 @@ import { createStyles } from '../theme/createStyles';
 
 const AcademicProfile = () => {
   const { isDark } = useTheme();
+  const { user: authUser } = useAuth();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [nuevaMateria, setNuevaMateria] = useState('');
   const [modalError, setModalError] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   const [form, setForm] = useState({
     carreraPrincipal: '',
@@ -31,16 +35,16 @@ const AcademicProfile = () => {
   const [errors, setErrors] = useState({});
 
   const carreras = [
-    'Ing. de Sistemas',
-    'Ing. Industrial',
-    'Ing. Civil',
-    'Administración de Empresas',
-    'Derecho',
-    'Psicología',
-    'Diseño Gráfico',
+    { label: 'Ing. de Sistemas',          value: 'ING_SISTEMAS' },
+    { label: 'Ing. Industrial',           value: 'ING_INDUSTRIAL' },
+    { label: 'Ing. Civil',               value: 'ING_CIVIL' },
+    { label: 'Administración de Empresas', value: 'ADMINISTRACION_EMPRESAS' },
+    { label: 'Derecho',                   value: 'DERECHO' },
+    { label: 'Psicología',               value: 'PSICOLOGIA' },
+    { label: 'Diseño Gráfico',           value: 'DISENO_GRAFICO' },
   ];
 
-  const semestres = Array.from({ length: 10 }, (_, i) => `${i + 1}° Semestre`);
+  const semestres = Array.from({ length: 10 }, (_, i) => ({ label: `${i + 1}° Semestre`, value: i + 1 }));
 
   const objetivos = [
     { id: 'PASAR', label: 'Pasar Materias', icon: GraduationCap },
@@ -64,8 +68,26 @@ const AcademicProfile = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSave = () => {
-    if (validate()) navigate('/dashboard');
+  const handleSave = async () => {
+    if (!validate()) return;
+    const userId = authUser?.id ?? authUser?.userId;
+    if (!userId) { setSaveError('No se pudo identificar el usuario'); return; }
+    setSaveError('');
+    try {
+      await profileService.updateAcademicProfile(userId, {
+        primaryCareer: form.carreraPrincipal,
+        secondaryCareer: form.carreraSecundaria || null,
+        currentSemester: parseInt(form.semestre, 10),
+        currentGpa: parseFloat(form.promedio),
+        academicGoal: form.objetivo,
+        studyAvailability: form.disponibilidad,
+        dailyStudyHours: parseInt(form.horasEstudio, 10),
+        currentlyEmployed: form.trabaja === 'SI',
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      setSaveError(err.response?.data?.message || 'Error al guardar el perfil académico');
+    }
   };
 
   const handleAddMateria = () => {
@@ -127,8 +149,8 @@ const AcademicProfile = () => {
                       Seleccionar carrera
                     </option>
                     {carreras.map((c) => (
-                      <option key={c} value={c} style={{ background: t.cardBg, color: t.textPrimary }}>
-                        {c}
+                      <option key={c.value} value={c.value} style={{ background: t.cardBg, color: t.textPrimary }}>
+                        {c.label}
                       </option>
                     ))}
                   </select>
@@ -157,8 +179,8 @@ const AcademicProfile = () => {
                   >
                     <option value="" style={{ background: t.cardBg, color: t.textPrimary }}>Ninguna</option>
                     {carreras.map((c) => (
-                      <option key={c} value={c} style={{ background: t.cardBg, color: t.textPrimary }}>
-                        {c}
+                      <option key={c.value} value={c.value} style={{ background: t.cardBg, color: t.textPrimary }}>
+                        {c.label}
                       </option>
                     ))}
                   </select>
@@ -191,8 +213,8 @@ const AcademicProfile = () => {
                       Semestre
                     </option>
                     {semestres.map((sem) => (
-                      <option key={sem} value={sem} style={{ background: t.cardBg, color: t.textPrimary }}>
-                        {sem}
+                      <option key={sem.value} value={sem.value} style={{ background: t.cardBg, color: t.textPrimary }}>
+                        {sem.label}
                       </option>
                     ))}
                   </select>
@@ -350,6 +372,11 @@ const AcademicProfile = () => {
             </p>
           </div>
 
+          {saveError && (
+            <div style={{ fontSize: 12, color: '#F00707', marginBottom: 8, textAlign: 'center' }}>
+              {saveError}
+            </div>
+          )}
           <button style={s.saveBtn} onClick={handleSave}>
             Guardar Perfil
           </button>
