@@ -75,6 +75,10 @@ const AcademicProfile = () => {
       return;
     }
     (async () => {
+      if (!userId) {
+        setInitialLoading(false);
+        return;
+      }
       try {
         const wrapper = await profileService.getAcademicProfile(userId);
         const profile = wrapper?.data ?? wrapper;
@@ -98,8 +102,9 @@ const AcademicProfile = () => {
                                : 'NO',
           });
         }
-      } catch {
-        // usar defaults
+      } catch (err) {
+        console.error('Error al cargar perfil académico:', err);
+        // usar defaults si el perfil no existe aún (404 esperado para nuevos usuarios)
       } finally {
         setInitialLoading(false);
       }

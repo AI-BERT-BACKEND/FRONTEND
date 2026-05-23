@@ -14,14 +14,28 @@ recommendationApi.interceptors.request.use(
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const userId = payload.id || payload.userId || payload.sub;
-        if (userId) config.headers['X-User-Id'] = String(userId);
+        if (userId) {
+          config.headers['X-User-Id'] = String(userId);
+          config.headers['X-Student-Id'] = String(userId);
+        }
       } catch {
-        // token malformed — skip X-User-Id
+        // token malformed — skip headers
       }
     }
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+recommendationApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default recommendationApi;

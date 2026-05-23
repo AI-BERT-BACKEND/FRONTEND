@@ -14,14 +14,28 @@ academicApi.interceptors.request.use(
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const studentId = payload.id || payload.userId || payload.sub;
-        if (studentId) config.headers['X-Student-Id'] = String(studentId);
+        if (studentId) {
+          config.headers['X-Student-Id'] = String(studentId);
+          config.headers['X-User-Id'] = String(studentId);
+        }
       } catch {
-        // token inválido — continúa sin X-Student-Id
+        // token inválido — continúa sin headers de identidad
       }
     }
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+academicApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default academicApi;
