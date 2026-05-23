@@ -116,33 +116,24 @@ const Register = () => {
   };
 
    const handleSubmit = async () => {
-     if (!validate()) return;
-     setLoading(true);
-
-     try {
-       const result = await profileService.register({
-         fullName: form.nombre,
-         email: form.email,
-         career: form.carrera,
-         password: form.password,
-         confirmPassword: form.confirmPassword,
-       });
-       
-       if (result?.userId) {
-         localStorage.setItem('pendingVerifyUserId', result.userId);
-       }
-       if (result?.email || form.email) {
-         localStorage.setItem('pendingVerifyEmail', result?.email || form.email);
-       }
-       
-       navigate('/verify-email');
-     } catch (err) {
-       const msg = err?.response?.data?.message || err.message || 'Error al registrar';
-       setErrors((p) => ({ ...p, email: msg }));
-     } finally {
-       setLoading(false);
-     }
-   };
+      if (!validate()) return;
+      setLoading(true);
+      try {
+        const response = await profileService.register({
+          fullName: form.nombre,
+          email: form.email,
+          career: form.carrera,
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+        });
+        navigate('/verify-email', { state: { userId: response.id, email: form.email } });
+      } catch (err) {
+        const msg = err?.response?.data?.message || err.message || 'Error al registrar';
+        setErrors((p) => ({ ...p, email: msg }));
+      } finally {
+        setLoading(false);
+      }
+    };
   
   const s = getStyles(isDark);
   const t = createStyles(isDark);
