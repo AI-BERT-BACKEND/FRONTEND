@@ -5,6 +5,14 @@ import ErrorMsg from '../components/ErrorMsg';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import api from '../services/api';
+import { Eye, EyeOff } from 'lucide-react';
+
+const Toggle = ({ value, onChange, s, isDark }) => (
+  <div style={{ ...s.toggle, background: value ? (isDark ? '#C4107A' : '#FF8430') : (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)') }}
+    onClick={() => onChange(!value)}>
+    <div style={{ ...s.toggleThumb, transform: value ? 'translateX(20px)' : 'translateX(2px)' }} />
+  </div>
+);
 
 const Settings = () => {
   const { isDark } = useTheme();
@@ -13,6 +21,11 @@ const Settings = () => {
     current: '',
     new: '',
     confirm: '',
+  });
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
   });
   const [passwordErrors, setPasswordErrors] = useState({});
   const [passwordSaved, setPasswordSaved] = useState(false);
@@ -53,13 +66,6 @@ const Settings = () => {
   };
 
   const s = getStyles(isDark);
-
-  const Toggle = ({ value, onChange }) => (
-    <div style={{ ...s.toggle, background: value ? (isDark ? '#C4107A' : '#FF8430') : (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)') }}
-      onClick={() => onChange(!value)}>
-      <div style={{ ...s.toggleThumb, transform: value ? 'translateX(20px)' : 'translateX(2px)' }} />
-    </div>
-  );
 
   return (
     <AppLayout>
@@ -103,7 +109,7 @@ const Settings = () => {
               <div style={s.settingLabel}>Compartir disponibilidad</div>
               <div style={s.settingDesc}>Permite que otros vean cuando estás conectado.</div>
             </div>
-            <Toggle value={privacy.compartirDisponibilidad} onChange={(v) => setPrivacy((p) => ({ ...p, compartirDisponibilidad: v }))} />
+            <Toggle value={privacy.compartirDisponibilidad} onChange={(v) => setPrivacy((p) => ({ ...p, compartirDisponibilidad: v }))} s={s} isDark={isDark} />
           </div>
 
           <div style={s.divider} />
@@ -113,19 +119,10 @@ const Settings = () => {
               <div style={s.settingLabel}>Mostrar estadísticas a amigos</div>
               <div style={s.settingDesc}>Comparte tus logros y tiempo de estudio con tu red.</div>
             </div>
-            <Toggle value={privacy.mostrarEstadisticas} onChange={(v) => setPrivacy((p) => ({ ...p, mostrarEstadisticas: v }))} />
+            <Toggle value={privacy.mostrarEstadisticas} onChange={(v) => setPrivacy((p) => ({ ...p, mostrarEstadisticas: v }))} s={s} isDark={isDark} />
           </div>
 
-          <div style={s.divider} />
-
-          <div style={s.settingRow}>
-            <div style={s.settingInfo}>
-              <div style={s.settingLabel}>Datos y actividad</div>
-              <div style={s.settingDesc}>Descarga o gestiona todo tu historial de aprendizaje.</div>
-            </div>
-            <button style={s.linkBtn} onClick={() => navigate('/estadisticas')}>Ver mis datos →</button>
-          </div>
-        </div>
+         </div>
 
         {/* CONTRASEÑA */}
         <div style={s.section}>
@@ -162,52 +159,79 @@ const Settings = () => {
             </div>
           )}
 
-          <div style={s.passwordFields}>
-            <div style={s.fieldGroup}>
-              <input
-                style={{ ...s.input, ...(passwordErrors.current ? s.inputError : {}) }}
-                type="password"
-                placeholder="Contraseña actual"
-                value={passwords.current}
-                onChange={(e) => {
-                  setPasswords((p) => ({ ...p, current: e.target.value }));
-                  if (passwordErrors.current) setPasswordErrors((p) => ({ ...p, current: '' }));
-                }}
-              />
-              <ErrorMsg message={passwordErrors.current} />
-            </div>
-            <div style={s.fieldGroup}>
-              <input
-                style={{ ...s.input, ...(passwordErrors.new ? s.inputError : {}) }}
-                type="password"
-                placeholder="Nueva contraseña"
-                value={passwords.new}
-                onChange={(e) => {
-                  setPasswords((p) => ({ ...p, new: e.target.value }));
-                  if (passwordErrors.new) setPasswordErrors((p) => ({ ...p, new: '' }));
-                }}
-              />
-              <ErrorMsg message={passwordErrors.new} />
-            </div>
-            <div style={s.fieldGroup}>
-              <input
-                style={{ ...s.input, ...(passwordErrors.confirm ? s.inputError : {}) }}
-                type="password"
-                placeholder="Confirmar nueva contraseña"
-                value={passwords.confirm}
-                onChange={(e) => {
-                  setPasswords((p) => ({ ...p, confirm: e.target.value }));
-                  if (passwordErrors.confirm) setPasswordErrors((p) => ({ ...p, confirm: '' }));
-                }}
-              />
-              <ErrorMsg message={passwordErrors.confirm} />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button style={s.saveBtn} onClick={handleSavePassword}>
-                Guardar contraseña
-              </button>
-            </div>
-          </div>
+           <div style={s.passwordFields}>
+             <div style={s.fieldGroup}>
+               <div style={s.inputWrapper}>
+                 <input
+                   style={{ ...s.input, ...(passwordErrors.current ? s.inputError : {}) }}
+                   type={showPasswords.current ? 'text' : 'password'}
+                   placeholder="Contraseña actual"
+                   value={passwords.current}
+                   onChange={(e) => {
+                     setPasswords((p) => ({ ...p, current: e.target.value }));
+                     if (passwordErrors.current) setPasswordErrors((p) => ({ ...p, current: '' }));
+                   }}
+                 />
+                 <button
+                   type="button"
+                   style={s.eyeBtn}
+                   onClick={() => setShowPasswords((p) => ({ ...p, current: !p.current }))}
+                 >
+                   {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
+                 </button>
+               </div>
+               <ErrorMsg message={passwordErrors.current} />
+             </div>
+             <div style={s.fieldGroup}>
+               <div style={s.inputWrapper}>
+                 <input
+                   style={{ ...s.input, ...(passwordErrors.new ? s.inputError : {}) }}
+                   type={showPasswords.new ? 'text' : 'password'}
+                   placeholder="Nueva contraseña"
+                   value={passwords.new}
+                   onChange={(e) => {
+                     setPasswords((p) => ({ ...p, new: e.target.value }));
+                     if (passwordErrors.new) setPasswordErrors((p) => ({ ...p, new: '' }));
+                   }}
+                 />
+                 <button
+                   type="button"
+                   style={s.eyeBtn}
+                   onClick={() => setShowPasswords((p) => ({ ...p, new: !p.new }))}
+                 >
+                   {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                 </button>
+               </div>
+               <ErrorMsg message={passwordErrors.new} />
+             </div>
+             <div style={s.fieldGroup}>
+               <div style={s.inputWrapper}>
+                 <input
+                   style={{ ...s.input, ...(passwordErrors.confirm ? s.inputError : {}) }}
+                   type={showPasswords.confirm ? 'text' : 'password'}
+                   placeholder="Confirmar nueva contraseña"
+                   value={passwords.confirm}
+                   onChange={(e) => {
+                     setPasswords((p) => ({ ...p, confirm: e.target.value }));
+                     if (passwordErrors.confirm) setPasswordErrors((p) => ({ ...p, confirm: '' }));
+                   }}
+                 />
+                 <button
+                   type="button"
+                   style={s.eyeBtn}
+                   onClick={() => setShowPasswords((p) => ({ ...p, confirm: !p.confirm }))}
+                 >
+                   {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                 </button>
+               </div>
+               <ErrorMsg message={passwordErrors.confirm} />
+             </div>
+             <div style={{ display: 'flex', justifyContent: 'center' }}>
+               <button style={s.saveBtn} onClick={handleSavePassword}>
+                 Guardar contraseña
+               </button>
+             </div>
+           </div>
         </div>
       </div>
     </AppLayout>
@@ -275,20 +299,38 @@ const getStyles = (isDark) => {
       flexDirection: 'column',
       gap: 12,
     },
-    fieldGroup: { display: 'flex', flexDirection: 'column' },
-    input: {
-      width: '100%',
-      background: t.inputBg,
-      border: `1px solid ${t.inputBorder}`,
-      borderRadius: 10,
-      padding: '11px 14px',
-      fontFamily: t.fontSecondary,
-      fontSize: 13,
-      color: t.textPrimary,
-      outline: 'none',
-      boxSizing: 'border-box',
-      transition: 'border-color 0.2s',
-    },
+     fieldGroup: { display: 'flex', flexDirection: 'column' },
+     inputWrapper: {
+       position: 'relative',
+       width: '100%',
+     },
+     input: {
+       width: '100%',
+       background: t.inputBg,
+       border: `1px solid ${t.inputBorder}`,
+       borderRadius: 10,
+       padding: '11px 40px 11px 14px',
+       fontFamily: t.fontSecondary,
+       fontSize: 13,
+       color: t.textPrimary,
+       outline: 'none',
+       boxSizing: 'border-box',
+       transition: 'border-color 0.2s',
+     },
+     eyeBtn: {
+       position: 'absolute',
+       right: 12,
+       top: '50%',
+       transform: 'translateY(-50%)',
+       background: 'none',
+       border: 'none',
+       cursor: 'pointer',
+       color: t.textSecondary,
+       padding: 4,
+       display: 'flex',
+       alignItems: 'center',
+       justifyContent: 'center',
+     },
     inputError: { borderColor: t.error, boxShadow: `0 0 0 2px ${t.error}1a` },
     errorMsg: {
       display: 'flex',

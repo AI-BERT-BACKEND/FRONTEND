@@ -51,14 +51,7 @@ const AppRouter = () => {
         <Route path="/verified-success" element={<VerifiedSuccess />} />
 
         {/* Protected Routes */}
-        <Route
-          path="/academic-profile"
-          element={
-            <ProtectedRoute>
-              <AcademicProfile />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/academic-profile" element={<Navigate to="/dashboard" replace />} />
         <Route
           path="/dashboard"
           element={

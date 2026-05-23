@@ -142,11 +142,9 @@ const AcademicDashboard = () => {
     );
   }
 
-  return (
-    <AppLayout>
-      <button style={s.volverBtn} onClick={() => navigate(-1)}>← Volver</button>
-
-      {/* STATS */}
+   return (
+     <AppLayout>
+       {/* STATS */}
       <div style={s.statsRow}>
         {stats.map((stat) => (
           <div key={stat.id} style={s.statCard}>

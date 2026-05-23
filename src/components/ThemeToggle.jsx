@@ -5,6 +5,28 @@ import { createStyles } from '../theme/createStyles';
 export const ThemeToggle = ({ isDark, onToggle, variant = 'fixed' }) => {
   const t = createStyles(isDark);
   
+  if (variant === 'inline') {
+    const inlineStyles = {
+      btn: {
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: '4px 6px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        transition: t.appleTransition,
+      },
+    };
+
+    return (
+      <button style={inlineStyles.btn} onClick={onToggle} aria-label={isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}>
+        {isDark ? <Sun size={20} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2} /> : <Moon size={20} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2} />}
+      </button>
+    );
+  }
+
   const styles = {
     btn: {
       zIndex: 100,
@@ -23,15 +45,9 @@ export const ThemeToggle = ({ isDark, onToggle, variant = 'fixed' }) => {
       boxShadow: isDark 
         ? '0 4px 12px rgba(0,0,0,0.3)' 
         : '0 4px 12px rgba(220,193,181,0.2)',
-      ...(variant === 'fixed'
-        ? {
-            position: 'fixed',
-            top: 20,
-            right: 24,
-          }
-        : {
-            position: 'relative',
-          }),
+      position: 'fixed',
+      top: 20,
+      right: 24,
     },
     iconWrap: {
       display: 'flex',

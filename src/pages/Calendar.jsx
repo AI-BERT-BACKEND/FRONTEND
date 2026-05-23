@@ -40,12 +40,62 @@ const HOURS = [
 ];
 
 
-const STATUSES = ['All', 'pendiente', 'urgente', 'examen', 'completado'];
+const STATUSES = ['Todos', 'pendiente', 'urgente', 'examen', 'completado'];
 
 
 const HORA_FIN_DISPONIBILIDAD = 18;
 
 const VIEW_LABELS = { month: 'Mes', week: 'Semana' };
+
+/* ── SVG Icons ── */
+const IconPrev = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const IconNext = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const IconCalendar = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M0.5 4.5h12" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M3.5 0.5v2M9.5 0.5v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+const IconKanban = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <rect x="0.5" y="0.5" width="3.5" height="9" rx="1" stroke="currentColor" strokeWidth="1.2" />
+    <rect x="4.75" y="0.5" width="3.5" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" />
+    <rect x="9" y="0.5" width="3.5" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
+  </svg>
+);
+const IconClose = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" strokeWidth="1.6" />
+  </svg>
+);
+const IconClock = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M6 3.5v2.8l1.8 1.8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+const IconTag = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <path d="M1 1h4.5l5 5-4.5 4.5-5-5V1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+    <circle cx="3" cy="3" r="0.8" fill="currentColor" />
+  </svg>
+);
+const IconEventSmall = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="0.5" y="1.5" width="11" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.1" />
+    <path d="M0.5 4h11" stroke="currentColor" strokeWidth="1.1" />
+    <path d="M3 0.5v2M9 0.5v2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+  </svg>
+);
 
 const Calendar = () => {
   const { isDark } = useTheme();
@@ -54,8 +104,8 @@ const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [events, setEvents] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [filterSubject, setFilterSubject] = useState('All subjects');
-  const [filterStatus, setFilterStatus] = useState('All');
+  const [filterSubject, setFilterSubject] = useState('Todas las materias');
+  const [filterStatus, setFilterStatus] = useState('Todos');
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
@@ -63,7 +113,61 @@ const Calendar = () => {
   const [panelDragging, setPanelDragging] = useState(null);
   const [panelDragOver, setPanelDragOver] = useState(null);
   const [droppedEvents, setDroppedEvents] = useState({});
+  const [loading, setLoading] = useState(true);
   const panelDragOccurred = React.useRef(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [tasksData, subjectsData] = await Promise.all([
+          taskService.getTasks().catch(() => ({ tasks: [] })),
+          academicService.getSubjects().catch(() => ({ subjects: [] })),
+        ]);
+        
+        const tasks = tasksData.tasks || tasksData || [];
+        const taskSubjects = new Set();
+        
+        const formattedEvents = tasks.map((t) => {
+          const subjectName = t.subject || t.materia || 'General';
+          taskSubjects.add(subjectName);
+          return {
+            id: t.id || Date.now(),
+            titulo: t.title || t.name || t.nombre || 'Evento',
+            descripcion: t.description || t.descripcion || '',
+            materia: subjectName,
+            estado: t.type || t.tipo || t.status || 'pendiente',
+            fecha: t.dueDate || t.fecha || t.scheduledDate || '',
+            hora: t.hora || '09:00',
+            color: t.type === 'examen' || t.tipo === 'examen' 
+              ? '#C4107A' 
+              : t.type === 'urgente' || t.urgencia === 'high'
+                ? '#FF5B2E'
+                : t.type === 'completado' || t.status === 'completed'
+                  ? '#22C55E'
+                  : '#3B82F6',
+          };
+        });
+        
+        setEvents(formattedEvents);
+        
+        const subs = subjectsData.subjects || subjectsData || [];
+        let subjectNames = subs.map((s) => s.name || s.nombre || s);
+        
+        if (subjectNames.length === 0 && taskSubjects.size > 0) {
+          subjectNames = Array.from(taskSubjects);
+        }
+        
+        if (subjectNames.length > 0) {
+          setSubjects(['Todas las materias', ...subjectNames]);
+        }
+      } catch {
+        // fallback empty
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const s = getStyles(isDark);
 
@@ -172,107 +276,6 @@ const Calendar = () => {
   const today = new Date();
   const todayStr = dateStr(today.getFullYear(), today.getMonth(), today.getDate());
 
-  /* ── Icons específicos de esta pantalla ── */
-  const IconPrev = () => (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path
-        d="M9 11L5 7l4-4"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-  const IconNext = () => (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path
-        d="M5 3l4 4-4 4"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-  const IconCalendar = () => (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <rect
-        x="0.5"
-        y="1.5"
-        width="12"
-        height="10"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <path d="M0.5 4.5h12" stroke="currentColor" strokeWidth="1.2" />
-      <path
-        d="M3.5 0.5v2M9.5 0.5v2"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-  const IconKanban = () => (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <rect x="0.5" y="0.5" width="3.5" height="9" rx="1" stroke="currentColor" strokeWidth="1.2" />
-      <rect
-        x="4.75"
-        y="0.5"
-        width="3.5"
-        height="6"
-        rx="1"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <rect x="9" y="0.5" width="3.5" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-  const IconClose = () => (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <path
-        d="M1.5 1.5l10 10M11.5 1.5l-10 10"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-  const IconClock = () => (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M6 3.5v2.8l1.8 1.8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-  const IconTag = () => (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <path
-        d="M1 1h4.5l5 5-4.5 4.5-5-5V1z"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-      <circle cx="3" cy="3" r="0.8" fill="currentColor" />
-    </svg>
-  );
-  const IconEventSmall = () => (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <rect
-        x="0.5"
-        y="1.5"
-        width="11"
-        height="9"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.1"
-      />
-      <path d="M0.5 4h11" stroke="currentColor" strokeWidth="1.1" />
-      <path d="M3 0.5v2M9 0.5v2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
-
   return (
     <AppLayout>
       <div style={s.controls}>
@@ -301,39 +304,28 @@ const Calendar = () => {
           {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h2>
 
-        <div style={s.viewGroup}>
-          {['month', 'week'].map((v) => (
+          <div style={s.viewGroup}>
+            {['month', 'week'].map((v) => (
+              <button
+                key={v}
+                style={{ ...s.viewBtn, ...(view === v ? s.viewBtnActive : {}) }}
+                onClick={() => setView(v)}
+              >
+                {VIEW_LABELS[v]}
+              </button>
+            ))}
             <button
-              key={v}
-              style={{ ...s.viewBtn, ...(view === v ? s.viewBtnActive : {}) }}
-              onClick={() => setView(v)}
+              style={{
+                ...s.viewBtn,
+                ...s.viewBtnIcon,
+                ...(view === 'kanban' ? s.viewBtnActive : {}),
+              }}
+              onClick={() => setView('kanban')}
             >
-              {VIEW_LABELS[v]}
+              <IconKanban />
+              <span>Kanban</span>
             </button>
-          ))}
-          <button
-            style={{
-              ...s.viewBtn,
-              ...s.viewBtnIcon,
-              ...(view === 'calendar' ? s.viewBtnActive : {}),
-            }}
-            onClick={() => setView('calendar')}
-          >
-            <IconCalendar />
-            <span>Calendario</span>
-          </button>
-          <button
-            style={{
-              ...s.viewBtn,
-              ...s.viewBtnIcon,
-              ...(view === 'kanban' ? s.viewBtnActive : {}),
-            }}
-            onClick={() => setView('kanban')}
-          >
-            <IconKanban />
-            <span>Kanban</span>
-          </button>
-        </div>
+          </div>
 
         <div style={s.filtersGroup}>
           <div style={{ position: 'relative' }}>
@@ -980,7 +972,7 @@ const getStyles = (isDark) => {
       color: t.textPrimary,
     },
     weekDayNumToday: { color: isDark ? '#FF5B2E' : '#FF8430' },
-    weekBody: { overflowY: 'auto', maxHeight: 'calc(100vh - 240px)' },
+     weekBody: { overflowY: 'auto', maxHeight: 'calc(100vh - 150px)' },
     weekRow: {
       display: 'grid',
       gridTemplateColumns: '52px repeat(7, 1fr)',

@@ -1,26 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import socialService from '../services/socialService';
+import academicService from '../services/academicService';
 import { createStyles } from '../theme/createStyles';
 
-const MATERIAS = ['TODAS', 'ALGORITMOS', 'FILOSOFÍA', 'FÍSICA', 'DISEÑO'];
 const ESTADOS  = ['TODAS', 'EN CURSO', 'PRÓXIMA', 'FINALIZADA'];
 
 // ── COMPONENTE PRINCIPAL ──────────────────────────────────────────────────────
 
-const StudySession = () => {
-  const { isDark } = useTheme();
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const s = getStyles(isDark);
+ const StudySession = () => {
+   const { isDark } = useTheme();
+   const { user } = useAuth();
+   const navigate = useNavigate();
+   const s = getStyles(isDark);
 
-  const [filtroMateria, setFiltroMateria] = useState('TODAS');
-  const [filtroEstado,  setFiltroEstado]  = useState('TODAS');
-  const [sesiones, setSesiones] = useState([]);
-  const [loading, setLoading] = useState(true);
+   const [filtroMateria, setFiltroMateria] = useState('TODAS');
+   const [filtroEstado,  setFiltroEstado]  = useState('TODAS');
+   const [sesiones, setSesiones] = useState([]);
+   const [subjects, setSubjects] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const [loadingSubjects, setLoadingSubjects] = useState(true);
+
+   const MATERIAS = useMemo(() => {
+     const staticList = ['TODAS'];
+     if (subjects.length > 0) {
+       const fromSubjects = subjects.map((s) => {
+         const name = s.name || s.nombre || s.label || '';
+         return name.toUpperCase().replace(/\s+/g, '_');
+       }).filter(Boolean);
+       return [...staticList, ...fromSubjects];
+     }
+     const fromSessions = [...new Set(sesiones.map((s) => s.materiaKey).filter(Boolean))];
+     return [...staticList, ...fromSessions];
+   }, [subjects, sesiones]);
 
   const mapSession = (s) => ({
     id: s.id || s._id,
@@ -41,14 +56,28 @@ const StudySession = () => {
     accion: s.status === 'finished' ? 'VER GRABACIÓN' : s.status === 'scheduled' ? 'RESERVAR CUPO' : 'UNIRSE AHORA',
   });
 
-  useEffect(() => {
-    if (!user?.id) return;
-    setLoading(true);
-    socialService.getUserSessions(user.id)
-      .then((data) => setSesiones((data || []).map(mapSession)))
-      .catch(() => setSesiones([]))
-      .finally(() => setLoading(false));
-  }, [user?.id]);
+   useEffect(() => {
+     const fetchSubjects = async () => {
+       try {
+         const data = await academicService.getSubjects();
+         const items = data.subjects || data.data || data || [];
+         setSubjects(items);
+       } catch {
+         setSubjects([]);
+       } finally {
+         setLoadingSubjects(false);
+       }
+     };
+     fetchSubjects();
+   }, []);
+
+   useEffect(() => {
+     if (!user?.id) return;
+     socialService.getUserSessions(user.id)
+       .then((data) => setSesiones((data || []).map(mapSession)))
+       .catch(() => setSesiones([]))
+       .finally(() => setLoading(false));
+   }, [user?.id]);
 
   const ciclar = (actual, opciones, setter) => {
     const idx = opciones.indexOf(actual);

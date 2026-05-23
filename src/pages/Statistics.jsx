@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import statsService from '../services/statsService';
+import notificationService from '../services/notificationService';
+import academicService from '../services/academicService';
+import enginePlanningService from '../services/enginePlanningService';
 
 const AlertTriangle = ({ color, size = 13 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -90,174 +93,360 @@ const CheckCircleIcon = ({ color, size = 15 }) => (
   </svg>
 );
 
-const SEMESTRES_DATA = [
-  { sem: 'Semestre 1', nota: 3.2, materias: [
-    { nombre: 'Cálculo I', nota: 3.0 },
-    { nombre: 'Álgebra Lineal', nota: 3.4 },
-    { nombre: 'Programación I', nota: 3.2 },
-  ]},
-  { sem: 'Semestre 2', nota: 3.5, materias: [
-    { nombre: 'Cálculo II', nota: 3.5 },
-    { nombre: 'Física I', nota: 3.5 },
-    { nombre: 'Programación II', nota: 3.6 },
-  ]},
-  { sem: 'Semestre 3', nota: 3.8, materias: [
-    { nombre: 'Estructuras de Datos', nota: 4.0 },
-    { nombre: 'Bases de Datos', nota: 3.7 },
-    { nombre: 'Cálculo III', nota: 3.6 },
-  ]},
-  { sem: 'Semestre 4', nota: 4.1, materias: [
-    { nombre: 'Redes I', nota: 4.2 },
-    { nombre: 'Algoritmos', nota: 4.0 },
-    { nombre: 'Ing. de Software', nota: 4.1 },
-  ]},
-  { sem: 'Semestre 5', nota: 4.5, materias: [
-    { nombre: 'Inteligencia Artificial', nota: 4.7 },
-    { nombre: 'Sistemas Operativos', nota: 4.3 },
-    { nombre: 'Compiladores', nota: 4.5 },
-  ]},
-  { sem: 'Semestre 6', nota: 4.2, materias: [
-    { nombre: 'DOSW', nota: 4.5 },
-    { nombre: 'AYSR', nota: 3.9 },
-    { nombre: 'FUPR', nota: 4.2 },
-  ]},
-];
+const CHART_H = 148;
 
-const SEMANAS_DATA = [
-  { sem: 'Semana 1', nota: 3.8 },
-  { sem: 'Semana 2', nota: 4.1 },
-  { sem: 'Semana 3', nota: 3.6 },
-  { sem: 'Semana 4', nota: 4.3 },
-  { sem: 'Semana 5', nota: 4.0 },
-  { sem: 'Semana 6', nota: 4.2 },
-  { sem: 'Semana 7', nota: 4.5 },
-  { sem: 'Semana 8', nota: 4.1 },
-];
+const COLORS_PALETTE = ['#FF8430', '#F7306D', '#22C55E', '#EAB308', '#6366F1', '#00CFFF', '#A855F7', '#FF5B2E'];
 
-const PROMEDIO_GENERAL = (
-  SEMESTRES_DATA.reduce((acc, d) => acc + d.nota, 0) / SEMESTRES_DATA.length
-).toFixed(2);
-
-const BEST_SEMESTRE = SEMESTRES_DATA.reduce((a, b) => (a.nota >= b.nota ? a : b));
-
-const MATERIAS_RENDIMIENTO = [
-  { nombre: 'Estructuras de Datos', nota: 4.5, creditos: 4, color: '#FF8430' },
-  { nombre: 'Cálculo Diferencial',  nota: 3.8, creditos: 3, color: '#F7306D' },
-  { nombre: 'Programación OO',      nota: 4.2, creditos: 4, color: '#22C55E' },
-  { nombre: 'Álgebra Lineal',       nota: 3.5, creditos: 3, color: '#EAB308' },
-  { nombre: 'Bases de Datos',       nota: 4.0, creditos: 4, color: '#6366F1' },
-];
-
-const SESIONES_DIA = [
-  { dia: 'Lun', horas: 2.5, sesiones: 3 },
-  { dia: 'Mar', horas: 1.0, sesiones: 1 },
-  { dia: 'Mié', horas: 3.0, sesiones: 4 },
-  { dia: 'Jue', horas: 0.5, sesiones: 1 },
-  { dia: 'Vie', horas: 2.0, sesiones: 2 },
-  { dia: 'Sáb', horas: 1.5, sesiones: 2 },
-];
-
-const MAX_HORAS_DIA = Math.max(...SESIONES_DIA.map(d => d.horas));
-
-const RECOMENDACIONES = [
-  {
-    id: 1,
-    tipo: 'ENFOQUE',
-    titulo: 'Refuerza Álgebra Lineal',
-    descripcion: 'Tu nota (3.5) está por debajo de tu promedio. Dedica 3 sesiones extra esta semana para subir el parcial final.',
-  },
-  {
-    id: 2,
-    tipo: 'ALERTA',
-    titulo: 'Próximo Parcial — Impacto 35%',
-    descripcion: 'Tienes un examen en 8 días. Activa el plan "Repaso Express" de AI.BERT para llegar a tu objetivo de 4.0.',
-  },
-];
-
-const MINI_CARDS = [
-  {
-    icon: (isDark) => <CalendarIcon color={isDark ? '#FF5B2E' : '#FF8430'} />,
-    label: 'Semestres Cursados',
-    value: '6',
-    sub: 'de 10',
-  },
-  {
-    icon: () => <StarIcon color="#EAB308" />,
-    label: 'Mejor Semestre',
-    value: BEST_SEMESTRE.nota.toFixed(1),
-    sub: BEST_SEMESTRE.sem,
-    accent: '#EAB308',
-  },
-  {
-    icon: (isDark) => <AwardIcon color={isDark ? '#FF5B2E' : '#FF8430'} />,
-    label: 'Créditos Aprobados',
-    value: '96',
-    sub: 'de 160',
-  },
-  {
-    icon: (isDark) => <BookOpenIcon color={isDark ? '#FF5B2E' : '#FF8430'} />,
-    label: 'Materias Aprobadas',
-    value: '24',
-    sub: 'materias',
-  },
-  {
-    icon: (isDark) => <ClockIcon color={isDark ? '#FF5B2E' : '#FF8430'} />,
-    label: 'Horas / Semana',
-    value: '24.5',
-    sub: 'horas de estudio',
-  },
-  {
-    icon: () => <CheckCircleIcon color="#22C55E" />,
-    label: 'Tareas Completadas',
-    value: '82%',
-    sub: '17 entregadas',
-    accent: '#22C55E',
-  },
-];
-
-const SEMESTRE_DETALLE = {
-  1: { promedio: 3.2, materias: [{ nombre: 'Cálculo I', nota: 3.0 }, { nombre: 'Álgebra', nota: 3.5 }, { nombre: 'Introducción a Programación', nota: 3.1 }] },
-  2: { promedio: 3.5, materias: [{ nombre: 'Cálculo II', nota: 3.4 }, { nombre: 'Física I', nota: 3.6 }, { nombre: 'Estructuras de Datos', nota: 3.5 }] },
-  3: { promedio: 3.8, materias: [{ nombre: 'Bases de Datos', nota: 4.0 }, { nombre: 'Física II', nota: 3.5 }, { nombre: 'Algoritmos', nota: 3.9 }] },
-  4: { promedio: 4.1, materias: [{ nombre: 'Redes', nota: 4.2 }, { nombre: 'SO', nota: 4.0 }, { nombre: 'Ingeniería de Software', nota: 4.1 }] },
-  5: { promedio: 4.5, materias: [{ nombre: 'Arquitectura', nota: 4.8 }, { nombre: 'Seguridad', nota: 4.2 }, { nombre: 'Proyecto I', nota: 4.5 }] },
-  6: { promedio: 4.2, materias: [{ nombre: 'Compiladores', nota: 4.0 }, { nombre: 'IA', nota: 4.3 }, { nombre: 'Proyecto II', nota: 4.3 }] },
+const adaptSemesterData = (dashboard, academicSummary) => {
+  if (dashboard?.semesters?.length) {
+    return dashboard.semesters.map((s, i) => ({
+      sem: s.name || s.label || `Semestre ${s.semester || i + 1}`,
+      nota: s.average ?? s.grade ?? s.gpa ?? 3.5,
+      materias: s.subjects?.map((sub) => ({
+        nombre: sub.name || sub.nombre || sub.label || 'Materia',
+        nota: sub.grade ?? sub.nota ?? sub.average ?? 3.5,
+      })) || [],
+    }));
+  }
+  if (academicSummary?.semesters?.length) {
+    return academicSummary.semesters.map((s, i) => ({
+      sem: s.name || `Semestre ${i + 1}`,
+      nota: s.average ?? 3.5,
+      materias: s.subjects?.map((sub) => ({
+        nombre: sub.name || 'Materia',
+        nota: sub.grade ?? 3.5,
+      })) || [],
+    }));
+  }
+  return [];
 };
 
-const CHART_H = 148;
+const adaptWeeklyData = (dashboard) => {
+  if (dashboard?.weeklyPerformance?.length) {
+    return dashboard.weeklyPerformance.map((w, i) => ({
+      sem: w.week || w.label || `Semana ${i + 1}`,
+      nota: w.average ?? w.grade ?? 3.8,
+    }));
+  }
+  return [];
+};
+
+const adaptSubjectPerformance = (subjectsStats, dashboard) => {
+  if (subjectsStats?.length) {
+    return subjectsStats.map((s, i) => ({
+      nombre: s.name || s.nombre || s.subject || 'Materia',
+      nota: s.grade ?? s.nota ?? s.average ?? s.score ?? 3.5,
+      creditos: s.credits ?? s.creditos ?? 3,
+      color: s.color || COLORS_PALETTE[i % COLORS_PALETTE.length],
+    }));
+  }
+  if (dashboard?.subjects?.length) {
+    return dashboard.subjects.map((s, i) => ({
+      nombre: s.name || s.nombre || 'Materia',
+      nota: s.grade ?? s.average ?? 3.5,
+      creditos: s.credits ?? 3,
+      color: COLORS_PALETTE[i % COLORS_PALETTE.length],
+    }));
+  }
+  return [];
+};
+
+const adaptRecommendations = (suggestions, alerts, criticalRecs) => {
+  const items = [];
+  
+  if (suggestions?.suggestions?.length) {
+    suggestions.suggestions.forEach((s, i) => {
+      items.push({
+        id: `sug-${i}`,
+        tipo: 'ENFOQUE',
+        titulo: s.title || s.titulo || s.subject || 'Recomendación',
+        descripcion: s.description || s.message || s.texto || '',
+      });
+    });
+  } else if (Array.isArray(suggestions) && suggestions.length) {
+    suggestions.forEach((s, i) => {
+      items.push({
+        id: `sug-${i}`,
+        tipo: 'ENFOQUE',
+        titulo: s.title || s.subject || 'Recomendación',
+        descripcion: s.description || s.message || '',
+      });
+    });
+  }
+
+  if (alerts?.alerts?.length) {
+    alerts.alerts.forEach((a, i) => {
+      items.push({
+        id: `alert-${i}`,
+        tipo: 'ALERTA',
+        titulo: a.title || a.titulo || a.label || 'Alerta',
+        descripcion: a.description || a.message || a.texto || '',
+      });
+    });
+  } else if (Array.isArray(alerts) && alerts.length) {
+    alerts.forEach((a, i) => {
+      items.push({
+        id: `alert-${i}`,
+        tipo: 'ALERTA',
+        titulo: a.title || 'Alerta',
+        descripcion: a.description || a.message || '',
+      });
+    });
+  }
+
+  if (criticalRecs?.recommendations?.length) {
+    criticalRecs.recommendations.forEach((r, i) => {
+      items.push({
+        id: `crit-${i}`,
+        tipo: r.priority === 'high' ? 'ALERTA' : 'ENFOQUE',
+        titulo: r.title || r.titulo || 'Recomendación',
+        descripcion: r.description || r.message || '',
+      });
+    });
+  }
+
+  return items;
+};
+
+const adaptSessionData = (dashboard) => {
+  if (dashboard?.studySessions?.length) {
+    return dashboard.studySessions.map((s) => ({
+      dia: s.day || s.dia || s.label || '?',
+      horas: s.hours ?? s.horas ?? s.duration ?? 1,
+      sesiones: s.count ?? s.sessions ?? 1,
+    }));
+  }
+  return [];
+};
 
 const Statistics = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [vistaChart, setVistaChart] = useState('semestre');
   const [selectedSemestre, setSelectedSemestre] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const [dashboardData, setDashboardData] = useState(null);
+  const [subjectsStats, setSubjectsStats] = useState([]);
+  const [academicSummary, setAcademicSummary] = useState(null);
+  const [studySuggestions, setStudySuggestions] = useState(null);
+  const [statsAlerts, setStatsAlerts] = useState(null);
+  const [criticalRecs, setCriticalRecs] = useState(null);
+
   const s = getStyles(isDark);
   const t = createStyles(isDark);
 
-  const chartData = vistaChart === 'semestre' ? SEMESTRES_DATA : SEMANAS_DATA;
-  const maxNota = Math.max(...chartData.map(d => d.nota));
-  const maxSemNota = Math.max(...SEMESTRES_DATA.map(d => d.nota));
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const results = await Promise.allSettled([
+          statsService.getDashboard().catch(() => null),
+          statsService.getSubjectsStatistics().catch(() => []),
+          academicService.getSummary().catch(() => null),
+          notificationService.getStudySuggestions().catch(() => null),
+          notificationService.getStatsAlerts().catch(() => null),
+          enginePlanningService.getRecommendationsCritical().catch(() => null),
+        ]);
+
+        const dashboard = results[0].status === 'fulfilled' ? results[0].value : null;
+        const subjects = results[1].status === 'fulfilled' ? results[1].value : [];
+        const academic = results[2].status === 'fulfilled' ? results[2].value : null;
+        const suggestions = results[3].status === 'fulfilled' ? results[3].value : null;
+        const alerts = results[4].status === 'fulfilled' ? results[4].value : null;
+        const critical = results[5].status === 'fulfilled' ? results[5].value : null;
+
+        setDashboardData(dashboard);
+        setSubjectsStats(subjects.subjects || subjects || []);
+        setAcademicSummary(academic);
+        setStudySuggestions(suggestions);
+        setStatsAlerts(alerts);
+        setCriticalRecs(critical);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const semestresData = adaptSemesterData(dashboardData, academicSummary);
+  const semanasData = adaptWeeklyData(dashboardData);
+  const materiasRendimiento = adaptSubjectPerformance(subjectsStats, dashboardData);
+  const recomendaciones = adaptRecommendations(studySuggestions, statsAlerts, criticalRecs);
+  const sesionesDia = adaptSessionData(dashboardData);
+
+  const chartData = vistaChart === 'semestre' ? semestresData : semanasData;
+  const hasChartData = chartData.length > 0;
+  const maxNota = hasChartData ? Math.max(...chartData.map(d => d.nota)) : 4.0;
   const refLineTop = CHART_H - (4.0 / 5.0) * CHART_H;
+
+  const calcPromedioGeneral = () => {
+    if (dashboardData?.overallAverage != null) return dashboardData.overallAverage.toFixed(2);
+    if (academicSummary?.gpa != null || academicSummary?.average != null) {
+      return (academicSummary.gpa ?? academicSummary.average).toFixed(2);
+    }
+    if (semestresData.length > 0) {
+      const avg = semestresData.reduce((acc, d) => acc + d.nota, 0) / semestresData.length;
+      return avg.toFixed(2);
+    }
+    return '—';
+  };
+
+  const promedioGeneral = calcPromedioGeneral();
+  const hasPromedio = promedioGeneral !== '—';
+
+  const findBestSemestre = () => {
+    if (semestresData.length === 0) return null;
+    return semestresData.reduce((a, b) => (a.nota >= b.nota ? a : b));
+  };
+  const bestSemestre = findBestSemestre();
+
+  const maxHorasDia = sesionesDia.length > 0 ? Math.max(...sesionesDia.map(d => d.horas)) : 1;
+
+  const getMiniCardValue = (cardIdx) => {
+    switch (cardIdx) {
+      case 0:
+        if (semestresData.length > 0) return String(semestresData.length);
+        if (dashboardData?.semestersCompleted != null) return String(dashboardData.semestersCompleted);
+        return '—';
+      case 1:
+        if (bestSemestre) return bestSemestre.nota.toFixed(1);
+        if (dashboardData?.bestSemester?.average != null) return dashboardData.bestSemester.average.toFixed(1);
+        return '—';
+      case 2:
+        if (dashboardData?.creditsEarned != null) return String(dashboardData.creditsEarned);
+        if (academicSummary?.credits?.earned != null) return String(academicSummary.credits.earned);
+        return '—';
+      case 3:
+        if (subjectsStats.length > 0) return String(subjectsStats.filter(s => s.passed || s.grade >= 3.0).length || subjectsStats.length);
+        if (dashboardData?.subjectsPassed != null) return String(dashboardData.subjectsPassed);
+        return '—';
+      case 4:
+        if (dashboardData?.weeklyStudyHours != null) return String(dashboardData.weeklyStudyHours);
+        if (sesionesDia.length > 0) {
+          const total = sesionesDia.reduce((acc, d) => acc + d.horas, 0);
+          return total.toFixed(1);
+        }
+        return '—';
+      case 5:
+        if (dashboardData?.tasksCompletionRate != null) return `${Math.round(dashboardData.tasksCompletionRate)}%`;
+        if (dashboardData?.completedTasks != null && dashboardData?.totalTasks != null) {
+          const pct = Math.round((dashboardData.completedTasks / dashboardData.totalTasks) * 100);
+          return `${pct}%`;
+        }
+        return '—';
+      default:
+        return '—';
+    }
+  };
+
+  const getMiniCardSub = (cardIdx) => {
+    switch (cardIdx) {
+      case 0:
+        if (dashboardData?.totalSemesters != null) return `de ${dashboardData.totalSemesters}`;
+        if (academicSummary?.totalSemesters) return `de ${academicSummary.totalSemesters}`;
+        return 'semestres';
+      case 1:
+        if (bestSemestre) return bestSemestre.sem;
+        if (dashboardData?.bestSemester?.name) return dashboardData.bestSemester.name;
+        return 'Mejor semestre';
+      case 2:
+        if (dashboardData?.totalCredits != null) return `de ${dashboardData.totalCredits}`;
+        if (academicSummary?.credits?.total) return `de ${academicSummary.credits.total}`;
+        return 'créditos';
+      case 3: return 'materias';
+      case 4: return 'horas de estudio';
+      case 5:
+        if (dashboardData?.completedTasks != null) return `${dashboardData.completedTasks} entregadas`;
+        return 'tareas entregadas';
+      default: return '';
+    }
+  };
+
+  const buildSemestreDetalle = () => {
+    const detalle = {};
+    semestresData.forEach((s, i) => {
+      detalle[i + 1] = {
+        promedio: s.nota,
+        materias: s.materias || [],
+      };
+    });
+    return detalle;
+  };
+  const semestreDetalle = buildSemestreDetalle();
+
+  const MINI_CARDS_CONFIG = [
+    {
+      icon: (dark) => <CalendarIcon color={dark ? '#FF5B2E' : '#FF8430'} />,
+      label: 'Semestres Cursados',
+      accent: null,
+    },
+    {
+      icon: () => <StarIcon color="#EAB308" />,
+      label: 'Mejor Semestre',
+      accent: '#EAB308',
+    },
+    {
+      icon: (dark) => <AwardIcon color={dark ? '#FF5B2E' : '#FF8430'} />,
+      label: 'Créditos Aprobados',
+      accent: null,
+    },
+    {
+      icon: (dark) => <BookOpenIcon color={dark ? '#FF5B2E' : '#FF8430'} />,
+      label: 'Materias Aprobadas',
+      accent: null,
+    },
+    {
+      icon: (dark) => <ClockIcon color={dark ? '#FF5B2E' : '#FF8430'} />,
+      label: 'Horas / Semana',
+      accent: null,
+    },
+    {
+      icon: () => <CheckCircleIcon color="#22C55E" />,
+      label: 'Tareas Completadas',
+      accent: '#22C55E',
+    },
+  ];
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ padding: 60, textAlign: 'center', fontFamily: "'Poppins',sans-serif", color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)', fontSize: 14 }}>
+          Cargando estadísticas...
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
 
       <div style={s.pageHeader}>
-        <div style={s.carreraLabel}>INGENIERÍA DE SISTEMAS</div>
+        <div style={s.carreraLabel}>
+          {academicSummary?.career || dashboardData?.career || 'ESTADÍSTICAS ACADÉMICAS'}
+        </div>
         <h1 style={s.pageTitle}>Estadísticas</h1>
         <div style={s.promedioInline}>
           <TrendUpIcon color={isDark ? '#FF5B2E' : '#FF8430'} size={13} />
           <span style={s.promedioInlineLabel}>Promedio general</span>
-          <span style={s.promedioInlineVal}>{PROMEDIO_GENERAL}</span>
-          <span style={s.promedioInlineLabel}>/ 5.0</span>
-          <div style={s.promedioInlineDivider} />
-          <div style={s.promedioInlineDot} />
-          <span style={s.promedioInlineStatus}>BUEN RENDIMIENTO</span>
+          <span style={s.promedioInlineVal}>{promedioGeneral}</span>
+          {hasPromedio && <span style={s.promedioInlineLabel}>/ 5.0</span>}
+          {hasPromedio && <div style={s.promedioInlineDivider} />}
+          {hasPromedio && (
+            <>
+              <div style={s.promedioInlineDot} />
+              <span style={s.promedioInlineStatus}>
+                {parseFloat(promedioGeneral) >= 4.0 ? 'RENDIMIENTO SOBRESALIENTE' :
+                 parseFloat(promedioGeneral) >= 3.5 ? 'BUEN RENDIMIENTO' : 'RENDIMIENTO MODERADO'}
+              </span>
+            </>
+          )}
         </div>
       </div>
 
       <div style={s.miniCardsGrid}>
-        {MINI_CARDS.map((card) => {
+        {MINI_CARDS_CONFIG.map((card, idx) => {
+          const value = getMiniCardValue(idx);
+          const sub = getMiniCardSub(idx);
           const accent = card.accent || (isDark ? '#FF5B2E' : '#FF8430');
           return (
             <div key={card.label} style={s.miniCard}>
@@ -265,8 +454,8 @@ const Statistics = () => {
                 {card.icon(isDark)}
                 <span style={s.miniCardLabel}>{card.label}</span>
               </div>
-              <div style={{ ...s.miniCardValue, color: accent }}>{card.value}</div>
-              <div style={s.miniCardSub}>{card.sub}</div>
+              <div style={{ ...s.miniCardValue, color: value === '—' ? t.textMuted : accent }}>{value}</div>
+              <div style={s.miniCardSub}>{sub}</div>
             </div>
           );
         })}
@@ -290,112 +479,125 @@ const Statistics = () => {
 
         <div style={s.promedioHeaderCard}>
           <div style={s.promedioHeaderLabel}>Promedio Actual</div>
-          <div style={s.promedioHeaderVal}>{statsData.promedio} / 5.0</div>
-          <div style={s.riesgoModerado}>
-            <AlertTriangle color="#EAB308" />
-            <span>RIESGO MODERADO</span>
-        <div style={{ position: 'relative', height: CHART_H, padding: '0 4px', marginBottom: 8 }}>
-          <div style={{
-            position: 'absolute',
-            left: 4,
-            right: 4,
-            top: refLineTop,
-            height: 0,
-            borderTop: `1px dashed ${isDark ? 'rgba(234,179,8,0.65)' : 'rgba(234,179,8,0.85)'}`,
-            zIndex: 2,
-            pointerEvents: 'none',
-          }}>
-            <span style={{
-              position: 'absolute',
-              right: 0,
-              top: -13,
-              fontSize: 9,
-              color: '#EAB308',
-              fontWeight: 700,
-              fontFamily: t.fontSecondary,
-              background: isDark ? '#171717' : '#FEFAF9',
-              paddingLeft: 4,
-              letterSpacing: '0.02em',
-            }}>Meta 4.0</span>
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, height: '100%', alignItems: 'flex-end' }}>
-            {chartData.map((d, i) => {
-              const barH = (d.nota / 5.0) * CHART_H;
-              const isBest = d.nota === maxNota;
-              return (
-                <div
-                  key={d.sem + i}
-                  style={{
-                    flex: 1,
-                    height: '100%',
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'flex-end',
-                  }}
-                >
-                  <div style={{
-                    position: 'absolute',
-                    bottom: barH + 5,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: isBest
-                      ? (isDark ? '#FF5B2E' : '#FF8430')
-                      : (isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'),
-                    fontFamily: t.fontSecondary,
-                    whiteSpace: 'nowrap',
-                    zIndex: 3,
-                  }}>
-                    {d.nota.toFixed(1)}
-                  </div>
-                  <div style={{
-                    width: '100%',
-                    height: barH,
-                    background: isBest
-                      ? (isDark
-                          ? 'linear-gradient(180deg, #FF5B2E, #C4107A)'
-                          : 'linear-gradient(180deg, #FF8430, #F7306D)')
-                      : (isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'),
-                    borderRadius: '6px 6px 0 0',
-                    transition: 'height 0.4s ease',
-                    position: 'relative',
-                    zIndex: 1,
-                  }} />
-                </div>
-              );
-            })}
-          </div>
+          <div style={s.promedioHeaderVal}>{hasPromedio ? `${promedioGeneral} / 5.0` : 'No disponible'}</div>
+          {hasPromedio && parseFloat(promedioGeneral) < 3.5 && (
+            <div style={s.riesgoModerado}>
+              <AlertTriangle color="#EAB308" />
+              <span>RIESGO MODERADO</span>
+            </div>
+          )}
         </div>
 
-        <div style={{ display: 'flex', gap: 8, padding: '0 4px' }}>
-          {chartData.map((d, i) => (
-            <span key={d.sem + i} style={{
-              flex: 1,
-              textAlign: 'center',
-              fontSize: 9,
-              fontFamily: t.fontSecondary,
-              fontWeight: d.nota === maxNota ? 700 : 500,
-              color: d.nota === maxNota
-                ? (isDark ? '#FF5B2E' : '#FF8430')
-                : t.textMuted,
-            }}>{d.sem}</span>
-          ))}
-        </div>
+        {hasChartData ? (
+          <>
+            <div style={{ position: 'relative', height: CHART_H, padding: '0 4px', marginBottom: 8 }}>
+              <div style={{
+                position: 'absolute',
+                left: 4,
+                right: 4,
+                top: refLineTop,
+                height: 0,
+                borderTop: `1px dashed ${isDark ? 'rgba(234,179,8,0.65)' : 'rgba(234,179,8,0.85)'}`,
+                zIndex: 2,
+                pointerEvents: 'none',
+              }}>
+                <span style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: -13,
+                  fontSize: 9,
+                  color: '#EAB308',
+                  fontWeight: 700,
+                  fontFamily: t.fontSecondary,
+                  background: isDark ? '#171717' : '#FEFAF9',
+                  paddingLeft: 4,
+                  letterSpacing: '0.02em',
+                }}>Meta 4.0</span>
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, height: '100%', alignItems: 'flex-end' }}>
+                {chartData.map((d, i) => {
+                  const barH = (d.nota / 5.0) * CHART_H;
+                  const isBest = d.nota === maxNota;
+                  return (
+                    <div
+                      key={d.sem + i}
+                      style={{
+                        flex: 1,
+                        height: '100%',
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                      }}
+                    >
+                      <div style={{
+                        position: 'absolute',
+                        bottom: barH + 5,
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: isBest
+                          ? (isDark ? '#FF5B2E' : '#FF8430')
+                          : (isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'),
+                        fontFamily: t.fontSecondary,
+                        whiteSpace: 'nowrap',
+                        zIndex: 3,
+                      }}>
+                        {d.nota.toFixed(1)}
+                      </div>
+                      <div style={{
+                        width: '100%',
+                        height: barH,
+                        background: isBest
+                          ? (isDark
+                              ? 'linear-gradient(180deg, #FF5B2E, #C4107A)'
+                              : 'linear-gradient(180deg, #FF8430, #F7306D)')
+                          : (isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'),
+                        borderRadius: '6px 6px 0 0',
+                        transition: 'height 0.4s ease',
+                        position: 'relative',
+                        zIndex: 1,
+                      }} />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: 8, padding: '0 4px' }}>
+              {chartData.map((d, i) => (
+                <span key={d.sem + i} style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  fontSize: 9,
+                  fontFamily: t.fontSecondary,
+                  fontWeight: d.nota === maxNota ? 700 : 500,
+                  color: d.nota === maxNota
+                    ? (isDark ? '#FF5B2E' : '#FF8430')
+                    : t.textMuted,
+                }}>{d.sem}</span>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div style={{ padding: 40, textAlign: 'center', fontSize: 12, color: t.textMuted, fontFamily: t.fontSecondary }}>
+            No hay datos de rendimiento disponibles
+          </div>
+        )}
       </div>
 
       <div style={s.seccion3Row}>
         <div style={{ ...s.card, flex: 1 }}>
           <div style={s.cardTitle}>Historial de Sesiones</div>
           <div style={{ marginTop: 14 }}>
-            {SESIONES_DIA.map((d) => (
+            {sesionesDia.length > 0 ? sesionesDia.map((d) => (
               <div key={d.dia} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <span style={s.sesionDia}>{d.dia}</span>
                 <div style={s.sesionTrack}>
                   <div style={{
                     ...s.sesionFill,
-                    width: `${(d.horas / MAX_HORAS_DIA) * 100}%`,
+                    width: `${maxHorasDia > 0 ? (d.horas / maxHorasDia) * 100 : 0}%`,
                   }} />
                 </div>
                 <span style={s.sesionHoras}>{d.horas}h</span>
@@ -403,15 +605,19 @@ const Statistics = () => {
                   {d.sesiones} {d.sesiones === 1 ? 'sesión' : 'sesiones'}
                 </span>
               </div>
-            ))}
+            )) : (
+              <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: t.textMuted }}>
+                No hay datos de sesiones de estudio
+              </div>
+            )}
           </div>
         </div>
 
         <div style={{ ...s.card, flex: 1 }}>
           <div style={s.cardTitle}>Rendimiento por Materia</div>
           <div style={{ marginTop: 14 }}>
-            {MATERIAS_RENDIMIENTO.map((m) => (
-              <div key={m.nombre} style={{ marginBottom: 12 }}>
+            {materiasRendimiento.length > 0 ? materiasRendimiento.map((m, i) => (
+              <div key={m.nombre + i} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: m.color, flexShrink: 0 }} />
@@ -430,7 +636,11 @@ const Statistics = () => {
                   }} />
                 </div>
               </div>
-            ))}
+            )) : (
+              <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: t.textMuted }}>
+                No hay datos de materias
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -440,7 +650,7 @@ const Statistics = () => {
         <div style={{ ...s.card, flex: 1 }}>
           <div style={s.cardTitle}>Promedio por Semestre</div>
           <div style={s.semFiltroRow}>
-            {SEMESTRES_DATA.map((d, i) => {
+            {semestresData.length > 0 ? semestresData.map((d, i) => {
               const semNum = i + 1;
               const isSelected = selectedSemestre === semNum;
               return (
@@ -455,19 +665,23 @@ const Statistics = () => {
                   {d.sem}
                 </button>
               );
-            })}
+            }) : (
+              <span style={{ fontSize: 12, color: t.textMuted, fontFamily: t.fontSecondary }}>
+                No hay datos de semestres
+              </span>
+            )}
           </div>
 
-          {selectedSemestre !== null && SEMESTRE_DETALLE[selectedSemestre] && (() => {
-            const detalle = SEMESTRE_DETALLE[selectedSemestre];
+          {selectedSemestre !== null && semestreDetalle[selectedSemestre] && (() => {
+            const detalle = semestreDetalle[selectedSemestre];
             return (
               <div style={s.semDetallePanel}>
                 <div style={s.semDetalleTitulo}>
                   Semestre {selectedSemestre} — Promedio {detalle.promedio.toFixed(1)}
                 </div>
                 <div style={{ maxHeight: 180, overflowY: 'auto' }}>
-                  {detalle.materias.map((mat, idx) => (
-                    <div key={mat.nombre} style={{
+                  {detalle.materias && detalle.materias.length > 0 ? detalle.materias.map((mat, idx) => (
+                    <div key={mat.nombre + idx} style={{
                       ...s.semDetalleRow,
                       borderBottom: idx < detalle.materias.length - 1 ? `1px solid ${t.cardBorder}` : 'none',
                     }}>
@@ -479,20 +693,24 @@ const Statistics = () => {
                         {mat.nota.toFixed(1)}
                       </span>
                     </div>
-                  ))}
+                  )) : (
+                    <div style={{ padding: 10, textAlign: 'center', fontSize: 11, color: t.textMuted }}>
+                      Sin detalles de materias
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })()}
         </div>
 
-        <div style={{ ...s.card, flex: 1.2 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <BrainIcon color={isDark ? '#FF5B2E' : '#FF8430'} />
-            <span style={s.cardTitle}>Recomendaciones de AIBert</span>
-          </div>
+         <div style={{ ...s.card, flex: 1.2 }}>
+           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+             <BrainIcon color={isDark ? '#FF5B2E' : '#FF8430'} />
+             <span style={s.cardTitle}>Recomendaciones de AI.BERT</span>
+           </div>
           <div style={{ marginTop: 14 }}>
-            {RECOMENDACIONES.map((r) => (
+            {recomendaciones.length > 0 ? recomendaciones.map((r) => (
               <div key={r.id} style={s.recomItem}>
                 <div style={{
                   ...s.recomItemIcon,
@@ -513,7 +731,11 @@ const Statistics = () => {
                   <ArrowRightIcon color={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'} />
                 </button>
               </div>
-            ))}
+            )) : (
+              <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: t.textMuted }}>
+                No hay recomendaciones en este momento
+              </div>
+            )}
           </div>
         </div>
 
@@ -525,8 +747,12 @@ const Statistics = () => {
             <div style={s.aibertLabel}>AI.BERT</div>
           </div>
           <p style={s.aibertQuote}>
-            "¡Vas en camino a terminar el semestre con{' '}
-            <strong>promedio sobresaliente!</strong>"
+            &ldquo;{hasPromedio && parseFloat(promedioGeneral) >= 4.0
+              ? '¡Vas en camino a terminar el semestre con promedio sobresaliente!'
+              : hasPromedio && parseFloat(promedioGeneral) >= 3.5
+                ? '¡Buen progreso! Sigue manteniendo este ritmo de estudio.'
+                : 'Puedes mejorar. Inicia una sesión de estudio para avanzar.'}
+            &rdquo;
           </p>
           <button style={s.aibertBtn} onClick={() => navigate('/sesion/crear')}>
             INICIAR SESIÓN DE ESTUDIO
@@ -580,12 +806,6 @@ const getStyles = (isDark) => {
       fontFamily: t.fontPrimary,
       color: isDark ? '#FF5B2E' : '#FF8430',
       lineHeight: 1,
-    },
-    promedioInlineSub: {
-      fontSize: 11,
-      color: t.textMuted,
-      fontFamily: t.fontSecondary,
-      fontWeight: 500,
     },
     promedioInlineDivider: {
       width: 1,
@@ -820,6 +1040,37 @@ const getStyles = (isDark) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '6px 0',
+    },
+    promedioHeaderCard: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 20,
+      padding: '12px 16px',
+      borderRadius: 12,
+      background: isDark ? 'rgba(255,91,46,0.08)' : 'rgba(255,132,48,0.06)',
+    },
+    promedioHeaderLabel: {
+      fontSize: 10,
+      fontFamily: t.fontSecondary,
+      fontWeight: 600,
+      color: t.textMuted,
+      letterSpacing: '0.04em',
+    },
+    promedioHeaderVal: {
+      fontFamily: t.fontPrimary,
+      fontSize: 18,
+      fontWeight: 800,
+      color: isDark ? '#FF5B2E' : '#FF8430',
+    },
+    riesgoModerado: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 5,
+      marginLeft: 'auto',
+      padding: '4px 10px',
+      borderRadius: 8,
+      background: 'rgba(234,179,8,0.10)',
     },
     recomItem: {
       display: 'flex',

@@ -14,6 +14,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import academicService from '../services/academicService';
+import notificationService from '../services/notificationService';
 
 const LocalChevronDown = ({ isDark }) => (
   <ChevronDown
@@ -33,7 +34,7 @@ const Spinner = () => (
   </>
 );
 
-const AddMetaModal = ({ isDark, onClose }) => {
+const AddMetaModal = ({ isDark, onClose, subjects = [] }) => {
   const [nombre, setNombre] = useState('');
   const [nota, setNota] = useState('');
   const [materia, setMateria] = useState('');
@@ -132,17 +133,18 @@ const AddMetaModal = ({ isDark, onClose }) => {
               Materia asociada <span style={m.opcional}>(Opcional)</span>
             </label>
             <div style={m.selectWrap}>
-              <select
-                style={m.select}
-                value={materia}
-                onChange={(e) => setMateria(e.target.value)}
-              >
-                <option value="">Seleccionar materia...</option>
-                <option value="arquitectura">Arquitectura de Software</option>
-                <option value="ia">Inteligencia Artificial</option>
-                <option value="redes">Redes de Computadores</option>
-                <option value="bd">Bases de Datos</option>
-              </select>
+               <select
+                 style={m.select}
+                 value={materia}
+                 onChange={(e) => setMateria(e.target.value)}
+               >
+                 <option value="">Seleccionar materia...</option>
+                 {subjects.map((s) => (
+                   <option key={s.id || s.name || s} value={s.id || s.name || s}>
+                     {s.name || s.nombre || s.label || s}
+                   </option>
+                 ))}
+               </select>
               <div style={m.selectChevron}>
                 <LocalChevronDown isDark={isDark} />
               </div>
@@ -354,18 +356,21 @@ const getModalStyles = (isDark) => ({
   },
 });
 
-const AcademicGoals = () => {
-  const { isDark } = useTheme();
-  const [showModal, setShowModal] = useState(false);
-  const [loadingMetas, setLoadingMetas] = useState(true);
-  const [loadingSummary, setLoadingSummary] = useState(true);
-  const [metas, setMetas] = useState([]);
-  const [summary, setSummary] = useState(null);
-  const navigate = useNavigate();
-  const s = getStyles(isDark);
-  const t = createStyles(isDark);
+ const AcademicGoals = () => {
+   const { isDark } = useTheme();
+   const [showModal, setShowModal] = useState(false);
+   const [loadingMetas, setLoadingMetas] = useState(true);
+   const [loadingSummary, setLoadingSummary] = useState(true);
+   const [loadingSubjects, setLoadingSubjects] = useState(true);
+   const [metas, setMetas] = useState([]);
+   const [summary, setSummary] = useState(null);
+   const [subjects, setSubjects] = useState([]);
+   const [aiSuggestion, setAiSuggestion] = useState(null);
+   const navigate = useNavigate();
+   const s = getStyles(isDark);
+   const t = createStyles(isDark);
 
-  const mapGoal = (g) => ({
+   const mapGoal = (g) => ({
     id: g.id,
     materia: g.subject || g.materia || g.name || '',
     facultad: g.faculty || g.facultad || '',
@@ -401,47 +406,79 @@ const AcademicGoals = () => {
     }
   };
 
+  const fetchSubjects = async () => {
+    try {
+      const data = await academicService.getSubjects();
+      const items = data.subjects || data.data || data || [];
+      setSubjects(items);
+    } catch {
+      setSubjects([]);
+    } finally {
+      setLoadingSubjects(false);
+    }
+  };
+
+  const fetchAiSuggestion = async () => {
+    try {
+      const data = await notificationService.getTopStudySuggestion().catch(() => null);
+      if (data) {
+        const text = data.suggestion || data.text || data.message || data.advice || data.title || '';
+        if (text) setAiSuggestion(text);
+      }
+    } catch {
+      // silent
+    }
+  };
+
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMetas();
     fetchSummary();
+    fetchSubjects();
+    fetchAiSuggestion();
   }, []);
 
-  return (
-    <AppLayout>
-      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
-        ← Volver
-      </button>
-
-      <div style={s.metaGeneralCard}>
-        <CircleProgress pct={82} isDark={isDark} size={120} label="GLOBAL" />
-        <div style={s.metaGeneralInfo}>
-          <div style={s.metaGeneralTitle}>Meta General del Ciclo</div>
-          <div style={s.metaGeneralRow}>
-            <div style={s.metaGeneralStat}>
-              <div style={s.statLabel}>PROMEDIO OBJETIVO</div>
-              <div style={s.statVal}>
-                {summary?.target_average ?? summary?.targetAverage ?? summary?.promedio_objetivo ?? '-'}
-                <StatusBadge
-                  label="ALTO"
-                  color="#FF8430"
-                  bgColor={isDark ? 'rgba(255,132,48,0.18)' : 'rgba(255,132,48,0.12)'}
-                />
+   return (
+     <AppLayout>
+       <div style={s.metaGeneralCard}>
+        {(() => {
+          const current = summary?.current_average ?? summary?.currentAverage ?? summary?.promedio_actual ?? 0;
+          const target = summary?.target_average ?? summary?.targetAverage ?? summary?.promedio_objetivo ?? 0;
+          const pct = current > 0 && target > 0 ? Math.min(Math.round((current / target) * 100), 100) : 0;
+          return (
+            <>
+              <CircleProgress pct={pct} isDark={isDark} size={120} label="GLOBAL" />
+              <div style={s.metaGeneralInfo}>
+                <div style={s.metaGeneralTitle}>Meta General del Ciclo</div>
+                <div style={s.metaGeneralRow}>
+                  <div style={s.metaGeneralStat}>
+                    <div style={s.statLabel}>PROMEDIO OBJETIVO</div>
+                    <div style={s.statVal}>
+                      {target > 0 ? target : '-'}
+                      <StatusBadge
+                        label="ALTO"
+                        color="#FF8430"
+                        bgColor={isDark ? 'rgba(255,132,48,0.18)' : 'rgba(255,132,48,0.12)'}
+                      />
+                    </div>
+                  </div>
+                  <div style={s.metaGeneralStat}>
+                    <div style={s.statLabel}>PROMEDIO ACTUAL</div>
+                    <div style={s.statVal}>
+                      {current > 0 ? current : '-'}
+                      <StatusBadge
+                        label="EN CAMINO"
+                        color="#FF5B2E"
+                        bgColor={isDark ? 'rgba(255,91,46,0.18)' : 'rgba(255,91,46,0.10)'}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <ProgressBar value={pct} isDark={isDark} />
               </div>
-            </div>
-            <div style={s.metaGeneralStat}>
-              <div style={s.statLabel}>PROMEDIO ACTUAL</div>
-              <div style={s.statVal}>
-                {summary?.current_average ?? summary?.currentAverage ?? summary?.promedio_actual ?? '-'}
-                <StatusBadge
-                  label="EN CAMINO"
-                  color="#FF5B2E"
-                  bgColor={isDark ? 'rgba(255,91,46,0.18)' : 'rgba(255,91,46,0.10)'}
-                />
-              </div>
-            </div>
-          </div>
-          <ProgressBar value={82} isDark={isDark} />
-        </div>
+            </>
+          );
+        })()}
         <div style={s.trendBtn}>
           <TrendingUp size={24} color={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.30)'} />
         </div>
@@ -530,20 +567,21 @@ const AcademicGoals = () => {
         <div style={s.iaImgWrap}>
           <img src={MascotaGif} alt="ALBERT" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         </div>
-        <div style={s.iaContent}>
-          <div style={s.iaTitle}>Recomendaciones IA</div>
-          <p style={s.iaText}>
-            "Tu rendimiento en <strong>Arquitectura de Software</strong> ha bajado 0.3 en la
-            última semana. Sugiero revisar el módulo de Microservicios antes del examen del
-            viernes para mantener tu meta de 4.8."
-          </p>
-        </div>
-        <button style={s.saveBtn}>
-          <Save size={16} color="#fff" /> GUARDAR METAS
-        </button>
-      </div>
+         <div style={s.iaContent}>
+           <div style={s.iaTitle}>Recomendaciones IA</div>
+           <p style={s.iaText}>
+             &ldquo;{aiSuggestion
+               ? aiSuggestion
+               : 'Mantén la constancia en tus estudios. Revisa tus metas por materia y ajusta tu plan de estudio según el progreso que vayas registrando.'}
+             &rdquo;
+           </p>
+         </div>
+         <button style={s.saveBtn}>
+           <Save size={16} color="#fff" /> GUARDAR METAS
+         </button>
+       </div>
 
-      {showModal && <AddMetaModal isDark={isDark} onClose={() => { setShowModal(false); fetchMetas(); }} />}
+       {showModal && <AddMetaModal isDark={isDark} onClose={() => { setShowModal(false); fetchMetas(); }} subjects={subjects} />}
     </AppLayout>
   );
 };

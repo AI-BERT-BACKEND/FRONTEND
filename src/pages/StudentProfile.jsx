@@ -24,24 +24,17 @@ const StudentProfile = () => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
 
-  const [form, setForm] = useState({ nombre: '', username: '', email: '', foto: null });
+  const [form, setForm] = useState(() => {
+    const user = authService.getCurrentUser();
+    return user
+      ? { nombre: user.nombre || '', username: user.username || '', email: user.email || '', foto: user.foto || null }
+      : { nombre: '', username: '', email: '', foto: null };
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showDesactivarConfirm, setShowDesactivarConfirm] = useState(false);
   const [showEliminarConfirm, setShowEliminarConfirm] = useState(false);
   const [saveError, setSaveError] = useState('');
-
-  useEffect(() => {
-    const user = authService.getCurrentUser();
-    if (user) {
-      setForm({
-        nombre: user.nombre || '',
-        username: user.username || '',
-        email: user.email || '',
-        foto: user.foto || null,
-      });
-    }
-  }, []);
 
   const validate = () => {
     const newErrors = {
@@ -259,13 +252,13 @@ const getStyles = (isDark) => {
       maxWidth: 620,
       margin: '0 auto',
     },
-    volverBtn: {
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      background: 'none', border: 'none', cursor: 'pointer',
-      fontSize: 13, fontWeight: 600,
-      color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)',
-      fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 12,
-    },
+     volverBtn: {
+       display: 'inline-flex', alignItems: 'center', gap: 6,
+       background: 'none', border: 'none', cursor: 'pointer',
+       fontSize: 15, fontWeight: 600,
+       color: '#FFFFFF',
+       fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 12,
+     },
     pageTitle: {
       fontFamily: t.fontPrimary,
       fontSize: 28,

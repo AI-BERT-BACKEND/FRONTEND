@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import { formatDate } from '../utils/dateUtils';
 import taskService from '../services/taskService';
+import academicService from '../services/academicService';
 
 import { 
   Search, Edit2, Trash2, Clock, ChevronDown, 
@@ -47,13 +48,6 @@ const ESTADO_CONFIG = {
   'ENTREGA':     { bg: 'rgba(34,197,94,0.18)', color: '#22C55E' },
 };
 
-const MATERIAS_OPCIONES = [
-  'Matemáticas II', 'Física', 'Historia', 'Literatura', 'Química',
-  'Programación', 'Cálculo', 'Estadística',
-];
-
-
-
 const Spinner = () => (
   <>
     <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
@@ -68,6 +62,7 @@ const Tasks = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
+  const [subjects, setSubjects] = useState([]);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [filtroMateria, setFiltroMateria] = useState('Todos los materias');
@@ -77,16 +72,19 @@ const Tasks = () => {
   const [detailTask, setDetailTask] = useState(null);
   const [editTask, setEditTask] = useState(null);
   const [form, setForm] = useState({
-    nombre: '', materia: 'Matemáticas II', tipo: 'TAREA',
+    nombre: '', materia: '', tipo: 'TAREA',
     descripcion: '', fecha: '', horas: '', estimado: '',
   });
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    const fetchTasks = async () => {
+    const fetchData = async () => {
       try {
-        const data = await taskService.getTasks();
-        const items = data.tasks || data || [];
+        const [tasksData, subjectsData] = await Promise.all([
+          taskService.getTasks(),
+          academicService.getSubjects(),
+        ]);
+        const items = tasksData.tasks || tasksData || [];
         setTasks(items.map((t) => ({
           id: t.id || Date.now(),
           nombre: t.title || t.name || t.nombre,
@@ -97,13 +95,19 @@ const Tasks = () => {
           horasEstudio: t.estimatedHours || t.horasEstudio || '1:00',
           estimado: t.estimated || t.estimado || '—',
         })));
+        const subs = subjectsData.subjects || subjectsData || [];
+        setSubjects(subs.map((s) => s.name || s.nombre || s));
+        if (subs.length > 0) {
+          const firstSub = subs[0].name || subs[0].nombre || subs[0];
+          setForm((f) => ({ ...f, materia: firstSub }));
+        }
       } catch {
         // fallback vacío
       } finally {
         setFetchLoading(false);
       }
     };
-    fetchTasks();
+    fetchData();
   }, []);
 
   const s = getStyles(isDark);
@@ -229,14 +233,14 @@ const Tasks = () => {
         <div style={s.filterRight}>
           <span style={s.filterLabel}>FILTRAR POR</span>
           <div style={{ position: 'relative' }}>
-            <select
-              style={s.filterSelect}
-              value={filtroMateria}
-              onChange={e => setFiltroMateria(e.target.value)}
-            >
-              <option>Todos los materias</option>
-              {MATERIAS_OPCIONES.map(m => <option key={m}>{m}</option>)}
-            </select>
+             <select
+               style={s.filterSelect}
+               value={filtroMateria}
+               onChange={e => setFiltroMateria(e.target.value)}
+             >
+               <option>Todos los materias</option>
+               {subjects.map(m => <option key={m}>{m}</option>)}
+             </select>
             <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
           </div>
         </div>
@@ -396,10 +400,10 @@ const Tasks = () => {
                 <div style={{ ...s.mField, flex: 1 }}>
                   <label style={s.mLabel}>MATERIA</label>
                   <div style={{ position: 'relative' }}>
-                    <select style={{ ...s.mInput, ...s.mSelect }} value={editTask.materia}
-                      onChange={e => setEditTask(p => ({ ...p, materia: e.target.value }))}>
-                      {MATERIAS_OPCIONES.map(m => <option key={m}>{m}</option>)}
-                    </select>
+                     <select style={{ ...s.mInput, ...s.mSelect }} value={editTask.materia}
+                       onChange={e => setEditTask(p => ({ ...p, materia: e.target.value }))}>
+                       {subjects.map(m => <option key={m}>{m}</option>)}
+                     </select>
                     <ChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                 </div>
@@ -468,11 +472,11 @@ const Tasks = () => {
                 <div style={{ ...s.mField, flex: 1 }}>
                   <label style={s.mLabel}>MATERIA</label>
                   <div style={{ position: 'relative' }}>
-                    <select style={{ ...s.mInput, ...s.mSelect }}
-                      value={form.materia}
-                      onChange={e => setForm(p => ({ ...p, materia: e.target.value }))}>
-                      {MATERIAS_OPCIONES.map(m => <option key={m}>{m}</option>)}
-                    </select>
+                     <select style={{ ...s.mInput, ...s.mSelect }}
+                       value={form.materia}
+                       onChange={e => setForm(p => ({ ...p, materia: e.target.value }))}>
+                       {subjects.map(m => <option key={m}>{m}</option>)}
+                     </select>
                     <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                 </div>

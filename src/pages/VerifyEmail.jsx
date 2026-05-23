@@ -15,10 +15,12 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (timer > 0) {
-      const t = setTimeout(() => setTimer((p) => p - 1), 1000);
-      return () => clearTimeout(t);
-    } else setCanResend(true);
+    if (timer <= 0) return;
+    const t = setTimeout(() => {
+      setTimer((p) => p - 1);
+      if (timer - 1 <= 0) setCanResend(true);
+    }, 1000);
+    return () => clearTimeout(t);
   }, [timer]);
 
   const handleChange = (val, idx) => {

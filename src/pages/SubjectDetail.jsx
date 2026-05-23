@@ -122,11 +122,40 @@ const SubjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [simuladorCorte, setSimuladorCorte] = useState(null);
-  const [cortesData, setCortesData] = useState(MATERIA_DATA.cortes);
   const [deleteActivityConfirm, setDeleteActivityConfirm] = useState(null);
+  const [cortesData, setCortesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [materiaData, setMateriaData] = useState(null);
   const s = getStyles(isDark);
   const t = createStyles(isDark);
-  const m = MATERIA_DATA;
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await academicService.getSubject(id);
+        setMateriaData(data);
+        setCortesData(data.cortes || []);
+      } catch {
+        setMateriaData(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
+
+  if (loading || !materiaData) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, color: 'var(--text-muted, #888)' }}>
+            {loading ? 'Cargando...' : 'Error al cargar la materia'}
+          </span>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const m = materiaData;
 
   const deleteActivity = () => {
     const { corteId, actIndex } = deleteActivityConfirm;
@@ -145,18 +174,6 @@ const SubjectDetail = () => {
     'En Riesgo':        { bg: isDark ? 'rgba(240,7,7,0.15)'   : 'rgba(240,7,7,0.10)',   color: '#F00707' },
     'Excelente':        { bg: isDark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.12)', color: '#22C55E' },
   }[m.estadoDesempeno] || { bg: 'rgba(234,179,8,0.15)', color: '#EAB308' };
-
-  if (loading) {
-    return (
-      <AppLayout>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
-          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, color: 'var(--text-muted, #888)' }}>
-            Cargando...
-          </span>
-        </div>
-      </AppLayout>
-    );
-  }
 
   return (
     <AppLayout>
