@@ -87,13 +87,13 @@ const Register = () => {
   const navigate = useNavigate();
 
   const carreras = [
-    { label: 'Ing. Sistemas',    value: 'INGENIERIA_SISTEMAS' },
-    { label: 'Ing. Industrial',  value: 'INGENIERIA_INDUSTRIAL' },
-    { label: 'Ing. Civil',       value: 'INGENIERIA_CIVIL' },
-    { label: 'Ing. Electrónica', value: 'INGENIERIA_ELECTRONICA' },
-    { label: 'Ing. Biomédica',   value: 'INGENIERIA_BIOMEDICA' },
-    { label: 'Ing. Eléctrica',   value: 'INGENIERIA_ELECTRICA' },
-    { label: 'Ing. Mecánica',    value: 'INGENIERIA_MECANICA' },
+    { label: 'Ing. Sistemas',    value: 'ING_SISTEMAS' },
+    { label: 'Ing. Industrial',  value: 'ING_INDUSTRIAL' },
+    { label: 'Ing. Civil',       value: 'ING_CIVIL' },
+    { label: 'Ing. Electrónica', value: 'ING_ELECTRONICA' },
+    { label: 'Ing. Biomédica',   value: 'ING_BIOMEDICA' },
+    { label: 'Ing. Eléctrica',   value: 'ING_ELECTRICA' },
+    { label: 'Ing. Mecánica',    value: 'ING_MECANICA' },
     { label: 'Administración',   value: 'ADMINISTRACION_EMPRESAS' },
     { label: 'Matemáticas',      value: 'MATEMATICAS' },
   ];

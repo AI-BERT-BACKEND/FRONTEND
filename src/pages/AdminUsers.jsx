@@ -101,17 +101,17 @@ const ModalDetalle = ({ user, isDark, t, onClose }) => {
 /* ── MODAL EDITAR ── */
 const ModalEditar = ({ user, isDark, t, onClose, onSave }) => {
   const s = modalSt(isDark, t);
-  const [form, setForm]       = useState({ fullName: user.fullName, institutionalEmail: user.email });
+  const [form, setForm]       = useState({ fullName: user.fullName, email: user.email });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
 
   const nameErr  = form.fullName.trim().length < 3 || form.fullName.trim().length > 100;
-  const emailErr = !EMAIL_RE.test(form.email ?? form.institutionalEmail ?? '');
+  const emailErr = !EMAIL_RE.test(form.email ?? '');
 
   const validate = () => {
     if (form.fullName.trim().length < 3)   return 'El nombre debe tener al menos 3 caracteres.';
     if (form.fullName.trim().length > 100) return 'El nombre no puede superar 100 caracteres.';
-    if (!EMAIL_RE.test(form.institutionalEmail)) return 'El correo debe ser @mail.escuelaing.edu.co';
+    if (!EMAIL_RE.test(form.email)) return 'El correo debe ser @mail.escuelaing.edu.co';
     return '';
   };
 
@@ -120,7 +120,7 @@ const ModalEditar = ({ user, isDark, t, onClose, onSave }) => {
     if (err) { setError(err); return; }
     setLoading(true); setError('');
     try {
-      await onSave(user.id, { fullName: form.fullName.trim(), institutionalEmail: form.institutionalEmail.trim() });
+      await onSave(user.id, { fullName: form.fullName.trim(), email: form.email.trim() });
       onClose();
     } catch (e) {
       setError(e?.response?.data?.message ?? 'No se pudo guardar los cambios.');
@@ -171,12 +171,12 @@ const ModalEditar = ({ user, isDark, t, onClose, onSave }) => {
         <div style={s.editFieldGroup}>
           <label style={s.editLabel(isDark)}>Correo institucional</label>
           <input
-            style={{ ...s.editInput(isDark), borderColor: form.institutionalEmail.length > 0 && !EMAIL_RE.test(form.institutionalEmail) ? '#F00707' : undefined }}
-            value={form.institutionalEmail}
-            onChange={(e) => { setForm((f) => ({ ...f, institutionalEmail: e.target.value })); setError(''); }}
+            style={{ ...s.editInput(isDark), borderColor: form.email.length > 0 && !EMAIL_RE.test(form.email) ? '#F00707' : undefined }}
+            value={form.email}
+            onChange={(e) => { setForm((f) => ({ ...f, email: e.target.value })); setError(''); }}
             type="email"
           />
-          {form.institutionalEmail.length > 0 && !EMAIL_RE.test(form.institutionalEmail) && (
+          {form.email.length > 0 && !EMAIL_RE.test(form.email) && (
             <span style={s.inputHint}>Debe terminar en @mail.escuelaing.edu.co</span>
           )}
         </div>
@@ -298,7 +298,7 @@ const AdminUsers = () => {
   const setActionBusy = (id, val) => setActionLoading((prev) => ({ ...prev, [id]: val }));
 
   const handleStatusToggle = async (u) => {
-    const newStatus = (u.status === 'ACTIVE' || u.status === 'ACTIVO') ? 'INACTIVE' : 'ACTIVE';
+    const newStatus = (u.status === 'ACTIVE' || u.status === 'ACTIVO') ? 'INACTIVO' : 'ACTIVO';
     setActionBusy(u.id, true);
     try {
       await profileService.updateAdminUserStatus(u.id, newStatus);
@@ -310,7 +310,7 @@ const AdminUsers = () => {
   const handleRoleChange = async (u, newRole) => {
     setActionBusy(u.id, true);
     try {
-      await profileService.updateAdminUserRole(u.id, { role: newRole });
+      await profileService.updateAdminUserRole(u.id, { newRole });
       setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, role: newRole.toUpperCase() } : x));
     } catch { setError('No se pudo cambiar el rol del usuario.'); }
     finally { setActionBusy(u.id, false); }
@@ -319,7 +319,7 @@ const AdminUsers = () => {
   const handleEdit = async (userId, payload) => {
     await profileService.updateAdminUser(userId, payload);
     setUsers((prev) => prev.map((x) => x.id === userId
-      ? { ...x, fullName: payload.fullName ?? x.fullName, email: payload.institutionalEmail ?? x.email }
+      ? { ...x, fullName: payload.fullName ?? x.fullName, email: payload.email ?? x.email }
       : x
     ));
   };

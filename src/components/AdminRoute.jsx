@@ -23,7 +23,7 @@ const AdminRoute = ({ children }) => {
   }
 
   const role = user?.role ?? user?.userRole ?? '';
-  if (role !== 'ADMIN') {
+  if (role !== 'ROLE_ADMIN') {
     return <Navigate to="/dashboard" replace />;
   }
 
