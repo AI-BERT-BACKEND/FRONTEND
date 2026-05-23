@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AuthLayout from '../components/Layout/AuthLayout';
 import Logo from '../assets/LOGO.png';
 import { useTheme } from '../context/ThemeContext';
@@ -15,6 +15,8 @@ const VerifyEmail = () => {
   const [loading, setLoading] = useState(false);
   const inputs = useRef([]);
   const navigate = useNavigate();
+  const location = useLocation();
+  const userId = location.state?.userId;
 
   useEffect(() => {
     const pendingEmail = localStorage.getItem('pendingVerifyEmail');
@@ -62,74 +64,25 @@ const VerifyEmail = () => {
       setError('Ingresa los 6 dígitos del código');
       return;
     }
-
-    setLoading(true);
-    setError('');
-
     try {
-      const userId = localStorage.getItem('pendingVerifyUserId');
-      const email = localStorage.getItem('pendingVerifyEmail');
-
-      if (!userId && !email) {
-        setError('No hay un registro pendiente de verificación. Por favor regístrate primero.');
-        return;
-      }
-
-      const verifyUserId = userId || email;
-      
-      if (!verifyUserId) {
-        setError('Error: No se encontró información de usuario para verificar.');
-        return;
-      }
-
-      await profileService.verifyOtp(verifyUserId, full);
-
-      localStorage.removeItem('pendingVerifyUserId');
-      localStorage.removeItem('pendingVerifyEmail');
-
+      await profileService.verifyOtp(userId, full);
       navigate('/verified-success');
     } catch (err) {
-      const status = err?.response?.status;
-      const msg = err?.response?.data?.message || err?.message || 'Error al verificar el código';
-
-      if (status === 400 || status === 404) {
-        setError('Código inválido o expirado. Verifica el código o solicita uno nuevo.');
-      } else if (status === 401) {
-        setError('Código incorrecto. Por favor intenta nuevamente.');
-      } else if (msg.toLowerCase().includes('expir') || msg.toLowerCase().includes('expired')) {
-        setError('El código ha expirado. Por favor solicita uno nuevo.');
-      } else if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('incorrect')) {
-        setError('Código inválido. Por favor verifica e intenta nuevamente.');
-      } else {
-        setError(msg);
-      }
-    } finally {
-      setLoading(false);
+      setError('Código inválido o expirado');
     }
   };
 
   const handleResend = async () => {
     if (!canResend) return;
-
-    const email = localStorage.getItem('pendingVerifyEmail');
-    if (!email) {
-      setError('No hay un correo registrado para reenviar el código.');
-      return;
-    }
-
     try {
-      setLoading(true);
-      await profileService.resendVerification(email);
-      setTimer(60);
-      setCanResend(false);
-      setCode(['', '', '', '', '', '']);
-      setError('');
+      await profileService.resendVerification(location.state?.email);
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'Error al reenviar el código';
-      setError(msg);
-    } finally {
-      setLoading(false);
+      setError('Error al reenviar el código');
     }
+    setTimer(60);
+    setCanResend(false);
+    setCode(['', '', '', '', '', '']);
+    setError('');
   };
 
   const formatTime = (s) =>
