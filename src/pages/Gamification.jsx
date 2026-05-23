@@ -222,24 +222,19 @@ const Gamification = () => {
                       </span>
                     </div>
                   </div>
-                  <div style={s.cursoIconWrap(c.iconColor)}>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: c.iconColor, fontFamily: 'monospace' }}>
-                      {c.icon}
-                    </span>
-                  </div>
-                </div>
-                <div style={{ marginTop: 'auto' }}>
-                  <div style={s.cursoPctRow(isDark, c.barColor)}>
-                    <span style={{ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)', fontFamily: "'Poppins',sans-serif" }}>{c.pct}%</span>
-                  </div>
-                  <ProgressBar value={c.pct} isDark={isDark} color={c.barColor} />
-                  <div style={s.cursoFooter}>
-                    <div style={s.xpPillRow}>
-                      {c.xp.map((x, i) => (
-                        <span key={i} style={s.xpPill(c.barColor)}>{x} XP</span>
-                      ))}
+                  <div style={{ marginTop: 'auto' }}>
+                    <div style={s.cursoPctRow(isDark, c.barColor)}>
+                      <span style={{ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)', fontFamily: "'Poppins',sans-serif" }}>{c.pct}%</span>
                     </div>
-                    <span style={s.nivelBadge(c.barColor)}>LVL {c.nivel} {c.rango}</span>
+                    <ProgressBar value={c.pct} isDark={isDark} color={c.barColor} />
+                    <div style={s.cursoFooter}>
+                      <div style={s.xpPillRow}>
+                        {c.xp.map((x, i) => (
+                          <span key={i} style={s.xpPill(c.barColor)}>{x} XP</span>
+                        ))}
+                      </div>
+                      <span style={s.nivelBadge(c.barColor)}>LVL {c.nivel} {c.rango}</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -698,41 +693,23 @@ const st = (isDark, t) => ({
     margin: 0,
   }),
 
-  aibertWidgetBtn: (isDark) => ({
-    background: isDark
-      ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
-      : 'linear-gradient(90deg,#FF8430,#F7306D)',
-    border: 'none',
-    borderRadius: 10,
-    padding: '10px 22px',
-    color: '#fff',
-    fontFamily: "'Plus Jakarta Sans',sans-serif",
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: 'pointer',
-    boxShadow: isDark
-      ? '0 4px 16px rgba(196,16,122,0.35)'
-      : '0 4px 16px rgba(247,48,109,0.25)',
-    marginTop: 4,
-  }),
-
-  aibertWidgetBtn: (isDark) => ({
-    background: isDark
-      ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
-      : 'linear-gradient(90deg,#FF8430,#F7306D)',
-    border: 'none',
-    borderRadius: 10,
-    padding: '10px 22px',
-    color: '#fff',
-    fontFamily: "'Plus Jakarta Sans',sans-serif",
-    fontSize: 13,
-    fontWeight: 700,
-    cursor: 'pointer',
-    boxShadow: isDark
-      ? '0 4px 16px rgba(196,16,122,0.35)'
-      : '0 4px 16px rgba(247,48,109,0.25)',
-    marginTop: 4,
-  }),
+   aibertWidgetBtn: (isDark) => ({
+     background: isDark
+       ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
+       : 'linear-gradient(90deg,#FF8430,#F7306D)',
+     border: 'none',
+     borderRadius: 10,
+     padding: '10px 22px',
+     color: '#fff',
+     fontFamily: "'Plus Jakarta Sans',sans-serif",
+     fontSize: 13,
+     fontWeight: 700,
+     cursor: 'pointer',
+     boxShadow: isDark
+       ? '0 4px 16px rgba(196,16,122,0.35)'
+       : '0 4px 16px rgba(247,48,109,0.25)',
+     marginTop: 4,
+   }),
 
   /* CTA Banner */
   ctaBanner: (isDark) => ({

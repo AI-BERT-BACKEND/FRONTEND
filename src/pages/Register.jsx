@@ -87,16 +87,15 @@ const Register = () => {
   const navigate = useNavigate();
 
   const carreras = [
-    'Ing. Sistemas',
-    'Ing. Industrial',
-    'Ing. Civil',
-    'Ing. Electrónica',
-    'Administración',
-    'Contaduría',
-    'Derecho',
-    'Medicina',
-    'Psicología',
-    'Arquitectura',
+    { label: 'Ing. Sistemas',    value: 'INGENIERIA_SISTEMAS' },
+    { label: 'Ing. Industrial',  value: 'INGENIERIA_INDUSTRIAL' },
+    { label: 'Ing. Civil',       value: 'INGENIERIA_CIVIL' },
+    { label: 'Ing. Electrónica', value: 'INGENIERIA_ELECTRONICA' },
+    { label: 'Ing. Biomédica',   value: 'INGENIERIA_BIOMEDICA' },
+    { label: 'Ing. Eléctrica',   value: 'INGENIERIA_ELECTRICA' },
+    { label: 'Ing. Mecánica',    value: 'INGENIERIA_MECANICA' },
+    { label: 'Administración',   value: 'ADMINISTRACION_EMPRESAS' },
+    { label: 'Matemáticas',      value: 'MATEMATICAS' },
   ];
 
   const validate = () => {
@@ -119,8 +118,16 @@ const Register = () => {
   const handleSubmit = async () => {
     if (!validate()) return;
     setLoading(true);
+
     try {
-      await authService.register(form);
+      await authService.register({
+        fullName: form.nombre,
+        email: form.email,
+        career: form.carrera,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+      });
+      
       navigate('/verify-email');
     } catch (err) {
       const msg = err?.response?.data?.message || err.message || 'Error al registrar';
@@ -129,7 +136,7 @@ const Register = () => {
       setLoading(false);
     }
   };
-
+  
   const s = getStyles(isDark);
   const t = createStyles(isDark);
 
@@ -175,11 +182,11 @@ const Register = () => {
                 <option value="" disabled style={{ background: t.cardBg, color: t.textSecondary }}>
                   Selecciona tu carrera
                 </option>
-                {carreras.map((c) => (
-                  <option key={c} value={c} style={{ background: t.cardBg, color: t.textPrimary }}>
-                    {c}
-                  </option>
-                ))}
+                 {carreras.map((c) => (
+                   <option key={c.value} value={c.value} style={{ background: t.cardBg, color: t.textPrimary }}>
+                     {c.label}
+                   </option>
+                 ))}
               </select>
               <ChevronDown
                 size={14}

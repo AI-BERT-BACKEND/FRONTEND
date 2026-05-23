@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import {
   ChevronLeft, ChevronRight, Star, Check,
@@ -19,6 +19,58 @@ import MarianaImg from '../../doc/imagenes/Mariana.jpeg';
 import IssacImg from '../../doc/imagenes/Issac.png';
 import JuanesImg from '../../doc/imagenes/juanes.png';
 import CopilotoImg from '../../doc/imagenes/copiloto.png';
+
+const useScrollAnimation = () => {
+  const ref = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          if (ref.current) {
+            observer.unobserve(ref.current);
+          }
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current);
+      }
+    };
+  }, []);
+
+  return { ref, isVisible };
+};
+
+const AnimatedSection = ({ children, animation = 'fade-up', delay = 0, className = '', style = {} }) => {
+  const { ref, isVisible } = useScrollAnimation();
+  
+  const baseStyle = {
+    opacity: isVisible ? 1 : 0,
+    transform: isVisible ? 'translateY(0) translateX(0) scale(1)' : 
+               animation === 'fade-left' ? 'translateX(-30px)' :
+               animation === 'fade-right' ? 'translateX(30px)' :
+               animation === 'scale' ? 'scale(0.9)' :
+               'translateY(30px)',
+    transition: `opacity 0.6s ease-out ${delay}s, transform 0.6s ease-out ${delay}s`,
+    ...style,
+  };
+
+  return (
+    <div ref={ref} style={baseStyle} className={className}>
+      {children}
+    </div>
+  );
+};
 
 /* ── datos ── */
 const PROBLEMAS = [
@@ -118,7 +170,11 @@ const Landing = () => {
             <a href="#beneficios"     style={s.navLink}>BENEFICIOS</a>
             <a href="#opiniones"      style={s.navLink}>OPINIONES</a>
           </div>
-          <button style={s.navBtn} onClick={() => navigate('/login')}>
+          <button 
+            style={s.navBtn} 
+            onClick={() => navigate('/login')}
+            className="btn-lift"
+          >
             INICIAR SESIÓN
           </button>
         </div>
@@ -128,41 +184,60 @@ const Landing = () => {
       <section id="inicio" style={s.hero}>
         <div style={s.heroOverlay} />
         <div style={s.heroContent}>
-          <p style={s.heroEyebrow}>PLATAFORMA ACADÉMICA INTELIGENTE</p>
-          <h1 style={s.heroTitle}>
-            TU ASISTENTE ACADÉMICO<br />
-            <span style={s.heroTitleGrad}>INTELIGENTE</span>
-          </h1>
-          <p style={s.heroSub}>
-            Planifica tareas, administra horarios y recibe asistencia inteligente en una sola plataforma.
-          </p>
-          <div style={s.heroBtns}>
-            <button style={s.heroBtn} onClick={() => navigate('/register')}>
-              CREAR CUENTA
-            </button>
-            <a href="#beneficios" style={s.heroOutlineBtn}>
-              Más Información
-            </a>
-          </div>
+          <AnimatedSection animation="fade-up" delay={0.1}>
+            <p style={s.heroEyebrow}>PLATAFORMA ACADÉMICA INTELIGENTE</p>
+          </AnimatedSection>
+          <AnimatedSection animation="fade-up" delay={0.2}>
+            <h1 style={s.heroTitle}>
+              TU ASISTENTE ACADÉMICO<br />
+              <span style={s.heroTitleGrad} className="animate-gradient">INTELIGENTE</span>
+            </h1>
+          </AnimatedSection>
+           <AnimatedSection animation="fade-up" delay={0.3}>
+             <p style={s.heroSub}>
+               Planifica tareas, administra horarios y recibe asistencia inteligente en una sola plataforma.
+             </p>
+           </AnimatedSection>
+           <AnimatedSection animation="fade-up" delay={0.4}>
+             <div style={s.heroBtns}>
+               <button 
+                 style={s.heroBtn} 
+                 onClick={() => navigate('/register')}
+                 className="btn-lift"
+               >
+                 CREAR CUENTA
+               </button>
+               <a href="#beneficios" style={s.heroOutlineBtn} className="btn-lift">
+                 Más Información
+               </a>
+             </div>
+           </AnimatedSection>
         </div>
       </section>
 
       {/* ── S2: PROBLEMAS ── */}
       <section id="beneficios" style={s.section}>
         <div style={s.sectionInner}>
-          <h2 style={s.sectionTitle}>¿La universidad se siente caótica?</h2>
+          <AnimatedSection animation="fade-up">
+            <h2 style={s.sectionTitle}>¿La universidad se siente caótica?</h2>
+          </AnimatedSection>
           <div style={s.problemasGrid}>
-            {PROBLEMAS.map((p) => {
+            {PROBLEMAS.map((p, index) => {
               const Icon = p.icon;
               return (
-                <div key={p.id} style={s.problemaCard(p.destacada)}>
-                  {p.destacada && <span style={s.problemaHighlight}>PROBLEMA PRINCIPAL</span>}
-                  <div style={s.problemaIconWrap(p.color, p.destacada)}>
-                    <Icon size={20} color={p.destacada ? '#fff' : p.color} />
+                <AnimatedSection key={p.id} animation="fade-up" delay={index * 0.1}>
+                  <div 
+                    style={s.problemaCard(p.destacada)} 
+                    className="card-hover"
+                  >
+                    {p.destacada && <span style={s.problemaHighlight}>PROBLEMA PRINCIPAL</span>}
+                    <div style={s.problemaIconWrap(p.color, p.destacada)}>
+                      <Icon size={20} color={p.destacada ? '#fff' : p.color} />
+                    </div>
+                    <h3 style={s.problemaTitulo(p.destacada)}>{p.titulo}</h3>
+                    <p style={s.problemaDesc(p.destacada)}>{p.desc}</p>
                   </div>
-                  <h3 style={s.problemaTitulo(p.destacada)}>{p.titulo}</h3>
-                  <p style={s.problemaDesc(p.destacada)}>{p.desc}</p>
-                </div>
+                </AnimatedSection>
               );
             })}
           </div>
@@ -172,44 +247,54 @@ const Landing = () => {
       {/* ── S3: BENEFICIOS con carrusel ── */}
       <section style={{ ...s.section, background: isDark ? 'rgba(15,10,20,0.55)' : 'rgba(210,140,80,0.07)' }}>
         <div style={s.sectionInner}>
-          <h2 style={s.sectionTitle}>AI.BERT pone orden al caos</h2>
-          <p style={s.sectionDesc}>Herramientas pensadas para el estudiante universitario moderno.</p>
+          <AnimatedSection animation="fade-up">
+            <h2 style={s.sectionTitle}>AI.BERT pone orden al caos</h2>
+          </AnimatedSection>
+          <AnimatedSection animation="fade-up" delay={0.1}>
+            <p style={s.sectionDesc}>Herramientas pensadas para el estudiante universitario moderno.</p>
+          </AnimatedSection>
 
-          <div style={s.carouselWrap}>
-            <button style={s.carouselArrow} onClick={prevPage} aria-label="Anterior">
-              <ChevronLeft size={20} color="#fff" />
-            </button>
+          <AnimatedSection animation="fade-up" delay={0.2}>
+            <div style={s.carouselWrap}>
+              <button style={s.carouselArrow} onClick={prevPage} aria-label="Anterior" className="btn-lift">
+                <ChevronLeft size={20} color="#fff" />
+              </button>
 
-            <div style={s.carouselTrack}>
-              {visibleBeneficios.map((b) => {
-                const Icon = b.icon;
-                return (
-                  <div key={b.id} style={s.beneficioCard}>
-                    <div style={s.beneficioIconWrap(b.color)}>
-                      <Icon size={22} color={b.color} />
+              <div style={s.carouselTrack}>
+                {visibleBeneficios.map((b, index) => {
+                  const Icon = b.icon;
+                  return (
+                    <div 
+                      key={b.id} 
+                      style={s.beneficioCard} 
+                      className="card-hover"
+                    >
+                      <div style={s.beneficioIconWrap(b.color)}>
+                        <Icon size={22} color={b.color} />
+                      </div>
+                      <h3 style={s.beneficioTitulo}>{b.titulo}</h3>
+                      <p style={s.beneficioDesc}>{b.desc}</p>
                     </div>
-                    <h3 style={s.beneficioTitulo}>{b.titulo}</h3>
-                    <p style={s.beneficioDesc}>{b.desc}</p>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              <button style={s.carouselArrow} onClick={nextPage} aria-label="Siguiente" className="btn-lift">
+                <ChevronRight size={20} color="#fff" />
+              </button>
             </div>
 
-            <button style={s.carouselArrow} onClick={nextPage} aria-label="Siguiente">
-              <ChevronRight size={20} color="#fff" />
-            </button>
-          </div>
-
-          <div style={s.carouselDots}>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button
-                key={i}
-                style={s.dot(i === carouselPage)}
-                onClick={() => setCarouselPage(i)}
-                aria-label={`Página ${i + 1}`}
-              />
-            ))}
-          </div>
+            <div style={s.carouselDots}>
+              {Array.from({ length: totalPages }).map((_, i) => (
+                <button
+                  key={i}
+                  style={s.dot(i === carouselPage)}
+                  onClick={() => setCarouselPage(i)}
+                  aria-label={`Página ${i + 1}`}
+                />
+              ))}
+            </div>
+          </AnimatedSection>
         </div>
       </section>
 
@@ -217,54 +302,63 @@ const Landing = () => {
       <section id="sobre-nosotros" style={s.section}>
         <div style={s.sectionInner}>
 
-          <div style={s.conoceRow}>
-            {/* Izquierda */}
-            <div style={s.conoceLeft}>
-              <h2 style={s.conoceTitulo}>
-                Conoce a ALBERT,<br />tu nuevo{' '}
-                <span style={s.conoceGrad}>copiloto</span>
-              </h2>
-              <p style={s.conoceDesc}>
-                AI.BERT es más que una agenda. Es un asistente que aprende de tus hábitos
-                académicos y te guía para tomar mejores decisiones cada día.
-              </p>
-              <ul style={s.conoceList}>
-                {[
-                  'Analiza tu rendimiento en tiempo real',
-                  'Sugiere prioridades según tus metas',
-                  'Te alerta antes de que algo salga mal',
-                ].map((item, i) => (
-                  <li key={i} style={s.conoceItem}>
-                    <div style={s.conoceCheck}>
-                      <Check size={12} color="#fff" strokeWidth={3} />
-                    </div>
-                    <span style={s.conoceItemText}>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+           <div style={s.conoceRow}>
+             {/* Izquierda */}
+             <AnimatedSection animation="fade-left" style={s.conoceLeft}>
+               <h2 style={s.conoceTitulo}>
+                 Conoce a ALBERT,<br />tu nuevo{' '}
+                 <span style={s.conoceGrad}>copiloto</span>
+               </h2>
+               <p style={s.conoceDesc}>
+                 AI.BERT es más que una agenda. Es un asistente que aprende de tus hábitos
+                 académicos y te guía para tomar mejores decisiones cada día.
+               </p>
+               <ul style={s.conoceList}>
+                 {[
+                   'Analiza tu rendimiento en tiempo real',
+                   'Sugiere prioridades según tus metas',
+                   'Te alerta antes de que algo salga mal',
+                 ].map((item, i) => (
+                   <li key={i} style={s.conoceItem}>
+                     <div style={s.conoceCheck} className="check-animate">
+                       <Check size={12} color="#fff" strokeWidth={3} />
+                     </div>
+                     <span style={s.conoceItemText}>{item}</span>
+                   </li>
+                 ))}
+               </ul>
+             </AnimatedSection>
 
-            {/* Derecha: GIF + mockup */}
-            <div style={s.conoceRight}>
-              <div style={s.conoceGifWrap}>
-                <img src={AibertGif} alt="AI.BERT" style={s.conoceGif} />
-              </div>
-              <div style={s.copilotoImgWrap}>
-                <img src={CopilotoImg} alt="AI.BERT plataforma" style={s.copilotoImg} />
-              </div>
-            </div>
-          </div>
+             {/* Derecha: GIF + mockup */}
+             <AnimatedSection animation="fade-right" delay={0.2} style={{ flexShrink: 0 }}>
+               <div style={s.conoceRight}>
+                 <div 
+                   style={s.conoceGifWrap} 
+                   className="animate-float"
+                 >
+                   <img src={AibertGif} alt="AI.BERT" style={s.conoceGif} />
+                 </div>
+                 <div style={s.copilotoImgWrap} className="card-hover">
+                   <img src={CopilotoImg} alt="AI.BERT plataforma" style={s.copilotoImg} />
+                 </div>
+               </div>
+             </AnimatedSection>
+           </div>
 
           {/* Pasos: ¿Cómo funciona? */}
           <div style={s.pasosWrap}>
-            <h3 style={s.pasosTitulo}>¿Cómo funciona?</h3>
+            <AnimatedSection animation="fade-up">
+              <h3 style={s.pasosTitulo}>¿Cómo funciona?</h3>
+            </AnimatedSection>
             <div style={s.pasosGrid}>
               {PASOS.map((p, i) => (
-                <div key={p.num} style={s.pasoCard(i)}>
-                  <span style={s.pasoNum}>{p.num}</span>
-                  <h4 style={s.pasoTitulo}>{p.titulo}</h4>
-                  <p style={s.pasoDesc}>{p.desc}</p>
-                </div>
+                <AnimatedSection key={p.num} animation="fade-up" delay={i * 0.15}>
+                  <div style={s.pasoCard(i)} className="card-hover">
+                    <span style={s.pasoNum}>{p.num}</span>
+                    <h4 style={s.pasoTitulo}>{p.titulo}</h4>
+                    <p style={s.pasoDesc}>{p.desc}</p>
+                  </div>
+                </AnimatedSection>
               ))}
             </div>
           </div>
@@ -275,46 +369,52 @@ const Landing = () => {
       {/* ── S5: TESTIMONIOS ── */}
       <section id="opiniones" style={{ ...s.section, background: isDark ? 'rgba(15,10,20,0.55)' : 'rgba(210,140,80,0.07)' }}>
         <div style={s.sectionInner}>
-          <h2 style={s.sectionTitle}>Lo que dicen los estudiantes</h2>
-          <span style={s.sectionSubGrad}>OPINIONES REALES, RESULTADOS REALES</span>
+          <AnimatedSection animation="fade-up">
+            <h2 style={s.sectionTitle}>Lo que dicen los estudiantes</h2>
+          </AnimatedSection>
+          <AnimatedSection animation="fade-up" delay={0.1}>
+            <span style={s.sectionSubGrad}>OPINIONES REALES, RESULTADOS REALES</span>
+          </AnimatedSection>
 
-          <div style={s.testiCarouselWrap}>
-            <button style={s.carouselArrow} onClick={prevTestimonio} aria-label="Anterior testimonio">
-              <ChevronLeft size={20} color="#fff" />
-            </button>
+          <AnimatedSection animation="fade-up" delay={0.2}>
+            <div style={s.testiCarouselWrap}>
+              <button style={s.carouselArrow} onClick={prevTestimonio} aria-label="Anterior testimonio" className="btn-lift">
+                <ChevronLeft size={20} color="#fff" />
+              </button>
 
-            <div style={s.testiCard(tActual.destacado)}>
-              {tActual.destacado && <span style={s.destacadoBadge}>DESTACADO</span>}
-              <div style={s.estrellas}>
-                {Array.from({ length: tActual.estrellas }).map((_, i) => (
-                  <Star key={i} size={16} fill="#FF5B2E" color="#FF5B2E" />
-                ))}
-              </div>
-              <p style={s.testimonioCita(tActual.destacado)}>{tActual.cita}</p>
-              <div style={s.testimonioAutor}>
-                <img src={tActual.foto} alt={tActual.nombre} style={s.testimonioFoto} />
-                <div>
-                  <div style={s.testimonioNombre(tActual.destacado)}>{tActual.nombre}</div>
-                  <div style={s.testimonioMeta}>{tActual.carrera} · {tActual.semestre}</div>
+              <div style={s.testiCard(tActual.destacado)} className="card-hover">
+                {tActual.destacado && <span style={s.destacadoBadge}>DESTACADO</span>}
+                <div style={s.estrellas}>
+                  {Array.from({ length: tActual.estrellas }).map((_, i) => (
+                    <Star key={i} size={16} fill="#FF5B2E" color="#FF5B2E" />
+                  ))}
+                </div>
+                <p style={s.testimonioCita(tActual.destacado)}>{tActual.cita}</p>
+                <div style={s.testimonioAutor}>
+                  <img src={tActual.foto} alt={tActual.nombre} style={s.testimonioFoto} />
+                  <div>
+                    <div style={s.testimonioNombre(tActual.destacado)}>{tActual.nombre}</div>
+                    <div style={s.testimonioMeta}>{tActual.carrera} · {tActual.semestre}</div>
+                  </div>
                 </div>
               </div>
+
+              <button style={s.carouselArrow} onClick={nextTestimonio} aria-label="Siguiente testimonio" className="btn-lift">
+                <ChevronRight size={20} color="#fff" />
+              </button>
             </div>
 
-            <button style={s.carouselArrow} onClick={nextTestimonio} aria-label="Siguiente testimonio">
-              <ChevronRight size={20} color="#fff" />
-            </button>
-          </div>
-
-          <div style={s.carouselDots}>
-            {TESTIMONIOS.map((_, i) => (
-              <button
-                key={i}
-                style={s.dot(i === testimonioIdx)}
-                onClick={() => setTestimonioIdx(i)}
-                aria-label={`Testimonio ${i + 1}`}
-              />
-            ))}
-          </div>
+            <div style={s.carouselDots}>
+              {TESTIMONIOS.map((_, i) => (
+                <button
+                  key={i}
+                  style={s.dot(i === testimonioIdx)}
+                  onClick={() => setTestimonioIdx(i)}
+                  aria-label={`Testimonio ${i + 1}`}
+                />
+              ))}
+            </div>
+          </AnimatedSection>
         </div>
       </section>
 
@@ -468,12 +568,13 @@ const st = (isDark, t) => ({
     letterSpacing: '-0.02em',
     margin: '0 0 20px',
   },
-  heroTitleGrad: {
-    background: 'linear-gradient(90deg,#FF5B2E,#C4107A)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-  },
+   heroTitleGrad: {
+     background: 'linear-gradient(90deg,#FF5B2E,#C4107A,#A855F7,#FF5B2E)',
+     backgroundSize: '300% 100%',
+     WebkitBackgroundClip: 'text',
+     WebkitTextFillColor: 'transparent',
+     backgroundClip: 'text',
+   },
   heroSub: {
     fontSize: 'clamp(14px,1.8vw,18px)',
     color: 'rgba(255,255,255,0.68)',
@@ -566,21 +667,22 @@ const st = (isDark, t) => ({
     justifyContent: 'center',
     marginTop: 48,
   },
-  problemaCard: (destacada) => ({
-    background: destacada
-      ? (isDark ? 'linear-gradient(135deg,rgba(168,85,247,0.14),rgba(196,16,122,0.10))' : 'linear-gradient(135deg,rgba(168,85,247,0.10),rgba(196,16,122,0.06))')
-      : t.cardBg,
-    border: `1px solid ${destacada ? 'rgba(168,85,247,0.42)' : t.cardBorder}`,
-    borderRadius: 16,
-    padding: '22px 20px',
-    width: 196,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 10,
-    position: 'relative',
-    boxShadow: destacada ? '0 0 32px rgba(168,85,247,0.18)' : t.cardShadow,
-    flexShrink: 0,
-  }),
+   problemaCard: (destacada) => ({
+     background: destacada
+       ? (isDark ? 'linear-gradient(135deg,rgba(168,85,247,0.14),rgba(196,16,122,0.10))' : 'linear-gradient(135deg,rgba(168,85,247,0.10),rgba(196,16,122,0.06))')
+       : t.cardBg,
+     border: `1px solid ${destacada ? 'rgba(168,85,247,0.42)' : t.cardBorder}`,
+     borderRadius: 16,
+     padding: '22px 20px',
+     width: 196,
+     display: 'flex',
+     flexDirection: 'column',
+     gap: 10,
+     position: 'relative',
+     boxShadow: destacada ? '0 0 32px rgba(168,85,247,0.18)' : t.cardShadow,
+     flexShrink: 0,
+     transition: 'transform 0.3s ease, boxShadow 0.3s ease, borderColor 0.3s ease',
+   }),
   problemaHighlight: {
     fontSize: 8,
     fontWeight: 800,
@@ -637,16 +739,17 @@ const st = (isDark, t) => ({
     gap: 14,
     flex: 1,
   },
-  beneficioCard: {
-    background: t.cardBg,
-    border: '1px solid #C4107A',
-    boxShadow: '0 0 12px rgba(196,16,122,0.5)',
-    borderRadius: 16,
-    padding: '24px 20px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12,
-  },
+   beneficioCard: {
+     background: t.cardBg,
+     border: '1px solid #C4107A',
+     boxShadow: '0 0 12px rgba(196,16,122,0.5)',
+     borderRadius: 16,
+     padding: '24px 20px',
+     display: 'flex',
+     flexDirection: 'column',
+     gap: 12,
+     transition: 'transform 0.3s ease, boxShadow 0.3s ease, borderColor 0.3s ease',
+   },
   beneficioIconWrap: (color) => ({
     width: 44,
     height: 44,
@@ -768,34 +871,41 @@ const st = (isDark, t) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  conoceGifWrap: {
-    width: 160,
-    height: 160,
-    borderRadius: '50%',
-    overflow: 'hidden',
-    boxShadow: '0 0 50px rgba(196,16,122,0.45)',
-    flexShrink: 0,
-  },
-  conoceGif: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    display: 'block',
-  },
-  copilotoImgWrap: {
-    flex: 1,
-    borderRadius: 14,
-    overflow: 'hidden',
-    boxShadow: `0 0 0 1px rgba(196,16,122,0.20),0 20px 60px rgba(0,0,0,${isDark ? '0.65' : '0.20'})`,
-    minWidth: 220,
-    maxWidth: 460,
-  },
-  copilotoImg: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    display: 'block',
-  },
+   conoceGifWrap: {
+     width: 180,
+     height: 180,
+     borderRadius: '50%',
+     overflow: 'hidden',
+     boxShadow: '0 0 50px rgba(196,16,122,0.45)',
+     flexShrink: 0,
+     display: 'flex',
+     alignItems: 'center',
+     justifyContent: 'center',
+     background: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.5)',
+   },
+   conoceGif: {
+     width: '110%',
+     height: '110%',
+     objectFit: 'contain',
+     display: 'block',
+   },
+   copilotoImgWrap: {
+     flex: 1,
+     borderRadius: 14,
+     overflow: 'hidden',
+     boxShadow: `0 0 0 1px rgba(196,16,122,0.20),0 20px 60px rgba(0,0,0,${isDark ? '0.65' : '0.20'})`,
+     minWidth: 220,
+     maxWidth: 460,
+     height: 'auto',
+     aspectRatio: '16/10',
+   },
+   copilotoImg: {
+     width: '100%',
+     height: '100%',
+     objectFit: 'cover',
+     objectPosition: 'center',
+     display: 'block',
+   },
   mockupBar: {
     background: '#222222',
     borderBottom: '1px solid rgba(255,255,255,0.06)',
@@ -856,13 +966,14 @@ const st = (isDark, t) => ({
     gridTemplateColumns: 'repeat(4,1fr)',
     gap: 16,
   },
-  pasoCard: (i) => ({
-    background: t.cardBg,
-    border: `1px solid ${t.cardBorder}`,
-    borderRadius: 14,
-    padding: '22px 18px',
-    borderTop: `3px solid ${['#FF5B2E','#C4107A','#A855F7','#FF5B2E'][i]}`,
-  }),
+   pasoCard: (i) => ({
+     background: t.cardBg,
+     border: `1px solid ${t.cardBorder}`,
+     borderRadius: 14,
+     padding: '22px 18px',
+     borderTop: `3px solid ${['#FF5B2E','#C4107A','#A855F7','#FF5B2E'][i]}`,
+     transition: 'transform 0.3s ease, boxShadow 0.3s ease, borderColor 0.3s ease',
+   }),
   pasoNum: {
     fontFamily: "'Plus Jakarta Sans', sans-serif",
     fontSize: 28,
@@ -897,22 +1008,23 @@ const st = (isDark, t) => ({
     gap: 16,
     marginTop: 8,
   },
-  testiCard: (destacado) => ({
-    flex: 1,
-    maxWidth: 680,
-    margin: '0 auto',
-    background: destacado
-      ? (isDark ? 'linear-gradient(135deg,rgba(255,91,46,0.08),rgba(196,16,122,0.08))' : 'linear-gradient(135deg,rgba(255,91,46,0.05),rgba(196,16,122,0.05))')
-      : t.cardBg,
-    border: '1px solid #C4107A',
-    boxShadow: '0 0 12px rgba(196,16,122,0.5)',
-    borderRadius: 20,
-    padding: '36px 32px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 20,
-    position: 'relative',
-  }),
+   testiCard: (destacado) => ({
+     flex: 1,
+     maxWidth: 680,
+     margin: '0 auto',
+     background: destacado
+       ? (isDark ? 'linear-gradient(135deg,rgba(255,91,46,0.08),rgba(196,16,122,0.08))' : 'linear-gradient(135deg,rgba(255,91,46,0.05),rgba(196,16,122,0.05))')
+       : t.cardBg,
+     border: '1px solid #C4107A',
+     boxShadow: '0 0 12px rgba(196,16,122,0.5)',
+     borderRadius: 20,
+     padding: '36px 32px',
+     display: 'flex',
+     flexDirection: 'column',
+     gap: 20,
+     position: 'relative',
+     transition: 'transform 0.3s ease, boxShadow 0.3s ease, borderColor 0.3s ease',
+   }),
   destacadoBadge: {
     position: 'absolute',
     top: -13,
