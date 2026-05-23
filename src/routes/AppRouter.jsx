@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
 import AdminRoute from '../components/AdminRoute';
 import ScrollToTop from '../components/ScrollToTop';
@@ -52,7 +52,14 @@ const AppRouter = () => {
         <Route path="/verified-success" element={<VerifiedSuccess />} />
 
         {/* Protected Routes */}
-        <Route path="/academic-profile" element={<Navigate to="/dashboard" replace />} />
+        <Route
+          path="/academic-profile"
+          element={
+            <ProtectedRoute>
+              <AcademicProfile />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard"
           element={

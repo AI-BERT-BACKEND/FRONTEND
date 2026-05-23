@@ -89,18 +89,18 @@ const ActividadModal = ({ subjectId, corteId, corteNombre, actividad, isDark, on
     try {
       const notaNum = parseFloat(nota);
       const pesoNum = parseInt(peso) || 0;
-      const payload = { nombre: nombre.trim(), grade: isNaN(notaNum) ? null : notaNum, weight: pesoNum };
+      const payload = { activityName: nombre.trim(), gradeValue: isNaN(notaNum) ? null : notaNum, percentage: pesoNum };
       let saved;
       if (isEdit) {
         saved = await academicService.updateGrade(subjectId, corteId, actividad.id, payload);
       } else {
         saved = await academicService.registerGrade(subjectId, corteId, payload);
       }
-      const gradeRes = saved.grade || saved.data || saved;
-      const returnedNota = gradeRes.grade ?? gradeRes.nota ?? gradeRes.score ?? notaNum;
-      const returnedWeight = gradeRes.weight ?? gradeRes.peso ?? pesoNum;
-      const notaColor = isNaN(returnedNota) ? null : returnedNota >= 6 ? '#22C55E' : returnedNota >= 4 ? '#EAB308' : '#F00707';
-      onSave({ nombre: gradeRes.name || gradeRes.nombre || nombre.trim(), nota: isNaN(returnedNota) ? null : returnedNota, peso: returnedWeight ? `${returnedWeight}%` : peso, color: notaColor });
+      const gradeRes = saved.data || saved;
+      const returnedNota = gradeRes.gradeValue ?? gradeRes.grade ?? gradeRes.nota ?? gradeRes.score ?? notaNum;
+      const returnedWeight = gradeRes.percentage ?? gradeRes.weight ?? gradeRes.peso ?? pesoNum;
+      const notaColor = isNaN(returnedNota) ? null : returnedNota >= 3.5 ? '#22C55E' : returnedNota >= 3.0 ? '#EAB308' : '#F00707';
+      onSave({ nombre: gradeRes.activityName || gradeRes.name || gradeRes.nombre || nombre.trim(), nota: isNaN(returnedNota) ? null : returnedNota, peso: returnedWeight ? `${returnedWeight}%` : peso, color: notaColor });
     } catch (err) {
       console.error('Error saving grade:', err);
     } finally {
@@ -119,8 +119,8 @@ const ActividadModal = ({ subjectId, corteId, corteNombre, actividad, isDark, on
           <input style={s.input} placeholder="Ej: Examen Parcial" value={nombre} onChange={e => setNombre(e.target.value)} />
         </div>
         <div style={s.row}>
-          <div style={{ flex: 1 }}><label style={s.label}>Nota (0–10)</label>
-            <input style={s.input} type="number" min="0" max="10" step="0.1" placeholder="8.5" value={nota} onChange={e => setNota(e.target.value)} />
+          <div style={{ flex: 1 }}><label style={s.label}>Nota (0.0–5.0)</label>
+            <input style={s.input} type="number" min="0" max="5" step="0.1" placeholder="4.5" value={nota} onChange={e => setNota(e.target.value)} />
           </div>
           <div style={{ flex: 1 }}><label style={s.label}>Peso (%)</label>
             <input style={s.input} placeholder="30%" value={peso} onChange={e => setPeso(e.target.value)} />
@@ -315,12 +315,14 @@ const CourseGrades = () => {
           academicService.getEvaluationStructure(subjectId),
         ]);
 
+        const subjectData = subjectRes.data || subjectRes;
         setSubject({
-          nombre: subjectRes.name || subjectRes.nombre || subjectRes.materia || 'Detalles por Corte',
-          descripcion: subjectRes.description || subjectRes.descripcion || subjectRes.subtitulo || 'Seguimiento detallado de evaluaciones por período académico.',
+          nombre: subjectData.subjectName || subjectData.name || subjectData.nombre || subjectData.materia || 'Detalles por Corte',
+          descripcion: subjectData.description || subjectData.descripcion || subjectData.subtitulo || 'Seguimiento detallado de evaluaciones por período académico.',
         });
 
-        const avg = averagesRes.averages || averagesRes.data || averagesRes;
+        const avgRaw = averagesRes.data || averagesRes;
+        const avg = avgRaw.averages || avgRaw;
         setAverages({
           promedioGlobal: avg.promedioGlobal ?? avg.average ?? avg.globalAverage ?? 0,
           cortes: avg.cortes || (avg.cortesCompletados != null ? `${avg.cortesCompletados}/${avg.totalCortes || 3}` : '0/3'),
@@ -333,29 +335,30 @@ const CourseGrades = () => {
           restantes: avg.restantes ?? avg.remaining ?? 0,
         });
 
-        const rawCuts = structureRes.cuts || structureRes.estructura || structureRes || [];
+        const structData = structureRes.data || structureRes;
+        const rawCuts = structData.cuts || structData.estructura || (Array.isArray(structData) ? structData : []);
         const gradesPromises = rawCuts.map(cut =>
           academicService.getGradesByCut(subjectId, cut.id)
         );
         const gradesResults = await Promise.allSettled(gradesPromises);
 
         const mergedCuts = rawCuts.map((cut, index) => {
-          const gradesData = gradesResults[index]?.status === 'fulfilled'
-            ? (gradesResults[index].value.grades || gradesResults[index].value.data || gradesResults[index].value || [])
-            : [];
+          const gv = gradesResults[index]?.status === 'fulfilled' ? gradesResults[index].value : null;
+          const gd = gv ? (gv.data || gv) : null;
+          const gradesData = gd ? (Array.isArray(gd) ? gd : (gd.grades || [])) : [];
 
           const actividades = (cut.activities || cut.actividades || []).map(act => {
             const grade = gradesData.find(g =>
               (g.activityId === act.id || g.activity_id === act.id || g.actividadId === act.id || g.activityId === act.activityId)
             );
-            const nota = grade?.grade ?? grade?.nota ?? grade?.score ?? null;
+            const nota = grade?.gradeValue ?? grade?.grade ?? grade?.nota ?? grade?.score ?? null;
             return {
               id: act.id,
-              nombre: act.name || act.nombre,
+              nombre: act.activityName || act.name || act.nombre,
               nota: nota,
-              peso: act.weight != null ? `${act.weight}%` : act.peso || '—',
+              peso: act.percentage != null ? `${act.percentage}%` : act.weight != null ? `${act.weight}%` : act.peso || '—',
               color: nota !== null
-                ? (nota >= 6 ? '#22C55E' : nota >= 4 ? '#EAB308' : '#F00707')
+                ? (nota >= 3.5 ? '#22C55E' : nota >= 3.0 ? '#EAB308' : '#F00707')
                 : null,
             };
           });
@@ -374,8 +377,8 @@ const CourseGrades = () => {
             estadoBg: puntaje !== null ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.07)',
             peso: cut.weight != null ? `${cut.weight}%` : cut.peso || '—',
             puntaje,
-            puntajeMax: 10.0,
-            progreso: puntaje ? Math.round(puntaje * 10) : 0,
+            puntajeMax: 5.0,
+            progreso: puntaje ? Math.round(puntaje * 20) : 0,
             actividades,
           };
         });
@@ -411,15 +414,15 @@ const CourseGrades = () => {
     try {
       let savedGrade;
       if (modal.actividad) {
-        savedGrade = await academicService.updateGrade(subjectId, corteId, modal.actividad.id, { nombre, grade: nota, weight: parseInt(peso) || 0 });
+        savedGrade = await academicService.updateGrade(subjectId, corteId, modal.actividad.id, { activityName: nombre, gradeValue: nota, percentage: parseInt(peso) || 0 });
       } else {
-        savedGrade = await academicService.registerGrade(subjectId, corteId, { nombre, grade: nota, weight: parseInt(peso) || 0 });
+        savedGrade = await academicService.registerGrade(subjectId, corteId, { activityName: nombre, gradeValue: nota, percentage: parseInt(peso) || 0 });
       }
-      const gradeData = savedGrade.grade || savedGrade.data || savedGrade;
-      const returnedId = gradeData.id || modal.actividad?.id || `new-${Date.now()}`;
-      const returnedNota = gradeData.grade ?? gradeData.nota ?? gradeData.score ?? nota;
+      const gradeData = savedGrade.data || savedGrade;
+      const returnedId = gradeData.id || gradeData.gradeId || modal.actividad?.id || `new-${Date.now()}`;
+      const returnedNota = gradeData.gradeValue ?? gradeData.grade ?? gradeData.nota ?? gradeData.score ?? nota;
       const notaColor = returnedNota !== null
-        ? (returnedNota >= 6 ? '#22C55E' : returnedNota >= 4 ? '#EAB308' : '#F00707')
+        ? (returnedNota >= 3.5 ? '#22C55E' : returnedNota >= 3.0 ? '#EAB308' : '#F00707')
         : null;
 
       setCuts(prev => prev.map(c => {
@@ -436,7 +439,7 @@ const CourseGrades = () => {
         const nuevoPuntaje = notasValidas.length
           ? parseFloat((notasValidas.reduce((s, a) => s + a.nota, 0) / notasValidas.length).toFixed(1))
           : null;
-        return { ...c, actividades: acts, puntaje: nuevoPuntaje, progreso: nuevoPuntaje ? Math.round(nuevoPuntaje * 10) : 0 };
+        return { ...c, actividades: acts, puntaje: nuevoPuntaje, progreso: nuevoPuntaje ? Math.round(nuevoPuntaje * 20) : 0 };
       }));
     } catch (err) {
       console.error('Error saving grade:', err);

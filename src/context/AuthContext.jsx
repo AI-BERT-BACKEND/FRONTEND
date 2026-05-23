@@ -35,6 +35,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     const data = await authService.login(credentials);
     localStorage.setItem('token', data.token);
+    const userData = await authService.getCurrentUser();
+    setUser(userData);
     setIsAuthenticated(true);
     // Normalize: always expose 'id' regardless of what the backend user object sends
     const rawUser = data.user || {};

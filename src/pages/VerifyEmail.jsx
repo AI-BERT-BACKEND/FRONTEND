@@ -64,11 +64,14 @@ const VerifyEmail = () => {
       setError('Ingresa los 6 dígitos del código');
       return;
     }
+    setLoading(true);
     try {
       await profileService.verifyOtp(userId, full);
       navigate('/verified-success');
     } catch (err) {
       setError('Código inválido o expirado');
+    } finally {
+      setLoading(false);
     }
   };
 
