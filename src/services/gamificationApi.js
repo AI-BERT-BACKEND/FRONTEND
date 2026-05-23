@@ -1,9 +1,8 @@
 import axios from 'axios';
-
-const GAMIFICATION_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+import config from '../config';
 
 const gamificationApi = axios.create({
-  baseURL: GAMIFICATION_BASE_URL,
+  baseURL: config.api.baseUrlWithoutApi,
   headers: { 'Content-Type': 'application/json' },
 });
 

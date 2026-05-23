@@ -1,9 +1,8 @@
 import axios from 'axios';
-
-const PLANNING_BASE_URL = import.meta.env.VITE_PLANNING_API_URL || 'http://localhost:1504';
+import config from '../config';
 
 const planningApi = axios.create({
-  baseURL: PLANNING_BASE_URL,
+  baseURL: config.planning.baseUrl,
   headers: { 'Content-Type': 'application/json' },
 });
 

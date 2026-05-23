@@ -1,9 +1,8 @@
 import axios from 'axios';
-
-const ACADEMIC_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+import config from '../config';
 
 const academicApi = axios.create({
-  baseURL: ACADEMIC_BASE_URL,
+  baseURL: config.api.baseUrlWithoutApi,
   headers: { 'Content-Type': 'application/json' },
 });
 

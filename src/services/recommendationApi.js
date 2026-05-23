@@ -1,9 +1,8 @@
 import axios from 'axios';
-
-const RECOMMENDATION_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+import config from '../config';
 
 const recommendationApi = axios.create({
-  baseURL: RECOMMENDATION_BASE_URL,
+  baseURL: config.api.baseUrlWithoutApi,
   headers: { 'Content-Type': 'application/json' },
 });
 
