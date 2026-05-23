@@ -21,12 +21,7 @@ const authService = {
      const { data } = await api.post('/api/auth/reset-password', resetData);
      return data;
    },
-
-   register: async (payload) => {
-     const { data } = await api.post('/api/auth/register', payload);
-     return data;
-   },
-   
+ 
    getCurrentUser: async () => {
     const token = localStorage.getItem('token');
 
