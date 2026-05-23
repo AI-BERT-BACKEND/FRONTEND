@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
@@ -8,15 +8,20 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import profileService from '../services/profileService';
 import { createStyles } from '../theme/createStyles';
 
 const AcademicProfile = () => {
   const { isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const userId = user?.id || user?.userId || user?.sub || null;
   const [showModal, setShowModal] = useState(false);
   const [nuevaMateria, setNuevaMateria] = useState('');
   const [modalError, setModalError] = useState('');
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const carreraPrincipal = user?.career || user?.carrera || user?.careerName || user?.program || '';
 
@@ -57,6 +62,36 @@ const AcademicProfile = () => {
     { id: 'NOCHE', label: 'Noche', inicio: '18:00', fin: '22:00' },
   ];
 
+  useEffect(() => {
+    if (authLoading) return;
+    if (!userId) {
+      setInitialLoading(false);
+      return;
+    }
+    (async () => {
+      try {
+        const wrapper = await profileService.getAcademicProfile(userId);
+        const profile = wrapper?.data ?? wrapper;
+        if (profile) {
+          setForm({
+            carreraSecundaria: profile.carreraSecundaria || profile.secondaryCareer || '',
+            semestre: profile.semestre || profile.semester || '',
+            promedio: profile.promedio !== undefined ? String(profile.promedio) : '',
+            materias: profile.materias || profile.subjects || [],
+            objetivo: profile.objetivo || profile.goal || 'EXCELENCIA',
+            disponibilidad: profile.disponibilidad || profile.availability || 'MANANA',
+            horasEstudio: profile.horasEstudio || profile.studyHours || 4,
+            trabaja: profile.trabaja || profile.works || 'NO',
+          });
+        }
+      } catch {
+        // usar defaults
+      } finally {
+        setInitialLoading(false);
+      }
+    })();
+  }, [userId, authLoading]);
+
   const validate = () => {
     const e = {};
     if (!form.semestre) e.semestre = 'Campo requerido';
@@ -66,8 +101,28 @@ const AcademicProfile = () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSave = () => {
-    if (validate()) navigate('/dashboard');
+  const handleSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
+    setSaveError('');
+    try {
+      const payload = {
+        carreraSecundaria: form.carreraSecundaria,
+        semestre: form.semestre,
+        promedio: parseFloat(form.promedio),
+        materias: form.materias,
+        objetivo: form.objetivo,
+        disponibilidad: form.disponibilidad,
+        horasEstudio: Number(form.horasEstudio),
+        trabaja: form.trabaja,
+      };
+      await profileService.updateAcademicProfile(userId, payload);
+      navigate('/dashboard');
+    } catch {
+      setSaveError('No se pudo guardar el perfil. Intenta de nuevo.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAddMateria = () => {
@@ -91,6 +146,16 @@ const AcademicProfile = () => {
 
   const s = getStyles(isDark);
   const t = createStyles(isDark);
+
+  if (initialLoading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300, color: t.textSecondary, fontFamily: t.fontPrimary, fontSize: 14 }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -326,8 +391,17 @@ const AcademicProfile = () => {
             </p>
           </div>
 
-          <button style={s.saveBtn} onClick={handleSave}>
-            Guardar Perfil
+          {saveError && (
+            <div style={{ fontSize: 12, color: t.error, textAlign: 'center', marginBottom: 8 }}>
+              {saveError}
+            </div>
+          )}
+          <button
+            style={{ ...s.saveBtn, ...(saving ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }}
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? 'Guardando...' : 'Guardar Perfil'}
           </button>
         </div>
       </div>

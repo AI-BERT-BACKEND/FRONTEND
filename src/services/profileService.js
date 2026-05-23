@@ -53,6 +53,11 @@ const profileService = {
     return data;
   },
 
+  getAcademicProfile: async (userId) => {
+    const { data } = await api.get(`/api/profile/${userId}/academic`);
+    return data;
+  },
+
   updateAcademicProfile: async (userId, payload) => {
     const { data } = await api.put(`/api/profile/${userId}/academic`, payload);
     return data;
