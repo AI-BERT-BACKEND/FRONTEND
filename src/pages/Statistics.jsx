@@ -6,7 +6,8 @@ import { createStyles } from '../theme/createStyles';
 import statsService from '../services/statsService';
 import notificationService from '../services/notificationService';
 import academicService from '../services/academicService';
-import enginePlanningService from '../services/enginePlanningService';
+import { useAuth } from '../context/AuthContext';
+import recommendationService from '../services/recommendationService';
 
 const AlertTriangle = ({ color, size = 13 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -194,13 +195,15 @@ const adaptRecommendations = (suggestions, alerts, criticalRecs) => {
     });
   }
 
-  if (criticalRecs?.recommendations?.length) {
-    criticalRecs.recommendations.forEach((r, i) => {
+  const reorganItems = criticalRecs?.reorganization || criticalRecs?.reorganizationSuggestions || [];
+  if (reorganItems.length) {
+    reorganItems.forEach((r, i) => {
+      const priority = r.priorityLevel || r.priority || '';
       items.push({
         id: `crit-${i}`,
-        tipo: r.priority === 'high' ? 'ALERTA' : 'ENFOQUE',
+        tipo: (priority === 'HIGH' || priority === 'CRITICAL') ? 'ALERTA' : 'ENFOQUE',
         titulo: r.title || r.titulo || 'Recomendación',
-        descripcion: r.description || r.message || '',
+        descripcion: r.recommendation || r.description || r.message || '',
       });
     });
   }
@@ -222,6 +225,7 @@ const adaptSessionData = (dashboard) => {
 const Statistics = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [vistaChart, setVistaChart] = useState('semestre');
   const [selectedSemestre, setSelectedSemestre] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -239,13 +243,14 @@ const Statistics = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const userId = user?.id || user?.userId || user?.sub || null;
         const results = await Promise.allSettled([
           statsService.getDashboard().catch(() => null),
           statsService.getSubjectsStatistics().catch(() => []),
           academicService.getSummary().catch(() => null),
           notificationService.getStudySuggestions().catch(() => null),
           notificationService.getStatsAlerts().catch(() => null),
-          enginePlanningService.getRecommendationsCritical().catch(() => null),
+          userId ? recommendationService.getDailyPlan(userId).catch(() => null) : Promise.resolve(null),
         ]);
 
         const dashboard = results[0].status === 'fulfilled' ? results[0].value : null;
