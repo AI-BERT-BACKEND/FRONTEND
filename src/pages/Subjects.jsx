@@ -182,8 +182,13 @@ const Subjects = () => {
     setMenuOpen(null);
   };
 
-  const confirmDelete = () => {
-    setMaterias((prev) => prev.filter((m) => m.id !== deleteConfirm));
+  const confirmDelete = async () => {
+    try {
+      await academicService.deleteSubject(deleteConfirm);
+      setMaterias((prev) => prev.filter((m) => m.id !== deleteConfirm));
+    } catch {
+      // error silencioso
+    }
     setDeleteConfirm(null);
   };
 

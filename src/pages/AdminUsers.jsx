@@ -293,7 +293,7 @@ const AdminUsers = () => {
 
   const total   = users.length;
   const activos = users.filter((u) => u.status === 'ACTIVE' || u.status === 'ACTIVO').length;
-  const admins  = users.filter((u) => u.role === 'ADMIN').length;
+  const admins  = users.filter((u) => u.role === 'ROLE_ADMIN').length;
 
   const setActionBusy = (id, val) => setActionLoading((prev) => ({ ...prev, [id]: val }));
 
@@ -310,8 +310,9 @@ const AdminUsers = () => {
   const handleRoleChange = async (u, newRole) => {
     setActionBusy(u.id, true);
     try {
-      await profileService.updateAdminUserRole(u.id, { newRole });
-      setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, role: newRole.toUpperCase() } : x));
+      const roleValue = newRole === 'ADMIN' ? 'ROLE_ADMIN' : newRole;
+      await profileService.updateAdminUserRole(u.id, { role: roleValue });
+      setUsers((prev) => prev.map((x) => x.id === u.id ? { ...x, role: roleValue } : x));
     } catch { setError('No se pudo cambiar el rol del usuario.'); }
     finally { setActionBusy(u.id, false); }
   };
@@ -420,7 +421,7 @@ const AdminUsers = () => {
                 {paginated.map((u) => {
                   const busy    = actionLoading[u.id];
                   const isActive = u.status === 'ACTIVE' || u.status === 'ACTIVO';
-                  const isAdmin  = u.role === 'ADMIN';
+                  const isAdmin  = u.role === 'ROLE_ADMIN';
                   return (
                     <tr key={u.id} style={s.tr(isDark)}>
                       {/* usuario */}

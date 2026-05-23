@@ -26,9 +26,9 @@ const StudentProfile = () => {
   const fileRef = useRef(null);
 
   const [form, setForm] = useState({
-    nombre: authUser?.fullName ?? authUser?.name ?? '',
-    username: authUser?.username ?? '',
-    email: authUser?.email ?? authUser?.sub ?? '',
+    nombre: '',
+    username: '',
+    email: '',
     foto: null,
   });
   const [errors, setErrors] = useState({});
@@ -36,6 +36,17 @@ const StudentProfile = () => {
   const [showDesactivarConfirm, setShowDesactivarConfirm] = useState(false);
   const [showEliminarConfirm, setShowEliminarConfirm] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  useEffect(() => {
+    if (authUser) {
+      setForm({
+        nombre: authUser.fullName ?? authUser.name ?? '',
+        username: authUser.username ?? '',
+        email: authUser.email ?? authUser.sub ?? '',
+        foto: null,
+      });
+    }
+  }, [authUser]);
 
   const validate = () => {
     const newErrors = {
@@ -56,6 +67,7 @@ const StudentProfile = () => {
     try {
       await profileService.updatePersonalProfile(userId, {
         fullName: form.nombre,
+        username: form.username,
         email: form.email,
       });
       navigate('/dashboard');
