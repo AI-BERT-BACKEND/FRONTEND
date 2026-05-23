@@ -1,0 +1,669 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import AppLayout from '../components/Layout/AppLayout';
+import CircleProgress from '../components/CircleProgress';
+import ProgressBar from '../components/ProgressBar';
+import StatusBadge from '../components/StatusBadge';
+import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
+import {
+  Library, Target, AlertTriangle, Check,
+  BarChart3, TrendingUp, Plus, Save,
+  X, Crosshair, Sparkles, ChevronDown,
+  List
+} from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { createStyles } from '../theme/createStyles';
+import academicService from '../services/academicService';
+import notificationService from '../services/notificationService';
+
+const LocalChevronDown = ({ isDark }) => (
+  <ChevronDown
+    size={14}
+    color={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)'}
+    strokeWidth={2}
+  />
+);
+
+const Spinner = () => (
+  <>
+    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    <svg style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} width="13" height="13" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
+    </svg>
+  </>
+);
+
+const AddMetaModal = ({ isDark, onClose, subjects = [] }) => {
+  const [nombre, setNombre] = useState('');
+  const [nota, setNota] = useState('');
+  const [materia, setMateria] = useState('');
+  const [nombreError, setNombreError] = useState('');
+  const [notaError, setNotaError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const m = getModalStyles(isDark);
+
+  const handleGuardar = async () => {
+    let valid = true;
+    if (!nombre.trim()) {
+      setNombreError('El nombre no puede estar vacío.');
+      valid = false;
+    } else if (nombre.length < 3 || nombre.length > 100) {
+      setNombreError('Debe contener entre 3 y 100 caracteres');
+      valid = false;
+    } else setNombreError('');
+
+    if (nota !== '' && (parseFloat(nota) < 0.0 || parseFloat(nota) > 5.0)) {
+      setNotaError('La nota debe estar entre 0.0 y 5.0');
+      valid = false;
+    } else setNotaError('');
+
+    if (!valid) return;
+    setLoading(true);
+    try {
+      await academicService.setGoal({
+        name: nombre.trim(),
+        target_grade: nota ? parseFloat(nota) : undefined,
+        subject: materia || undefined,
+      });
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={m.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div style={m.modal}>
+        <div style={m.modalHeader}>
+          <div style={m.modalIconWrap}>
+            <Crosshair size={20} color="#fff" />
+          </div>
+          <div style={m.modalTitleGroup}>
+            <h2 style={m.modalTitle}>Agregar Nueva Meta</h2>
+            <p style={m.modalSubtitle}>
+              Define tus objetivos académicos y haz seguimiento a tu progreso.
+            </p>
+          </div>
+          <button style={m.closeBtn} onClick={onClose} aria-label="Cerrar">
+            <X size={18} color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
+          </button>
+        </div>
+
+        <div style={m.divider} />
+
+        <div style={m.fieldGroup}>
+          <div style={m.labelRow}>
+            <label style={m.label}>Nombre de la meta</label>
+            <span style={m.charCount}>{nombre.length} / 100</span>
+          </div>
+          <input
+            style={{ ...m.input, ...(nombreError ? m.inputError : {}) }}
+            placeholder="Ej: Obtener promedio superior a 4.5"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            maxLength={100}
+          />
+          {nombreError && (
+            <div style={m.errorRow}>
+              <span style={m.errorText}>{nombreError}</span>
+              <span style={m.hint}>Debe contener entre 3 y 100 caracteres</span>
+            </div>
+          )}
+        </div>
+
+        <div style={m.row2}>
+          <div style={m.fieldGroup}>
+            <label style={m.label}>Nota objetivo</label>
+            <input
+              style={{ ...m.input, ...(notaError ? m.inputError : {}) }}
+              placeholder="0.0 - 5.0"
+              value={nota}
+              type="number"
+              min="0"
+              max="5"
+              step="0.1"
+              onChange={(e) => setNota(e.target.value)}
+            />
+            {notaError && <span style={m.errorText}>{notaError}</span>}
+            {!notaError && <span style={m.hint}>La nota debe estar entre 0.0 y 5.0</span>}
+          </div>
+          <div style={m.fieldGroup}>
+            <label style={m.label}>
+              Materia asociada <span style={m.opcional}>(Opcional)</span>
+            </label>
+            <div style={m.selectWrap}>
+               <select
+                 style={m.select}
+                 value={materia}
+                 onChange={(e) => setMateria(e.target.value)}
+               >
+                 <option value="">Seleccionar materia...</option>
+                 {subjects.map((s) => (
+                   <option key={s.id || s.name || s} value={s.id || s.name || s}>
+                     {s.name || s.nombre || s.label || s}
+                   </option>
+                 ))}
+               </select>
+              <div style={m.selectChevron}>
+                <LocalChevronDown isDark={isDark} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={m.sugerenciaBox}>
+          <div style={{ flexShrink: 0, width: 52, height: 52 }}>
+            <img
+              src={MascotaGif}
+              alt="ALBERT"
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            />
+          </div>
+          <div style={m.sugerenciaContent}>
+            <div style={m.sugerenciaHeader}>
+              <Sparkles size={14} color="#FF5B2E" />
+              <span style={m.sugerenciaTag}>Sugerencia Inteligente IA</span>
+            </div>
+            <p style={m.sugerenciaText}>
+              Las metas específicas y medibles aumentan la probabilidad de éxito en un 40%. Intenta
+              definir qué promedio buscas por corte para esta materia.
+            </p>
+          </div>
+        </div>
+
+        <div style={m.modalFooter}>
+          <div style={m.autoSaveNote}>
+            <Save size={12} color={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)'} />
+            <span style={m.autoSaveText}>
+              Todos los cambios se guardarán
+              <br />
+              automáticamente en tu perfil académico.
+            </span>
+          </div>
+          <div style={m.footerBtns}>
+            <button style={m.cancelBtn} onClick={onClose} disabled={loading}>
+              Cancelar
+            </button>
+            <button style={{ ...m.guardarBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleGuardar} disabled={loading}>
+              {loading ? <><Spinner /> Guardando...</> : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                    stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="12" r="6" />
+                    <circle cx="12" cy="12" r="2" />
+                  </svg>
+                  Guardar Meta
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const getModalStyles = (isDark) => ({
+  overlay: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 1000,
+    background: 'rgba(0,0,0,0.65)',
+    backdropFilter: 'blur(4px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modal: {
+    background: isDark ? '#1A1A1F' : '#FFFFFF',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(220,193,181,0.40)'}`,
+    borderRadius: 20,
+    padding: '28px 30px',
+    width: '100%',
+    maxWidth: 560,
+    boxShadow: isDark
+      ? '0 0 0 1px rgba(196,16,122,0.20), 0 24px 60px rgba(0,0,0,0.70)'
+      : '0 24px 60px rgba(0,0,0,0.14)',
+  },
+  modalHeader: { display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 20 },
+  modalIconWrap: {
+    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+    background: isDark
+      ? 'linear-gradient(135deg, #C4107A, #FF5B2E)'
+      : 'linear-gradient(135deg, #FF8430, #F7306D)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: isDark
+      ? '0 4px 16px rgba(196,16,122,0.40)'
+      : '0 4px 16px rgba(255,132,48,0.35)',
+  },
+  modalTitleGroup: { flex: 1 },
+  modalTitle: {
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    fontSize: 18, fontWeight: 800, margin: '0 0 4px 0',
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+  },
+  modalSubtitle: {
+    fontSize: 12, margin: 0,
+    color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  closeBtn: {
+    background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
+    borderRadius: 8, width: 34, height: 34,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', flexShrink: 0,
+  },
+  divider: {
+    height: 1,
+    background: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
+    marginBottom: 22,
+  },
+  fieldGroup: { display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 18 },
+  labelRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  label: {
+    fontSize: 12, fontWeight: 600,
+    color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.70)',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  opcional: { color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)', fontWeight: 400 },
+  charCount: {
+    fontSize: 10,
+    color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.30)',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  input: {
+    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
+    borderRadius: 10, padding: '11px 14px',
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    fontSize: 13, fontFamily: "'Poppins', sans-serif",
+    outline: 'none', width: '100%', boxSizing: 'border-box',
+  },
+  inputError: { border: '1px solid rgba(240,7,7,0.60)', background: 'rgba(240,7,7,0.06)' },
+  errorRow: { display: 'flex', justifyContent: 'space-between' },
+  errorText: { fontSize: 10, color: '#F00707', fontFamily: "'Poppins', sans-serif" },
+  hint: {
+    fontSize: 10,
+    color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.35)',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  row2: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 14, marginBottom: 4 },
+  selectWrap: { position: 'relative' },
+  select: {
+    width: '100%', appearance: 'none',
+    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
+    borderRadius: 10, padding: '11px 36px 11px 14px',
+    color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.65)',
+    fontSize: 13, fontFamily: "'Poppins', sans-serif",
+    outline: 'none', cursor: 'pointer', boxSizing: 'border-box',
+  },
+  selectChevron: {
+    position: 'absolute', right: 12, top: '50%',
+    transform: 'translateY(-50%)', pointerEvents: 'none',
+  },
+  sugerenciaBox: {
+    display: 'flex', gap: 14, alignItems: 'center',
+    background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.07)',
+    border: `1px solid ${isDark ? 'rgba(196,16,122,0.20)' : 'rgba(255,132,48,0.25)'}`,
+    borderRadius: 12, padding: '14px 16px', marginBottom: 22,
+  },
+  sugerenciaContent: { flex: 1 },
+  sugerenciaHeader: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 },
+  sugerenciaTag: {
+    fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+    color: isDark ? '#FF5B2E' : '#FF8430', fontFamily: "'Poppins', sans-serif",
+  },
+  sugerenciaText: {
+    fontSize: 11, lineHeight: 1.55, margin: 0,
+    color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  modalFooter: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    paddingTop: 4, flexWrap: 'wrap', gap: 12,
+  },
+  autoSaveNote: { display: 'flex', alignItems: 'flex-start', gap: 7 },
+  autoSaveText: {
+    fontSize: 10, lineHeight: 1.5,
+    color: isDark ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.35)',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  footerBtns: { display: 'flex', gap: 10 },
+  cancelBtn: {
+    padding: '10px 20px',
+    background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+    border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
+    borderRadius: 10,
+    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)',
+    fontFamily: "'Poppins', sans-serif", fontSize: 13, fontWeight: 600, cursor: 'pointer',
+  },
+  guardarBtn: {
+    padding: '10px 20px',
+    background: isDark
+      ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
+      : 'linear-gradient(90deg, #FF8430, #F7306D)',
+    border: 'none', borderRadius: 10, color: '#fff',
+    fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 13, fontWeight: 700,
+    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7,
+    boxShadow: isDark
+      ? '0 4px 16px rgba(196,16,122,0.40)'
+      : '0 4px 16px rgba(247,48,109,0.30)',
+  },
+});
+
+ const AcademicGoals = () => {
+   const { isDark } = useTheme();
+   const [showModal, setShowModal] = useState(false);
+   const [loadingMetas, setLoadingMetas] = useState(true);
+   const [loadingSummary, setLoadingSummary] = useState(true);
+   const [loadingSubjects, setLoadingSubjects] = useState(true);
+   const [metas, setMetas] = useState([]);
+   const [summary, setSummary] = useState(null);
+   const [subjects, setSubjects] = useState([]);
+   const [aiSuggestion, setAiSuggestion] = useState(null);
+   const navigate = useNavigate();
+   const s = getStyles(isDark);
+   const t = createStyles(isDark);
+
+   const mapGoal = (g) => ({
+    id: g.id,
+    materia: g.subject || g.materia || g.name || '',
+    facultad: g.faculty || g.facultad || '',
+    actual: g.current_grade ?? g.currentGrade ?? g.nota_actual ?? g.actual ?? 0,
+    meta: g.target_grade ?? g.targetGrade ?? g.nota_meta ?? g.meta ?? 0,
+    estado: g.status || g.estado || '',
+    estadoColor: g.estadoColor ?? (isDark ? '#FF5B2E' : '#FF8430'),
+    estadoBg: g.estadoBg ?? (isDark ? 'rgba(255,91,46,0.15)' : 'rgba(255,132,48,0.12)'),
+    icon: Library,
+    iconColor: g.iconColor ?? (isDark ? '#FF5B2E' : '#FF8430'),
+  });
+
+  const fetchMetas = async () => {
+    try {
+      const data = await academicService.getGoals();
+      const list = Array.isArray(data) ? data : data.goals || data.data || [];
+      setMetas(list.map(mapGoal));
+    } catch {
+      setMetas([]);
+    } finally {
+      setLoadingMetas(false);
+    }
+  };
+
+  const fetchSummary = async () => {
+    try {
+      const data = await academicService.getSummary();
+      setSummary(data);
+    } catch {
+      setSummary(null);
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const data = await academicService.getSubjects();
+      const items = data.subjects || data.data || data || [];
+      setSubjects(items);
+    } catch {
+      setSubjects([]);
+    } finally {
+      setLoadingSubjects(false);
+    }
+  };
+
+  const fetchAiSuggestion = async () => {
+    try {
+      const data = await notificationService.getTopStudySuggestion().catch(() => null);
+      if (data) {
+        const text = data.suggestion || data.text || data.message || data.advice || data.title || '';
+        if (text) setAiSuggestion(text);
+      }
+    } catch {
+      // silent
+    }
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchMetas();
+    fetchSummary();
+    fetchSubjects();
+    fetchAiSuggestion();
+  }, []);
+
+   return (
+     <AppLayout>
+       <div style={s.metaGeneralCard}>
+        {(() => {
+          const current = summary?.current_average ?? summary?.currentAverage ?? summary?.promedio_actual ?? 0;
+          const target = summary?.target_average ?? summary?.targetAverage ?? summary?.promedio_objetivo ?? 0;
+          const pct = current > 0 && target > 0 ? Math.min(Math.round((current / target) * 100), 100) : 0;
+          return (
+            <>
+              <CircleProgress pct={pct} isDark={isDark} size={120} label="GLOBAL" />
+              <div style={s.metaGeneralInfo}>
+                <div style={s.metaGeneralTitle}>Meta General del Ciclo</div>
+                <div style={s.metaGeneralRow}>
+                  <div style={s.metaGeneralStat}>
+                    <div style={s.statLabel}>PROMEDIO OBJETIVO</div>
+                    <div style={s.statVal}>
+                      {target > 0 ? target : '-'}
+                      <StatusBadge
+                        label="ALTO"
+                        color="#FF8430"
+                        bgColor={isDark ? 'rgba(255,132,48,0.18)' : 'rgba(255,132,48,0.12)'}
+                      />
+                    </div>
+                  </div>
+                  <div style={s.metaGeneralStat}>
+                    <div style={s.statLabel}>PROMEDIO ACTUAL</div>
+                    <div style={s.statVal}>
+                      {current > 0 ? current : '-'}
+                      <StatusBadge
+                        label="EN CAMINO"
+                        color="#FF5B2E"
+                        bgColor={isDark ? 'rgba(255,91,46,0.18)' : 'rgba(255,91,46,0.10)'}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <ProgressBar value={pct} isDark={isDark} />
+              </div>
+            </>
+          );
+        })()}
+        <div style={s.trendBtn}>
+          <TrendingUp size={24} color={isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.30)'} />
+        </div>
+        <div style={s.statsCol}>
+          <div style={s.statCard}>
+            <div>
+              <div style={s.statCardLabel}>EN RIESGO</div>
+              <div style={s.statCardNum}>{summary?.at_risk ?? summary?.atRisk ?? summary?.en_riesgo ?? '-'}</div>
+            </div>
+            <div style={s.statCardIcon}>
+              <AlertTriangle size={20} color="#FF5B2E" />
+            </div>
+          </div>
+          <div style={s.statCard}>
+            <div>
+              <div style={s.statCardLabel}>CUMPLIDAS</div>
+              <div style={{ ...s.statCardNum, color: '#22C55E' }}>{summary?.completed ?? summary?.cumplidas ?? '-'}</div>
+            </div>
+            <div style={s.statCardIcon}>
+              <Check size={20} color="#22C55E" />
+            </div>
+          </div>
+          <div style={s.statCard}>
+            <div>
+              <div style={s.statCardLabel}>RENDIMIENTO</div>
+              <div style={{ ...s.statCardNum, color: isDark ? '#FF5B2E' : '#FF8430' }}>
+                {summary?.performance ?? summary?.rendimiento ?? '-'}
+              </div>
+            </div>
+            <div style={s.statCardIcon}>
+              <BarChart3 size={20} color={isDark ? '#FF5B2E' : '#FF8430'} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={s.sectionHeader}>
+        <div style={s.sectionTitleRow}>
+          <List size={14} color={isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)'} />
+          <span style={s.sectionTitle}>Metas por Materia</span>
+        </div>
+        <button style={s.verTodasBtn}>VER TODAS</button>
+      </div>
+
+      <div style={s.metasGrid}>
+        {loadingMetas ? (
+          <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic', gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0' }}>Cargando metas...</span>
+        ) : metas.length === 0 ? (
+          <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic', gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0' }}>Sin metas registradas</span>
+        ) : (
+          metas.map((m) => (
+            <div key={m.id} style={s.materiaMetaCard}>
+              <div style={s.materiaMetaTop}>
+                <div style={{ ...s.materiaMetaIcon, background: m.iconColor + '20' }}>
+                  <m.icon size={18} color={m.iconColor} />
+                </div>
+                <StatusBadge label={m.estado} color={m.estadoColor} bgColor={m.estadoBg} />
+              </div>
+              <div style={s.materiaNombre}>{m.materia}</div>
+              <div style={s.materiaFacultad}>{m.facultad}</div>
+              <div style={s.metaRow}>
+                <span style={s.metaLabel}>
+                  Actual: <strong style={{ color: m.estadoColor }}>{m.actual}</strong>
+                </span>
+                <span style={s.metaLabel}>
+                  Meta:{' '}
+                  <strong
+                    style={{ color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)' }}
+                  >
+                    {m.meta}
+                  </strong>
+                </span>
+              </div>
+              <ProgressBar value={(m.actual / m.meta) * 100} isDark={isDark} color={m.estadoColor} />
+            </div>
+          ))
+        )}
+
+        <div style={s.addMetaCard} onClick={() => setShowModal(true)}>
+          <Plus size={24} color={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.25)'} />
+          <span style={s.addMetaText}>Agregar Nueva Meta</span>
+        </div>
+      </div>
+
+      <div style={s.iaCard}>
+        <div style={s.iaImgWrap}>
+          <img src={MascotaGif} alt="ALBERT" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        </div>
+         <div style={s.iaContent}>
+           <div style={s.iaTitle}>Recomendaciones IA</div>
+           <p style={s.iaText}>
+             &ldquo;{aiSuggestion
+               ? aiSuggestion
+               : 'Mantén la constancia en tus estudios. Revisa tus metas por materia y ajusta tu plan de estudio según el progreso que vayas registrando.'}
+             &rdquo;
+           </p>
+         </div>
+         <button style={s.saveBtn}>
+           <Save size={16} color="#fff" /> GUARDAR METAS
+         </button>
+       </div>
+
+       {showModal && <AddMetaModal isDark={isDark} onClose={() => { setShowModal(false); fetchMetas(); }} subjects={subjects} />}
+    </AppLayout>
+  );
+};
+
+const getStyles = (isDark) => {
+  const t = createStyles(isDark);
+  return {
+    metaGeneralCard: {
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 16, padding: '20px 24px', marginBottom: 20,
+      boxShadow: t.cardShadow, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap',
+    },
+    metaGeneralInfo: { flex: 1, minWidth: 200 },
+    metaGeneralTitle: {
+      fontFamily: t.fontPrimary, fontSize: 15, fontWeight: 700,
+      color: t.textPrimary, marginBottom: 14,
+    },
+    metaGeneralRow: { display: 'flex', gap: 24, marginBottom: 14 },
+    metaGeneralStat: {},
+    statLabel: {
+      fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+      color: t.textSecondary, marginBottom: 4,
+    },
+    statVal: {
+      fontFamily: t.fontPrimary, fontSize: 22, fontWeight: 800,
+      color: t.textPrimary, display: 'flex', alignItems: 'center', gap: 8,
+    },
+    trendBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' },
+    statsCol: { display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 },
+    statCard: {
+      background: t.inputBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 10, padding: '10px 14px',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, minWidth: 160,
+    },
+    statCardLabel: {
+      fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase',
+      color: t.textSecondary, marginBottom: 2,
+    },
+    statCardNum: { fontFamily: t.fontPrimary, fontSize: 24, fontWeight: 800, color: t.textPrimary },
+    statCardIcon: { display: 'flex', alignItems: 'center' },
+    sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+    sectionTitleRow: { display: 'flex', alignItems: 'center', gap: 8 },
+    sectionTitle: { fontSize: 14, fontWeight: 700, color: t.textPrimary, fontFamily: t.fontSecondary },
+    verTodasBtn: {
+      background: 'none', border: 'none', cursor: 'pointer',
+      fontSize: 11, fontWeight: 700, letterSpacing: '0.08em',
+      color: isDark ? '#FF5B2E' : '#F7306D', fontFamily: t.fontSecondary,
+    },
+    metasGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14, marginBottom: 20 },
+    materiaMetaCard: {
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 14, padding: '16px', boxShadow: t.cardShadow,
+    },
+    materiaMetaTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+    materiaMetaIcon: { width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    materiaNombre: { fontSize: 13, fontWeight: 700, color: t.textPrimary, fontFamily: t.fontSecondary, marginBottom: 3 },
+    materiaFacultad: { fontSize: 10, color: t.textSecondary, marginBottom: 12 },
+    metaRow: { display: 'flex', justifyContent: 'space-between', marginBottom: 6 },
+    metaLabel: { fontSize: 11, color: t.textSecondary },
+    addMetaCard: {
+      background: 'transparent', border: `1.5px dashed ${t.cardBorder}`,
+      borderRadius: 14, padding: '16px',
+      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      gap: 8, cursor: 'pointer', minHeight: 120,
+    },
+    addMetaText: { fontSize: 12, fontWeight: 500, color: t.textMuted },
+    iaCard: {
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 16, padding: '20px 24px', boxShadow: t.cardShadow,
+      display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
+    },
+    iaImgWrap: { width: 80, height: 80, flexShrink: 0 },
+    iaContent: { flex: 1 },
+    iaTitle: { fontFamily: t.fontPrimary, fontSize: 14, fontWeight: 700, color: isDark ? '#FF5B2E' : '#FF8430', marginBottom: 8 },
+    iaText: { fontSize: 12, color: t.textSecondary, lineHeight: 1.6, margin: 0 },
+    saveBtn: {
+      flexShrink: 0, background: t.primaryGradient, border: 'none',
+      borderRadius: 10, padding: '12px 20px', color: '#fff',
+      fontFamily: t.fontPrimary, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+      display: 'flex', alignItems: 'center', gap: 8, letterSpacing: '0.04em',
+    },
+  };
+};
+
+export default AcademicGoals;

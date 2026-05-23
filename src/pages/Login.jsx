@@ -1,44 +1,63 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AuthLayout from '../components/Layout/AuthLayout';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 import ErrorIcon from '../components/ErrorIcon';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { validateEmail, validatePassword } from '../utils/validators';
+import { createStyles } from '../theme/createStyles';
 
-const Login = ({ theme = 'light', onToggleTheme }) => {
+const EyeIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+const EyeOffIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+);
+
+const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '' });
-
-  const isDark = theme === 'dark';
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+  const { login } = useAuth();
+  const { isDark } = useTheme();
   const navigate = useNavigate();
 
   const validate = () => {
-    const newErrors = { email: '', password: '' };
-    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRx.test(email)) newErrors.email = 'Correo inválido';
-    if (!password || password.length < 8) newErrors.password = 'Mínimo 8 caracteres requeridos';
-    setErrors(newErrors);
-    return !newErrors.email && !newErrors.password;
+    const eError = validateEmail(email);
+    const pError = validatePassword(password);
+    setErrors({ email: eError, password: pError });
+    return !eError && !pError;
   };
 
-  const handleSubmit = () => {
-    if (validate()) {
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      await login({ email, password, rememberMe: remember });
       navigate('/academic-profile');
+    } catch {
+      setErrors({ email: 'Credenciales inválidas o servidor no disponible' });
+    } finally {
+      setLoading(false);
     }
   };
 
   const s = getStyles(isDark);
 
   return (
-    <div style={s.root}>
-      <div style={s.grid} />
-
-      <button style={s.themeBtn} onClick={onToggleTheme}>
-        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
-        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-      </button>
-
-      <div style={s.page}>
+    <AuthLayout>
+      <div style={s.page} className={isExiting ? 'exit-transition' : ''}>
         <div style={s.card}>
           <h1 style={s.title}>¡Bienvenido de vuelta!</h1>
           <p style={s.subtitle}>Ingresa a tu cuenta</p>
@@ -50,14 +69,13 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
               type="email"
               placeholder="estudiante@mail.escuelang.edu.co"
               value={email}
-              onChange={e => {
+              onChange={(e) => {
                 setEmail(e.target.value);
-                if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+                if (errors.email) setErrors((p) => ({ ...p, email: '' }));
               }}
               onBlur={() => {
-                const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (email && !emailRx.test(email))
-                  setErrors(prev => ({ ...prev, email: 'Correo inválido' }));
+                const error = validateEmail(email);
+                if (email && error) setErrors((p) => ({ ...p, email: error }));
               }}
             />
             {errors.email && (
@@ -70,17 +88,21 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
 
           <div style={s.field}>
             <label style={s.label}>Contraseña</label>
-            <input
-              style={{ ...s.input, ...(errors.password ? s.inputError : {}) }}
-              type="password"
-              placeholder="Mínimo 8 caracteres"
-              value={password}
-              onChange={e => {
-                setPassword(e.target.value);
-                if (e.target.value.length >= 8)
-                  setErrors(prev => ({ ...prev, password: '' }));
-              }}
-            />
+            <div style={s.passWrap}>
+              <input
+                style={{ ...s.input, paddingRight: 40, ...(errors.password ? s.inputError : {}) }}
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Mínimo 8 caracteres"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (e.target.value.length >= 8) setErrors((p) => ({ ...p, password: '' }));
+                }}
+              />
+              <button style={s.eyeBtn} type="button" onClick={() => setShowPassword(p => !p)} tabIndex={-1} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
             {errors.password && (
               <div style={s.errorRow}>
                 <ErrorIcon />
@@ -94,8 +116,13 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
               <input
                 type="checkbox"
                 checked={remember}
-                onChange={e => setRemember(e.target.checked)}
-                style={{ width: 14, height: 14, accentColor: isDark ? '#C4107A' : '#FF8430', cursor: 'pointer' }}
+                onChange={(e) => setRemember(e.target.checked)}
+                style={{
+                  width: 14,
+                  height: 14,
+                  accentColor: isDark ? '#C4107A' : '#FF8430',
+                  cursor: 'pointer',
+                }}
               />
               <span style={s.checkLabel}>Recordarme</span>
             </label>
@@ -104,8 +131,8 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
             </button>
           </div>
 
-          <button style={s.btn} onClick={handleSubmit}>
-            Iniciar Sesión
+          <button style={{ ...s.btn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSubmit} disabled={loading}>
+            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
 
           <p style={s.registerRow}>
@@ -117,189 +144,160 @@ const Login = ({ theme = 'light', onToggleTheme }) => {
         </div>
 
         <div style={s.mascotWrap}>
-          <img src={MascotaGif} alt="AI.BERT mascota" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+          <img
+            src={MascotaGif}
+            alt="AI.BERT mascota"
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
-const getStyles = (isDark) => ({
-  root: {
-    position: 'relative',
-    minHeight: '100vh',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    fontFamily: "'Poppins', sans-serif",
-    transition: 'background-color 0.35s',
-  },
-  grid: {
-    position: 'fixed',
-    inset: 0,
-    backgroundImage: `
-      linear-gradient(${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px),
-      linear-gradient(90deg, ${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px)
-    `,
-    backgroundSize: '36px 36px',
-    opacity: 0.55,
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-  themeBtn: {
-    position: 'fixed',
-    top: 20,
-    right: 24,
-    zIndex: 100,
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 50,
-    padding: '6px 14px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    fontFamily: "'Poppins', sans-serif",
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-  },
-  page: {
-    position: 'relative',
-    zIndex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 56,
-    padding: '32px 24px',
-    width: '100%',
-    maxWidth: 900,
-    flexWrap: 'wrap',
-  },
-  card: {
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 20,
-    padding: '40px 36px',
-    width: '100%',
-    maxWidth: 360,
-    boxShadow: isDark
-      ? '0 0 0 1px rgba(196,16,122,0.35), 0 8px 48px rgba(196,16,122,0.22), 0 2px 16px rgba(0,0,0,0.60)'
-      : '0 8px 40px rgba(253,214,189,0.60), 0 2px 12px rgba(196,16,122,0.08)',
-    flexShrink: 0,
-  },
-  title: {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 26,
-    fontWeight: 800,
-    background: isDark
-      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    lineHeight: 1.2,
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-    fontWeight: 400,
-    marginBottom: 28,
-  },
-  field: { marginBottom: 18 },
-  label: {
-    display: 'block',
-    fontSize: 10,
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)',
-    marginBottom: 6,
-  },
-  input: {
-    width: '100%',
-    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
-    borderRadius: 10,
-    padding: '11px 14px',
-    fontFamily: "'Poppins', sans-serif",
-    fontSize: 13,
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    boxSizing: 'border-box',
-  },
-  inputError: {
-    borderColor: '#F00707',
-    boxShadow: '0 0 0 3px rgba(240,7,7,0.12)',
-  },
-  errorRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 5,
-    fontSize: 11.5,
-    color: '#F00707',
-    marginTop: 5,
-    fontWeight: 500,
-  },
-  checkRow: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 22,
-  },
-  checkWrap: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 7,
-    cursor: 'pointer',
-  },
-  checkLabel: {
-    fontSize: 12,
-    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
-  },
-  link: {
-    fontSize: 12,
-    color: isDark ? '#FF5B2E' : '#F7306D',
-    textDecoration: 'none',
-    fontWeight: 500,
-    cursor: 'pointer',
-    background: 'none',
-    border: 'none',
-    padding: 0,
-    fontFamily: "'Poppins', sans-serif",
-  },
-  btn: {
-    width: '100%',
-    padding: 13,
-    border: 'none',
-    borderRadius: 10,
-    background: isDark
-      ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    color: '#fff',
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 14,
-    fontWeight: 700,
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-    cursor: 'pointer',
-    marginBottom: 18,
-  },
-  registerRow: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
-  },
-  mascotWrap: {
-    flexShrink: 0,
-    width: 300,
-    height: 300,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const getStyles = (isDark) => {
+  const t = createStyles(isDark);
+  return {
+    page: {
+      position: 'relative',
+      zIndex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 56,
+      padding: '32px 24px',
+      width: '100%',
+      maxWidth: 1200,
+      flexWrap: 'wrap',
+    },
+    card: {
+      background: t.cardBg,
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: t.xxl,
+      padding: 'clamp(32px, 5vh, 48px) clamp(28px, 4vw, 42px)',
+      width: '100%',
+      maxWidth: 480,
+      boxShadow: t.cardShadow,
+      flexShrink: 0,
+    },
+    title: {
+      fontFamily: t.fontPrimary,
+      fontSize: 'clamp(26px, 2.5vw, 36px)',
+      fontWeight: 800,
+      backgroundImage: t.primaryGradient,
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
+      width: '100%',
+      whiteSpace: 'nowrap',
+      lineHeight: 1.2,
+      margin: '0 auto 6px',
+      textAlign: 'center',
+    },
+    subtitle: {
+      fontSize: 14,
+      color: isDark ? 'rgba(255,255,255,0.82)' : 'rgba(0,0,0,0.65)',
+      fontWeight: 400,
+      marginBottom: 28,
+      textAlign: 'center',
+      width: '100%',
+    },
+    field: { marginBottom: 22 },
+    label: {
+      display: 'block',
+      fontSize: 'clamp(10px, 0.8vw, 11px)',
+      fontWeight: 600,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      color: t.textSecondary,
+      marginBottom: 8,
+    },
+    input: {
+      width: '100%',
+      background: t.inputBg,
+      border: `1px solid ${t.inputBorder}`,
+      borderRadius: t.md,
+      padding: '13px 16px',
+      fontFamily: t.fontSecondary,
+      fontSize: 'clamp(13px, 1vw, 15px)',
+      color: t.textPrimary,
+      outline: 'none',
+      transition: 'border-color 0.2s',
+      boxSizing: 'border-box',
+    },
+    inputError: { borderColor: t.error, boxShadow: `0 0 0 3px ${t.error}22` },
+    errorRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 5,
+      fontSize: 11.5,
+      color: t.error,
+      marginTop: 5,
+      fontWeight: 500,
+    },
+    checkRow: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 22,
+    },
+    checkWrap: { display: 'flex', alignItems: 'center', gap: 7, cursor: 'pointer' },
+    checkLabel: { fontSize: 12, color: t.textSecondary },
+    link: {
+      fontSize: 12,
+      color: isDark ? '#FF5B2E' : '#F7306D',
+      textDecoration: 'none',
+      fontWeight: 500,
+      cursor: 'pointer',
+      background: 'none',
+      border: 'none',
+      padding: 0,
+      fontFamily: t.fontSecondary,
+    },
+    btn: {
+      width: '100%',
+      padding: 15,
+      border: 'none',
+      borderRadius: t.md,
+      background: t.primaryGradient,
+      color: '#fff',
+      fontFamily: t.fontPrimary,
+      fontSize: 'clamp(14px, 1.2vw, 16px)',
+      fontWeight: 700,
+      letterSpacing: '0.05em',
+      textTransform: 'uppercase',
+      cursor: 'pointer',
+      marginBottom: 20,
+    },
+    registerRow: {
+      textAlign: 'center',
+      fontSize: 12,
+      color: t.textSecondary,
+    },
+    passWrap: { position: 'relative' },
+    eyeBtn: {
+      position: 'absolute',
+      right: 10,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: 4,
+      display: 'flex',
+      alignItems: 'center',
+      color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)',
+    },
+    mascotWrap: {
+      flexShrink: 0,
+      width: 'clamp(300px, 30vw, 500px)',
+      height: 'clamp(300px, 30vw, 500px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 16,
+    },
+  };
+};
 
 export default Login;

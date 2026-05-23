@@ -1,50 +1,63 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AuthLayout from '../components/Layout/AuthLayout';
 import ErrorIcon from '../components/ErrorIcon';
+import { useTheme } from '../context/ThemeContext';
+import { validateEmail } from '../utils/validators';
+import { createStyles } from '../theme/createStyles';
+import authService from '../services/authService';
 
-const ForgotPassword = ({ theme = 'light', onToggleTheme }) => {
+const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState({ email: '' });
-  const isDark = theme === 'dark';
+  const [loading, setLoading] = useState(false);
+  const { isDark } = useTheme();
   const navigate = useNavigate();
 
   const validate = () => {
-    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRx.test(email)) {
-      setErrors({ email: 'Correo inválido' });
-      return false;
-    }
-    setErrors({ email: '' });
-    return true;
+    const error = validateEmail(email);
+    setErrors({ email: error });
+    return !error;
   };
 
-  const handleSubmit = () => {
-    if (validate()) {
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      await authService.forgotPassword({ email });
       navigate('/forgot-password/sent', { state: { email } });
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || 'Error al enviar correo';
+      setErrors({ email: msg });
+    } finally {
+      setLoading(false);
     }
   };
-
   const s = getStyles(isDark);
 
   return (
-    <div style={s.root}>
-      <div style={s.grid} />
-
-      <button style={s.themeBtn} onClick={onToggleTheme}>
-        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
-        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-      </button>
-
-      <div style={s.card}>
+    <AuthLayout>
+      <div style={s.page}>
         <div style={s.iconWrap}>
           <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-            <rect x="7" y="16" width="22" height="16" rx="3"
-              stroke="url(#lockGrad)" strokeWidth="2" fill="none" />
-            <path d="M12 16v-5a6 6 0 1 1 12 0v5"
-              stroke="url(#lockGrad)" strokeWidth="2" strokeLinecap="round" />
+            <rect
+              x="7"
+              y="16"
+              width="22"
+              height="16"
+              rx="3"
+              stroke="url(#lockGrad)"
+              strokeWidth="2"
+            />
+            <path
+              d="M11 16v-5a7 7 0 1 1 14 0v5"
+              stroke="url(#lockGrad)"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
             <circle cx="18" cy="24" r="2" fill="url(#lockGrad)" />
             <defs>
-              <linearGradient id="lockGrad" x1="7" y1="7" x2="29" y2="32" gradientUnits="userSpaceOnUse">
+              <linearGradient id="lockGrad" x1="7" y1="11" x2="29" y2="32">
                 <stop stopColor={isDark ? '#FF5B2E' : '#FF8430'} />
                 <stop offset="1" stopColor={isDark ? '#C4107A' : '#F7306D'} />
               </linearGradient>
@@ -52,11 +65,9 @@ const ForgotPassword = ({ theme = 'light', onToggleTheme }) => {
           </svg>
         </div>
 
-        <h1 style={s.title}>Recuperar Contraseña</h1>
+        <h1 style={s.title}>¿Olvidaste tu contraseña?</h1>
         <p style={s.description}>
-          Ingresa tu correo electrónico institucional y a continuación te
-          enviaremos un enlace seguro con las instrucciones para que
-          puedas restablecer tu acceso.
+          No te preocupes, dinos tu correo y te enviaremos instrucciones para recuperarla.
         </p>
 
         <div style={s.field}>
@@ -66,14 +77,13 @@ const ForgotPassword = ({ theme = 'light', onToggleTheme }) => {
             type="email"
             placeholder="estudiante@mail.escuelang.edu.co"
             value={email}
-            onChange={e => {
+            onChange={(e) => {
               setEmail(e.target.value);
               if (errors.email) setErrors({ email: '' });
             }}
             onBlur={() => {
-              const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (email && !emailRx.test(email))
-                setErrors({ email: 'Correo inválido' });
+              const error = validateEmail(email);
+              if (email && error) setErrors({ email: error });
             }}
           />
           {errors.email && (
@@ -84,177 +94,129 @@ const ForgotPassword = ({ theme = 'light', onToggleTheme }) => {
           )}
         </div>
 
-        <button style={s.btn} onClick={handleSubmit}>
-          Enviar Instrucciones
+        <button style={{ ...s.btn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSubmit} disabled={loading}>
+          {loading ? 'Enviando...' : 'Recuperar Contraseña'}
         </button>
 
         <p style={s.backRow}>
-          ¿Recordaste tu contraseña?{' '}
           <button style={s.link} onClick={() => navigate('/login')}>
-            Inicia sesión
+            Volver al inicio de sesión
           </button>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
-const getStyles = (isDark) => ({
-  root: {
-    position: 'relative',
-    minHeight: '100vh',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    fontFamily: "'Poppins', sans-serif",
-    transition: 'background-color 0.35s',
-  },
-  grid: {
-    position: 'fixed',
-    inset: 0,
-    backgroundImage: `
-      linear-gradient(${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px),
-      linear-gradient(90deg, ${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px)
-    `,
-    backgroundSize: '36px 36px',
-    opacity: 0.55,
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-  themeBtn: {
-    position: 'fixed',
-    top: 20,
-    right: 24,
-    zIndex: 100,
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 50,
-    padding: '6px 14px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    fontFamily: "'Poppins', sans-serif",
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-  },
-  card: {
-    position: 'relative',
-    zIndex: 1,
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 20,
-    padding: '40px 40px 32px',
-    width: '100%',
-    maxWidth: 420,
-    boxShadow: isDark
-      ? '0 0 0 1px rgba(196,16,122,0.35), 0 8px 48px rgba(196,16,122,0.22), 0 2px 16px rgba(0,0,0,0.60)'
-      : '0 8px 40px rgba(253,214,189,0.60), 0 2px 12px rgba(196,16,122,0.08)',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    textAlign: 'center',
-    margin: '0 24px',
-  },
-  iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: '50%',
-    border: `2px solid ${isDark ? 'rgba(196,16,122,0.45)' : 'rgba(247,48,109,0.30)'}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.06)',
-  },
-  title: {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 24,
-    fontWeight: 800,
-    background: isDark
-      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    marginBottom: 12,
-  },
-  description: {
-    fontSize: 13,
-    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)',
-    lineHeight: 1.65,
-    marginBottom: 24,
-    maxWidth: 320,
-  },
-  field: { width: '100%', marginBottom: 18, textAlign: 'left' },
-  label: {
-    display: 'block',
-    fontSize: 10,
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)',
-    marginBottom: 6,
-  },
-  input: {
-    width: '100%',
-    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
-    borderRadius: 10,
-    padding: '11px 14px',
-    fontFamily: "'Poppins', sans-serif",
-    fontSize: 13,
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    boxSizing: 'border-box',
-  },
-  inputError: {
-    borderColor: '#F00707',
-    boxShadow: '0 0 0 3px rgba(240,7,7,0.12)',
-  },
-  errorRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 5,
-    fontSize: 11.5,
-    color: '#F00707',
-    marginTop: 5,
-    fontWeight: 500,
-  },
-  btn: {
-    width: '100%',
-    padding: 13,
-    border: 'none',
-    borderRadius: 10,
-    background: isDark
-      ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    color: '#fff',
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 14,
-    fontWeight: 700,
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-    cursor: 'pointer',
-    marginBottom: 20,
-  },
-  backRow: {
-    fontSize: 12,
-    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
-  },
-  link: {
-    fontSize: 12,
-    color: isDark ? '#FF5B2E' : '#F7306D',
-    textDecoration: 'none',
-    fontWeight: 600,
-    cursor: 'pointer',
-    background: 'none',
-    border: 'none',
-    padding: 0,
-    fontFamily: "'Poppins', sans-serif",
-  },
-});
+const getStyles = (isDark) => {
+  const t = createStyles(isDark);
+  return {
+    page: {
+      position: 'relative',
+      zIndex: 1,
+      background: t.cardBg,
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: t.xxl,
+      padding: '40px 44px 36px',
+      width: '100%',
+      maxWidth: 420,
+      boxShadow: t.cardShadow,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+      margin: '0 24px',
+    },
+    iconWrap: {
+      width: 64,
+      height: 64,
+      borderRadius: '50%',
+      border: `2px solid ${isDark ? 'rgba(196,16,122,0.45)' : 'rgba(247,48,109,0.30)'}`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 20,
+      background: isDark ? 'rgba(196,16,122,0.08)' : 'rgba(255,132,48,0.06)',
+    },
+    title: {
+      fontFamily: t.fontPrimary,
+      fontSize: 24,
+      fontWeight: 800,
+      backgroundImage: t.primaryGradient,
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
+      width: 'fit-content',
+      margin: '0 auto',
+      marginBottom: 12,
+    },
+    description: {
+      fontSize: 13,
+      color: t.textSecondary,
+      lineHeight: 1.65,
+      marginBottom: 24,
+      maxWidth: 320,
+    },
+    field: { width: '100%', marginBottom: 18, textAlign: 'left' },
+    label: {
+      display: 'block',
+      fontSize: 10,
+      fontWeight: 600,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      color: t.textSecondary,
+      marginBottom: 6,
+    },
+    input: {
+      width: '100%',
+      background: t.inputBg,
+      border: `1px solid ${t.inputBorder}`,
+      borderRadius: t.md,
+      padding: '11px 14px',
+      fontFamily: t.fontSecondary,
+      fontSize: 13,
+      color: t.textPrimary,
+      outline: 'none',
+      transition: 'border-color 0.2s',
+      boxSizing: 'border-box',
+    },
+    inputError: { borderColor: t.error, boxShadow: `0 0 0 3px ${t.error}22` },
+    errorRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 5,
+      fontSize: 11.5,
+      color: t.error,
+      marginTop: 5,
+      fontWeight: 500,
+    },
+    btn: {
+      width: '100%',
+      padding: 13,
+      border: 'none',
+      borderRadius: t.md,
+      background: t.primaryGradient,
+      color: '#fff',
+      fontFamily: t.fontPrimary,
+      fontSize: 14,
+      fontWeight: 700,
+      letterSpacing: '0.05em',
+      textTransform: 'uppercase',
+      cursor: 'pointer',
+      marginBottom: 20,
+    },
+    backRow: { fontSize: 12, color: t.textSecondary },
+    link: {
+      fontSize: 12,
+      color: isDark ? '#FF5B2E' : '#F7306D',
+      fontWeight: 600,
+      cursor: 'pointer',
+      background: 'none',
+      border: 'none',
+      padding: 0,
+      fontFamily: t.fontSecondary,
+    },
+  };
+};
 
 export default ForgotPassword;

@@ -9,9 +9,63 @@ html, body, #root {
   height: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {
   margin: 0 !important;
   padding: 0 !important;
 }
+
+/* ── View Transition API Fix ── */
+
+/* Disable default cross-fade animation */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  display: block;
+}
+
+/* ── Smooth Transitions (Apple Style) ── */
+
+@keyframes appleFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.99) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes appleFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.01) translateY(-10px);
+  }
+}
+
+.page-transition {
+  animation: appleFadeIn 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+.exit-transition {
+  animation: appleFadeOut 0.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+}
+
+/* Stagger effects */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+
+/* Global scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+

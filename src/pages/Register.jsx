@@ -1,9 +1,77 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AuthLayout from '../components/Layout/AuthLayout';
 import MascotaGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 import ErrorIcon from '../components/ErrorIcon';
+import { ChevronDown } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import {
+  validateEmail,
+  validatePassword,
+  validateConfirmPassword,
+  validateRequired,
+} from '../utils/validators';
+import { createStyles } from '../theme/createStyles';
+import authService from '../services/authService';
 
-const Register = ({ theme = 'light', onToggleTheme }) => {
+const EyeIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+const EyeOffIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+);
+
+const PasswordField = ({ label, field, placeholder, value, error, show, onToggle, onChange, onBlur, s, isDark }) => (
+  <div style={s.field}>
+    <label style={s.label}>{label}</label>
+    <div style={s.passWrap}>
+      <input
+        style={{ ...s.input, paddingRight: 40, ...(error ? s.inputError : {}) }}
+        type={show ? 'text' : 'password'}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(field, e.target.value)}
+        onBlur={onBlur}
+      />
+      <button style={s.eyeBtn} type="button" onClick={onToggle} tabIndex={-1} aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
+        {show ? <EyeOffIcon /> : <EyeIcon />}
+      </button>
+    </div>
+    {error && (
+      <div style={s.errorRow}>
+        <ErrorIcon />
+        <span>{error}</span>
+      </div>
+    )}
+  </div>
+);
+
+const Field = ({ label, field, type = 'text', placeholder, value, error, onChange, onBlur, s }) => (
+  <div style={s.field}>
+    <label style={s.label}>{label}</label>
+    <input
+      style={{ ...s.input, ...(error ? s.inputError : {}) }}
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(field, e.target.value)}
+      onBlur={onBlur}
+    />
+    {error && (
+      <div style={s.errorRow}>
+        <ErrorIcon />
+        <span>{error}</span>
+      </div>
+    )}
+  </div>
+);
+
+const Register = () => {
   const [form, setForm] = useState({
     nombre: '',
     email: '',
@@ -12,89 +80,89 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
     confirmPassword: '',
   });
   const [errors, setErrors] = useState({});
-  const isDark = theme === 'dark';
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const { isDark } = useTheme();
   const navigate = useNavigate();
 
   const carreras = [
-    'Ing. Sistemas', 'Ing. Industrial', 'Ing. Civil',
-    'Ing. Electrónica', 'Administración', 'Contaduría',
-    'Derecho', 'Medicina', 'Psicología', 'Arquitectura',
+    'Ing. Sistemas',
+    'Ing. Industrial',
+    'Ing. Civil',
+    'Ing. Electrónica',
+    'Administración',
+    'Contaduría',
+    'Derecho',
+    'Medicina',
+    'Psicología',
+    'Arquitectura',
   ];
 
   const validate = () => {
-    const newErrors = {};
-    const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!form.nombre.trim()) newErrors.nombre = 'El nombre es requerido';
-    if (!form.email || !emailRx.test(form.email)) newErrors.email = 'Correo inválido';
-    if (!form.carrera) newErrors.carrera = 'Selecciona una carrera';
-    if (!form.password || form.password.length < 8) newErrors.password = 'Mínimo 8 caracteres requeridos';
-    if (!form.confirmPassword) newErrors.confirmPassword = 'Confirma tu contraseña';
-    else if (form.password !== form.confirmPassword) newErrors.confirmPassword = 'Las contraseñas no coinciden';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const e = {
+      nombre: validateRequired(form.nombre, 'El nombre'),
+      email: validateEmail(form.email),
+      carrera: validateRequired(form.carrera, 'La carrera'),
+      password: validatePassword(form.password),
+      confirmPassword: validateConfirmPassword(form.password, form.confirmPassword),
+    };
+    setErrors(e);
+    return !Object.values(e).some((msg) => msg !== '');
   };
 
   const handleChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
+    setForm((p) => ({ ...p, [field]: value }));
+    if (errors[field]) setErrors((p) => ({ ...p, [field]: '' }));
   };
 
-  const handleSubmit = () => {
-    if (validate()) {
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      await authService.register(form);
       navigate('/verify-email');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || 'Error al registrar';
+      setErrors((p) => ({ ...p, email: msg }));
+    } finally {
+      setLoading(false);
     }
   };
 
   const s = getStyles(isDark);
-
-  const Field = ({ label, field, type = 'text', placeholder }) => (
-    <div style={s.field}>
-      <label style={s.label}>{label}</label>
-      <input
-        style={{ ...s.input, ...(errors[field] ? s.inputError : {}) }}
-        type={type}
-        placeholder={placeholder}
-        value={form[field]}
-        onChange={e => handleChange(field, e.target.value)}
-        onBlur={() => {
-          if (field === 'email') {
-            const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (form.email && !emailRx.test(form.email))
-              setErrors(prev => ({ ...prev, email: 'Correo inválido' }));
-          }
-          if (field === 'confirmPassword' && form.confirmPassword && form.password !== form.confirmPassword)
-            setErrors(prev => ({ ...prev, confirmPassword: 'Las contraseñas no coinciden' }));
-        }}
-      />
-      {errors[field] && (
-        <div style={s.errorRow}>
-          <ErrorIcon />
-          <span>{errors[field]}</span>
-        </div>
-      )}
-    </div>
-  );
+  const t = createStyles(isDark);
 
   return (
-    <div style={s.root}>
-      <div style={s.grid} />
-
-      <button style={s.themeBtn} onClick={onToggleTheme}>
-        <span style={{ fontSize: 16 }}>{isDark ? '☀️' : '🌙'}</span>
-        <span style={{ fontSize: 13 }}>{isDark ? 'Modo claro' : 'Modo oscuro'}</span>
-      </button>
-
+    <AuthLayout>
       <div style={s.page}>
-        <div style={s.mascotWrap}>
-          <img src={MascotaGif} alt="AI.BERT mascota" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-        </div>
-
         <div style={s.card}>
           <h1 style={s.title}>Crea tu cuenta</h1>
           <p style={s.subtitle}>¡Únete y comienza a organizar tu éxito!</p>
 
-          <Field label="Nombre Completo" field="nombre" placeholder="Isaac Burgos" />
-          <Field label="Correo Institucional" field="email" type="email" placeholder="estudiante@mail.escuelang.edu.co" />
+          <Field
+            label="Nombre Completo"
+            field="nombre"
+            placeholder="Isaac Burgos"
+            value={form.nombre}
+            error={errors.nombre}
+            onChange={handleChange}
+            s={s}
+          />
+          <Field
+            label="Correo Institucional"
+            field="email"
+            type="email"
+            placeholder="estudiante@mail.escuelang.edu.co"
+            value={form.email}
+            error={errors.email}
+            onChange={handleChange}
+            onBlur={() => {
+              const error = validateEmail(form.email);
+              if (form.email && error) setErrors((p) => ({ ...p, email: error }));
+            }}
+            s={s}
+          />
 
           <div style={s.field}>
             <label style={s.label}>Carrera</label>
@@ -102,17 +170,28 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
               <select
                 style={{ ...s.input, ...s.select, ...(errors.carrera ? s.inputError : {}) }}
                 value={form.carrera}
-                onChange={e => handleChange('carrera', e.target.value)}
+                onChange={(e) => handleChange('carrera', e.target.value)}
               >
-                <option value="" disabled>Selecciona tu carrera</option>
-                {carreras.map(c => (
-                  <option key={c} value={c}>{c}</option>
+                <option value="" disabled style={{ background: t.cardBg, color: t.textSecondary }}>
+                  Selecciona tu carrera
+                </option>
+                {carreras.map((c) => (
+                  <option key={c} value={c} style={{ background: t.cardBg, color: t.textPrimary }}>
+                    {c}
+                  </option>
                 ))}
               </select>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
-                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                <path d="M3 5l4 4 4-4" stroke={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ChevronDown
+                size={14}
+                color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'}
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                }}
+              />
             </div>
             {errors.carrera && (
               <div style={s.errorRow}>
@@ -122,11 +201,39 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
             )}
           </div>
 
-          <Field label="Contraseña" field="password" type="password" placeholder="Mínimo 8 caracteres" />
-          <Field label="Confirmar Contraseña" field="confirmPassword" type="password" placeholder="Vuelve a ingresar la contraseña" />
+          <PasswordField
+            label="Contraseña"
+            field="password"
+            placeholder="Mínimo 8 caracteres"
+            value={form.password}
+            error={errors.password}
+            show={showPassword}
+            onToggle={() => setShowPassword(p => !p)}
+            onChange={handleChange}
+            s={s}
+            isDark={isDark}
+          />
+          <PasswordField
+            label="Confirmar Contraseña"
+            field="confirmPassword"
+            placeholder="Vuelve a ingresar la contraseña"
+            value={form.confirmPassword}
+            error={errors.confirmPassword}
+            show={showConfirm}
+            onToggle={() => setShowConfirm(p => !p)}
+            onChange={handleChange}
+            onBlur={() => {
+              if (form.confirmPassword) {
+                const error = validateConfirmPassword(form.password, form.confirmPassword);
+                if (error) setErrors((p) => ({ ...p, confirmPassword: error }));
+              }
+            }}
+            s={s}
+            isDark={isDark}
+          />
 
-          <button style={s.btn} onClick={handleSubmit}>
-            Registrarte
+          <button style={{ ...s.btn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSubmit} disabled={loading}>
+            {loading ? 'Registrando...' : 'Registrarte'}
           </button>
 
           <p style={s.loginRow}>
@@ -136,178 +243,153 @@ const Register = ({ theme = 'light', onToggleTheme }) => {
             </button>
           </p>
         </div>
+
+        <div style={s.mascotWrap}>
+          <img
+            src={MascotaGif}
+            alt="AI.BERT mascota"
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
+        </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };
 
-const getStyles = (isDark) => ({
-  root: {
-    position: 'relative',
-    minHeight: '100vh',
-    backgroundColor: isDark ? '#050208' : '#FDF2EB',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    fontFamily: "'Poppins', sans-serif",
-    transition: 'background-color 0.35s',
-  },
-  grid: {
-    position: 'fixed',
-    inset: 0,
-    backgroundImage: `
-      linear-gradient(${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px),
-      linear-gradient(90deg, ${isDark ? '#041B36' : '#FDEEE6'} 1px, transparent 1px)
-    `,
-    backgroundSize: '36px 36px',
-    opacity: 0.55,
-    pointerEvents: 'none',
-    zIndex: 0,
-  },
-  themeBtn: {
-    position: 'fixed',
-    top: 20,
-    right: 24,
-    zIndex: 100,
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 50,
-    padding: '6px 14px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    fontFamily: "'Poppins', sans-serif",
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-  },
-  page: {
-    position: 'relative',
-    zIndex: 1,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 56,
-    padding: '32px 24px',
-    width: '100%',
-    maxWidth: 960,
-    flexWrap: 'wrap',
-  },
-  card: {
-    background: isDark ? '#171717' : '#FEFAF9',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(220,193,181,0.30)'}`,
-    borderRadius: 20,
-    padding: '36px 36px 28px',
-    width: '100%',
-    maxWidth: 380,
-    boxShadow: isDark
-      ? '0 0 0 1px rgba(196,16,122,0.35), 0 8px 48px rgba(196,16,122,0.22), 0 2px 16px rgba(0,0,0,0.60)'
-      : '0 8px 40px rgba(253,214,189,0.60), 0 2px 12px rgba(196,16,122,0.08)',
-    flexShrink: 0,
-  },
-  title: {
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 26,
-    fontWeight: 800,
-    background: isDark
-      ? 'linear-gradient(90deg, #FF5B2E, #C4107A)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
-    lineHeight: 1.2,
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.65)',
-    fontWeight: 400,
-    marginBottom: 24,
-  },
-  field: { marginBottom: 14 },
-  label: {
-    display: 'block',
-    fontSize: 10,
-    fontWeight: 600,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)',
-    marginBottom: 6,
-  },
-  input: {
-    width: '100%',
-    background: isDark ? 'rgba(255,255,255,0.06)' : '#F5F5F8',
-    border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : '#E0E0E8'}`,
-    borderRadius: 10,
-    padding: '10px 14px',
-    fontFamily: "'Poppins', sans-serif",
-    fontSize: 13,
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    boxSizing: 'border-box',
-  },
-  select: {
-    appearance: 'none',
-    WebkitAppearance: 'none',
-    cursor: 'pointer',
-    paddingRight: 32,
-  },
-  inputError: {
-    borderColor: '#F00707',
-    boxShadow: '0 0 0 3px rgba(240,7,7,0.12)',
-  },
-  errorRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 5,
-    fontSize: 11.5,
-    color: '#F00707',
-    marginTop: 5,
-    fontWeight: 500,
-  },
-  btn: {
-    width: '100%',
-    padding: 13,
-    border: 'none',
-    borderRadius: 10,
-    background: isDark
-      ? 'linear-gradient(90deg, #C4107A, #FF5B2E)'
-      : 'linear-gradient(90deg, #FF8430, #F7306D)',
-    color: '#fff',
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    fontSize: 14,
-    fontWeight: 700,
-    letterSpacing: '0.05em',
-    textTransform: 'uppercase',
-    cursor: 'pointer',
-    marginTop: 6,
-    marginBottom: 16,
-  },
-  loginRow: {
-    textAlign: 'center',
-    fontSize: 12,
-    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
-  },
-  link: {
-    fontSize: 12,
-    color: isDark ? '#FF5B2E' : '#F7306D',
-    textDecoration: 'none',
-    fontWeight: 600,
-    cursor: 'pointer',
-    background: 'none',
-    border: 'none',
-    padding: 0,
-    fontFamily: "'Poppins', sans-serif",
-  },
-  mascotWrap: {
-    flexShrink: 0,
-    width: 300,
-    height: 300,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const getStyles = (isDark) => {
+  const t = createStyles(isDark);
+  return {
+    page: {
+      position: 'relative',
+      zIndex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 56,
+      padding: '32px 24px',
+      width: '100%',
+      maxWidth: 1200,
+      flexWrap: 'wrap',
+    },
+    card: {
+      background: t.cardBg,
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: t.xxl,
+      padding: 'clamp(28px, 4vh, 40px) clamp(28px, 4vw, 42px)',
+      width: '100%',
+      maxWidth: 480,
+      boxShadow: t.cardShadow,
+      flexShrink: 0,
+    },
+    title: {
+      fontFamily: t.fontPrimary,
+      fontSize: 'clamp(24px, 2.2vw, 32px)',
+      fontWeight: 800,
+      backgroundImage: t.primaryGradient,
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
+      width: '100%',
+      whiteSpace: 'nowrap',
+      lineHeight: 1.2,
+      margin: '0 auto 6px',
+    },
+    subtitle: {
+      fontSize: 13,
+      color: isDark ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.60)',
+      fontWeight: 400,
+      marginBottom: 24,
+      textAlign: 'center',
+    },
+    field: { marginBottom: 14 },
+    label: {
+      display: 'block',
+      fontSize: 'clamp(10px, 0.8vw, 11px)',
+      fontWeight: 600,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      color: t.textSecondary,
+      marginBottom: 6,
+    },
+    input: {
+      width: '100%',
+      background: t.inputBg,
+      border: `1px solid ${t.inputBorder}`,
+      borderRadius: t.md,
+      padding: '11px 16px',
+      fontFamily: t.fontSecondary,
+      fontSize: 'clamp(13px, 1vw, 15px)',
+      color: t.textPrimary,
+      outline: 'none',
+      transition: 'border-color 0.2s',
+      boxSizing: 'border-box',
+    },
+    select: { appearance: 'none', WebkitAppearance: 'none', cursor: 'pointer', paddingRight: 32 },
+    inputError: { borderColor: t.error, boxShadow: `0 0 0 3px ${t.error}22` },
+    errorRow: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 5,
+      fontSize: 11.5,
+      color: t.error,
+      marginTop: 5,
+      fontWeight: 500,
+    },
+    btn: {
+      width: '100%',
+      padding: 15,
+      border: 'none',
+      borderRadius: t.md,
+      background: t.primaryGradient,
+      color: '#fff',
+      fontFamily: t.fontPrimary,
+      fontSize: 'clamp(14px, 1.2vw, 16px)',
+      fontWeight: 700,
+      letterSpacing: '0.05em',
+      textTransform: 'uppercase',
+      cursor: 'pointer',
+      marginTop: 10,
+      marginBottom: 16,
+    },
+    loginRow: {
+      textAlign: 'center',
+      fontSize: 12,
+      color: t.textSecondary,
+    },
+    link: {
+      fontSize: 12,
+      color: isDark ? '#FF5B2E' : '#F7306D',
+      fontWeight: 600,
+      cursor: 'pointer',
+      background: 'none',
+      border: 'none',
+      padding: 0,
+      fontFamily: t.fontSecondary,
+    },
+    passWrap: { position: 'relative' },
+    eyeBtn: {
+      position: 'absolute',
+      right: 10,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: 4,
+      display: 'flex',
+      alignItems: 'center',
+      color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.35)',
+    },
+    mascotWrap: {
+      flexShrink: 0,
+      width: 'clamp(250px, 30vw, 450px)',
+      height: 'clamp(250px, 30vw, 450px)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 16,
+    },
+  };
+};
 
 export default Register;
