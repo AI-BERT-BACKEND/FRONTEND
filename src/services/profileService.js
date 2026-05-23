@@ -69,7 +69,7 @@ const profileService = {
   },
 
   resendVerification: async (email) => {
-    const { data } = await api.post('/api/auth/resend-verification', null, { params: { email } });
+    const { data } = await api.post('/api/auth/resend-otp', null, { params: { email } });
     return data;
   },
 

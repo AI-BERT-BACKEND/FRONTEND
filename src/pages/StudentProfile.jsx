@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
 import { AlertTriangle, Trash2 } from 'lucide-react';
-import api from '../services/api';
-import authService from '../services/authService';
+import profileService from '../services/profileService';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { validateEmail, validateRequired } from '../utils/validators';
 import { createStyles } from '../theme/createStyles';
@@ -21,20 +21,32 @@ const Spinner = () => (
 
 const StudentProfile = () => {
   const { isDark } = useTheme();
+  const { user: authUser } = useAuth();
   const navigate = useNavigate();
   const fileRef = useRef(null);
 
-  const [form, setForm] = useState(() => {
-    const user = authService.getCurrentUser();
-    return user
-      ? { nombre: user.nombre || '', username: user.username || '', email: user.email || '', foto: user.foto || null }
-      : { nombre: '', username: '', email: '', foto: null };
+  const [form, setForm] = useState({
+    nombre: '',
+    username: '',
+    email: '',
+    foto: null,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showDesactivarConfirm, setShowDesactivarConfirm] = useState(false);
   const [showEliminarConfirm, setShowEliminarConfirm] = useState(false);
   const [saveError, setSaveError] = useState('');
+
+  useEffect(() => {
+    if (authUser) {
+      setForm({
+        nombre: authUser.fullName ?? authUser.name ?? '',
+        username: authUser.username ?? '',
+        email: authUser.email ?? authUser.sub ?? '',
+        foto: null,
+      });
+    }
+  }, [authUser]);
 
   const validate = () => {
     const newErrors = {
@@ -48,10 +60,16 @@ const StudentProfile = () => {
 
   const handleSave = async () => {
     if (!validate()) return;
+    const userId = authUser?.id ?? authUser?.userId;
+    if (!userId) { setSaveError('No se pudo identificar el usuario'); return; }
     setLoading(true);
     setSaveError('');
     try {
-      await api.put('/api/v1/students/profile', form);
+      await profileService.updatePersonalProfile(userId, {
+        fullName: form.nombre,
+        username: form.username,
+        email: form.email,
+      });
       navigate('/dashboard');
     } catch (err) {
       setSaveError(err.response?.data?.message || 'Error al guardar el perfil');
@@ -106,15 +124,11 @@ const StudentProfile = () => {
             <div style={s.fieldGroup}>
               <label style={s.label}>Nombre completo</label>
               <input
-                style={{ ...s.input, ...(errors.nombre ? s.inputError : {}) }}
+                style={{ ...s.input, cursor: 'default', opacity: 0.65 }}
                 value={form.nombre}
-                placeholder="Ingresa tu nombre completo"
-                onChange={(e) => {
-                  setForm((p) => ({ ...p, nombre: e.target.value }));
-                  if (errors.nombre) setErrors((p) => ({ ...p, nombre: '' }));
-                }}
+                placeholder="Nombre completo"
+                readOnly
               />
-              <ErrorMsg message={errors.nombre} />
             </div>
 
             <div style={s.fieldGroup}>

@@ -404,9 +404,13 @@ const StudyPreferences = () => {
     (async () => {
       try {
         const prefs = await academicService.getStudyPreferences();
-        if (prefs.modalidad) setModalidad(prefs.modalidad);
-        if (prefs.metodo) setMetodo(prefs.metodo);
-        if (prefs.ambiente) setAmbiente(prefs.ambiente);
+        const prefsData = prefs.data || prefs;
+        if (prefsData.studyModality) setModalidad(prefsData.studyModality);
+        else if (prefsData.modalidad) setModalidad(prefsData.modalidad);
+        if (prefsData.studyMethod) setMetodo(prefsData.studyMethod);
+        else if (prefsData.metodo) setMetodo(prefsData.metodo);
+        if (prefsData.studyEnvironment) setAmbiente(prefsData.studyEnvironment);
+        else if (prefsData.ambiente) setAmbiente(prefsData.ambiente);
       } catch {
         // Usar defaults
       } finally {
@@ -418,7 +422,11 @@ const StudyPreferences = () => {
   const handleGuardar = async () => {
     setLoading(true);
     try {
-      await academicService.saveStudyPreferences({ modalidad, metodo, ambiente });
+      await academicService.saveStudyPreferences({
+        studyModality: modalidad,
+        studyMethod: metodo,
+        studyEnvironment: ambiente,
+      });
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3500);
     } finally {
