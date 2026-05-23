@@ -12,7 +12,7 @@ import {
   validateRequired,
 } from '../utils/validators';
 import { createStyles } from '../theme/createStyles';
-import authService from '../services/authService';
+import profileService from '../services/profileService';
 
 const EyeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -119,7 +119,7 @@ const Register = () => {
      if (!validate()) return;
      setLoading(true);
      try {
-       const response = await authService.register({
+       const response = await profileService.register({
          fullName: form.nombre,
          email: form.email,
          career: form.carrera,
