@@ -22,7 +22,7 @@ const DEFAULT_INSIGNIAS = [
 /* ── componente ── */
 const Gamification = () => {
   const { isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const t = createStyles(isDark);
   const [filtro, setFiltro] = useState('TODOS');
@@ -35,31 +35,48 @@ const Gamification = () => {
   const [cursos, setCursos] = useState([]);
 
   useEffect(() => {
-    if (!user?.id) return;
+    const userId = user?.id || user?.userId;
+    if (authLoading || !userId) return;
     const fetchData = async () => {
       try {
-        const [prog, pts, ach, subs] = await Promise.all([
-          gamificationService.getProgress(user.id),
-          gamificationService.getPoints(user.id),
-          gamificationService.getAchievements(user.id),
-          gamificationService.getSubjectsProgress(user.id),
+        // allSettled: a 404 on one endpoint (e.g. new user) won't break the rest
+        const [progRes, ptsRes, achRes, subsRes] = await Promise.allSettled([
+          gamificationService.getProgress(userId),
+          gamificationService.getPoints(userId),
+          gamificationService.getAchievements(userId),
+          gamificationService.getSubjectsProgress(userId),
         ]);
+
+        const prog = progRes.status === 'fulfilled' ? progRes.value : null;
+        const pts  = ptsRes.status  === 'fulfilled' ? ptsRes.value  : null;
+        const ach  = achRes.status  === 'fulfilled' ? achRes.value  : null;
+        const subs = subsRes.status === 'fulfilled' ? subsRes.value : null;
+
         setProgress(prog);
         setTotalPoints(pts?.totalPoints ?? pts?.points ?? 0);
-        const raw = ach?.achievements ?? ach ?? [];
+
+        // Issue 3: backend sends achievementGallery, not achievements
+        const raw = ach?.achievementGallery ?? ach?.achievements ?? (Array.isArray(ach) ? ach : []);
         const mapped = raw.map((a) => ({
           id: a.id, tipo: a.tipo ?? a.type ?? '', nombre: a.nombre ?? a.name ?? '',
           icon: a.icon ?? '🏅', desc: a.desc ?? a.description ?? '',
           desbloqueado: a.desbloqueado ?? a.unlocked ?? false, color: a.color ?? '#FF8430',
         }));
         setAchievements(mapped.length > 0 ? mapped : DEFAULT_INSIGNIAS);
-        const rawSubs = subs?.subjects ?? subs ?? [];
+
+        // Issue 5: backend sends subjectId, subjectName, subjectProgressPercentage, xpEarned
+        const rawSubs = subs?.subjects ?? (Array.isArray(subs) ? subs : []);
         setCursos(rawSubs.map((c) => ({
-          id: c.id, nombre: c.nombre ?? c.name ?? '', sub: c.sub ?? c.subtitle ?? '',
-          icon: c.icon ?? '📘', iconColor: c.iconColor ?? c.color ?? '#FF8430',
-          pct: c.pct ?? c.progress ?? 0, barColor: c.barColor ?? c.color ?? '#FF8430',
-          nivel: c.nivel ?? c.level ?? 1, rango: c.rango ?? c.rank ?? '',
-          xp: c.xp ?? c.xpPoints ?? [],
+          id: c.subjectId ?? c.id,
+          nombre: c.subjectName ?? c.nombre ?? c.name ?? '',
+          sub: c.sub ?? c.subtitle ?? '',
+          icon: c.icon ?? '📘',
+          iconColor: c.iconColor ?? c.color ?? '#FF8430',
+          pct: c.subjectProgressPercentage ?? c.pct ?? c.progress ?? 0,
+          barColor: c.barColor ?? c.color ?? '#FF8430',
+          nivel: c.nivel ?? c.level ?? 1,
+          rango: c.rango ?? c.rank ?? '',
+          xp: c.xpEarned != null ? [c.xpEarned] : (c.xp ?? c.xpPoints ?? []),
         })));
       } catch {
         setProgress(null); setTotalPoints(0); setAchievements([]); setCursos([]);
@@ -68,17 +85,22 @@ const Gamification = () => {
       }
     };
     fetchData();
-  }, [user?.id]);
+  }, [user?.id, user?.userId, authLoading]);
 
   const logrosRecientes = progress?.recentAchievements?.map((l) => ({
     id: l.id, icon: l.icon ?? '🏅', iconBg: l.iconBg ?? (l.color ? l.color + '30' : 'rgba(255,132,48,0.18)'),
     titulo: l.titulo ?? l.title ?? l.name ?? '', sub: l.sub ?? l.description ?? '',
   })) ?? [];
 
-  const nivel = progress?.level ?? 0;
+  // Issue 4: backend sends currentLevel, progressToNext, badges (not level/progressPercent/rank)
+  const nivel = progress?.currentLevel ?? progress?.level ?? 0;
   const xpActual = progress?.currentXp ?? 0;
   const xpParaSiguiente = progress?.xpToNextLevel ?? 2500;
-  const pctProgreso = progress?.progressPercent ?? 0;
+  const pctProgreso = progress?.progressToNext ?? progress?.progressPercent ?? 0;
+  const rankFromBadges = Array.isArray(progress?.badges) && progress.badges.length > 0
+    ? (typeof progress.badges[0] === 'string' ? progress.badges[0] : (progress.badges[0]?.name ?? progress.badges[0]?.label))
+    : undefined;
+  const rango = progress?.rank ?? rankFromBadges ?? 'Estudiante Experto';
 
   const insigniasFiltradas = achievements.filter((i) => {
     if (filtro === 'DESBLOQUEADOS') return i.desbloqueado;
@@ -115,7 +137,7 @@ const Gamification = () => {
             </div>
             <div style={s.heroInfo}>
               <div style={s.heroRangoRow}>
-                <span style={s.heroRango(isDark)}>{progress?.rank ?? 'Estudiante Experto'}</span>
+                <span style={s.heroRango(isDark)}>{rango}</span>
                 <span style={s.proBadge}>PRO</span>
               </div>
               <div style={s.xpBar}>

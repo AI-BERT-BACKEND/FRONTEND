@@ -29,7 +29,9 @@ const authService = {
 
     const payload = JSON.parse(atob(token.split('.')[1]));
 
-    return payload;
+    // Normalize: always expose 'id' regardless of JWT claim name
+    const id = payload.id || payload.userId || payload.sub;
+    return { ...payload, id };
   },
 
 };

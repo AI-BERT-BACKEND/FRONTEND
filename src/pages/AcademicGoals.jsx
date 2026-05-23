@@ -62,9 +62,9 @@ const AddMetaModal = ({ isDark, onClose, subjects = [] }) => {
     setLoading(true);
     try {
       await academicService.setGoal({
-        name: nombre.trim(),
-        target_grade: nota ? parseFloat(nota) : undefined,
-        subject: materia || undefined,
+        goalName: nombre.trim(),
+        targetGrade: nota ? parseFloat(nota) : undefined,
+        subjectId: materia || undefined,
       });
       onClose();
     } finally {
@@ -371,11 +371,11 @@ const getModalStyles = (isDark) => ({
    const t = createStyles(isDark);
 
    const mapGoal = (g) => ({
-    id: g.id,
-    materia: g.subject || g.materia || g.name || '',
+    id: g.goalId ?? g.id,
+    materia: g.goalName ?? g.subject ?? g.materia ?? g.name ?? '',
     facultad: g.faculty || g.facultad || '',
-    actual: g.current_grade ?? g.currentGrade ?? g.nota_actual ?? g.actual ?? 0,
-    meta: g.target_grade ?? g.targetGrade ?? g.nota_meta ?? g.meta ?? 0,
+    actual: g.currentAverage ?? g.current_grade ?? g.currentGrade ?? g.nota_actual ?? g.actual ?? 0,
+    meta: g.targetGrade ?? g.target_grade ?? g.nota_meta ?? g.meta ?? 0,
     estado: g.status || g.estado || '',
     estadoColor: g.estadoColor ?? (isDark ? '#FF5B2E' : '#FF8430'),
     estadoBg: g.estadoBg ?? (isDark ? 'rgba(255,91,46,0.15)' : 'rgba(255,132,48,0.12)'),

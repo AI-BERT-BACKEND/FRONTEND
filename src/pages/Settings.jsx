@@ -4,7 +4,8 @@ import AppLayout from '../components/Layout/AppLayout';
 import ErrorMsg from '../components/ErrorMsg';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
-import api from '../services/api';
+import profileService from '../services/profileService';
+import { useAuth } from '../context/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 
 const Toggle = ({ value, onChange, s, isDark }) => (
@@ -16,6 +17,7 @@ const Toggle = ({ value, onChange, s, isDark }) => (
 
 const Settings = () => {
   const { isDark } = useTheme();
+  const { user: authUser } = useAuth();
   const navigate = useNavigate();
   const [passwords, setPasswords] = useState({
     current: '',
@@ -50,9 +52,11 @@ const Settings = () => {
 
   const handleSavePassword = async () => {
     if (validatePasswords()) {
+      const userId = authUser?.id ?? authUser?.userId;
+      if (!userId) { setPasswordError('No se pudo identificar el usuario'); return; }
       try {
         setPasswordError('');
-        await api.put('/api/auth/change-password', {
+        await profileService.changePassword(userId, {
           currentPassword: passwords.current,
           newPassword: passwords.new,
         });
