@@ -132,9 +132,14 @@ const SubjectDetail = () => {
   useEffect(() => {
     (async () => {
       try {
-        const data = await academicService.getSubject(id);
-        setMateriaData(data);
-        setCortesData(data.cortes || []);
+        const rawData = await academicService.getSubjectById(id);
+        const data = rawData.data || rawData;
+        setMateriaData({
+          ...data,
+          nombre: data.subjectName || data.name || data.nombre || '',
+          profesor: data.teacherName || data.teacher || data.profesor || '',
+        });
+        setCortesData(data.cortes || data.cuts || []);
       } catch {
         setMateriaData(null);
       } finally {
