@@ -1,12 +1,14 @@
 const env = import.meta.env;
 
+const normalize = (url) => (url || '').replace(/\/api\/?$/, '') || 'http://localhost:3000';
+
 const config = {
   api: {
-    baseUrl: env.VITE_API_URL || 'http://localhost:3000/api',
-    baseUrlWithoutApi: (env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, ''),
+    baseUrl: normalize(env.VITE_API_URL),
+    baseUrlWithoutApi: normalize(env.VITE_API_URL),
   },
   planning: {
-    baseUrl: env.VITE_PLANNING_API_URL || env.VITE_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3000',
+    baseUrl: env.VITE_PLANNING_API_URL || normalize(env.VITE_API_URL) || 'http://localhost:3000',
   },
 };
 
