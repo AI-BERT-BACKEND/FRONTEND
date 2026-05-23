@@ -14,6 +14,14 @@ const HORAS = [
   '19:00', '20:00', '21:00', '22:00',
 ];
 
+const CATEGORIAS_INIT = [
+  { id: 'estudio',  label: 'Estudio',   desc: 'Tiempo dedicado a estudiar',          color: '#22C55E' },
+  { id: 'descanso', label: 'Descanso',  desc: 'Pausas y tiempo libre',               color: '#EAB308' },
+  { id: 'personal', label: 'Personal',  desc: 'Actividades personales y familiares',  color: '#00CFFF' },
+  { id: 'social',   label: 'Social',    desc: 'Interacción con amigos y redes',       color: '#A855F7' },
+  { id: 'libre',    label: 'Libre',     desc: 'Tiempo no asignado',                  color: '#FF8430' },
+];
+
 const ICONOS = {
   libre:    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>,
   descanso: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
@@ -41,7 +49,9 @@ const Availability = () => {
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [selected, setSelected]   = useState(new Set());
-  const [categorias, setCategorias] = useState([]);
+  const [categorias, setCategorias] = useState(CATEGORIAS_INIT);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [cellBlocks, setCellBlocks] = useState({});
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

@@ -24,24 +24,17 @@ const StudentProfile = () => {
   const navigate = useNavigate();
   const fileRef = useRef(null);
 
-  const [form, setForm] = useState({ nombre: '', username: '', email: '', foto: null });
+  const [form, setForm] = useState(() => {
+    const user = authService.getCurrentUser();
+    return user
+      ? { nombre: user.nombre || '', username: user.username || '', email: user.email || '', foto: user.foto || null }
+      : { nombre: '', username: '', email: '', foto: null };
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showDesactivarConfirm, setShowDesactivarConfirm] = useState(false);
   const [showEliminarConfirm, setShowEliminarConfirm] = useState(false);
   const [saveError, setSaveError] = useState('');
-
-  useEffect(() => {
-    const user = authService.getCurrentUser();
-    if (user) {
-      setForm({
-        nombre: user.nombre || '',
-        username: user.username || '',
-        email: user.email || '',
-        foto: user.foto || null,
-      });
-    }
-  }, []);
 
   const validate = () => {
     const newErrors = {

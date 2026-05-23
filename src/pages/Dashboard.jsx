@@ -6,7 +6,12 @@ import { createStyles } from '../theme/createStyles';
 import CircleProgress from '../components/CircleProgress';
 import ProgressBar from '../components/ProgressBar';
 import AibertGif from '../assets/aibert-logo-sin-negro-corregido.gif';
+import AibertRojo from '../assets/aibert-rojo.gif';
+import AibertAmarillo from '../assets/aibert-amarillo.gif';
+import AibertVerde from '../assets/aibert-verde.gif';
 import { ArrowRight, Plus, Clock, AlertTriangle, TrendingDown, X, Bell } from 'lucide-react';
+
+const NIVEL_COLOR = { rojo: '#F00707', amarillo: '#EAB308', verde: '#22C55E' };
 import taskService from '../services/taskService';
 import notificationService from '../services/notificationService';
 import academicService from '../services/academicService';
@@ -110,7 +115,7 @@ const Dashboard = () => {
   const alertNivel = getAlertNivel();
 
   useEffect(() => {
-    if (alertNivel !== 'rojo') { setPulseBorder(false); return; }
+    if (alertNivel !== 'rojo') return;
     const id = setInterval(() => setPulseBorder((p) => !p), 700);
     return () => clearInterval(id);
   }, [alertNivel]);
@@ -321,8 +326,8 @@ const Dashboard = () => {
             <img src={AibertGif} alt="AI.BERT" style={s.aiImg} />
           </div>
           <blockquote style={s.aiQuote(isDark)}>
-            "Te sugiero priorizar Matemáticas hoy. Tienes un examen en 3 días y esta sesión
-            te dará la ventaja necesaria."
+            &ldquo;Te sugiero priorizar Matem&aacute;ticas hoy. Tienes un examen en 3 d&iacute;as y esta sesi&oacute;n
+            te dar&aacute; la ventaja necesaria.&rdquo;
           </blockquote>
           <button style={s.aiBtn(isDark)} onClick={() => navigate('/horario-inteligente')}>Ver recomendación</button>
           <button style={s.aiBtn(isDark)} onClick={() => navigate('/sesion/iniciar')}>Iniciar Sesión de Estudio</button>

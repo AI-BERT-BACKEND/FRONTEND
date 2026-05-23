@@ -6,6 +6,13 @@ import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import api from '../services/api';
 
+const Toggle = ({ value, onChange, s, isDark }) => (
+  <div style={{ ...s.toggle, background: value ? (isDark ? '#C4107A' : '#FF8430') : (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)') }}
+    onClick={() => onChange(!value)}>
+    <div style={{ ...s.toggleThumb, transform: value ? 'translateX(20px)' : 'translateX(2px)' }} />
+  </div>
+);
+
 const Settings = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
@@ -54,13 +61,6 @@ const Settings = () => {
 
   const s = getStyles(isDark);
 
-  const Toggle = ({ value, onChange }) => (
-    <div style={{ ...s.toggle, background: value ? (isDark ? '#C4107A' : '#FF8430') : (isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)') }}
-      onClick={() => onChange(!value)}>
-      <div style={{ ...s.toggleThumb, transform: value ? 'translateX(20px)' : 'translateX(2px)' }} />
-    </div>
-  );
-
   return (
     <AppLayout>
       <div style={s.pageWrapper}>
@@ -103,7 +103,7 @@ const Settings = () => {
               <div style={s.settingLabel}>Compartir disponibilidad</div>
               <div style={s.settingDesc}>Permite que otros vean cuando estás conectado.</div>
             </div>
-            <Toggle value={privacy.compartirDisponibilidad} onChange={(v) => setPrivacy((p) => ({ ...p, compartirDisponibilidad: v }))} />
+            <Toggle value={privacy.compartirDisponibilidad} onChange={(v) => setPrivacy((p) => ({ ...p, compartirDisponibilidad: v }))} s={s} isDark={isDark} />
           </div>
 
           <div style={s.divider} />
@@ -113,7 +113,7 @@ const Settings = () => {
               <div style={s.settingLabel}>Mostrar estadísticas a amigos</div>
               <div style={s.settingDesc}>Comparte tus logros y tiempo de estudio con tu red.</div>
             </div>
-            <Toggle value={privacy.mostrarEstadisticas} onChange={(v) => setPrivacy((p) => ({ ...p, mostrarEstadisticas: v }))} />
+            <Toggle value={privacy.mostrarEstadisticas} onChange={(v) => setPrivacy((p) => ({ ...p, mostrarEstadisticas: v }))} s={s} isDark={isDark} />
           </div>
 
           <div style={s.divider} />

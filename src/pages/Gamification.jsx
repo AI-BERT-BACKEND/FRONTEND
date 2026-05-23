@@ -280,7 +280,7 @@ const Gamification = () => {
           <div>
             <div style={s.ctaTitulo(isDark)}>¡Casi llegas al siguiente nivel!</div>
             <p style={s.ctaDesc(isDark)}>
-              Completa una tarea de 'Sistemas Digitales' para obtener +500 XP y
+              Completa una tarea de &apos;Sistemas Digitales&apos; para obtener +500 XP y
               desbloquear la insignia de Hardware Master.
             </p>
           </div>

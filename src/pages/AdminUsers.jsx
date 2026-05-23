@@ -273,7 +273,7 @@ const AdminUsers = () => {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { loadUsers(); }, []);
+  useEffect(() => { loadUsers(); }, []); // eslint-disable-line react-hooks/set-state-in-effect
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();

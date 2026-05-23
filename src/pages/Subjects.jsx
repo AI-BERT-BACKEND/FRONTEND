@@ -43,6 +43,7 @@ const Subjects = () => {
   const [fetchLoading, setFetchLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 

@@ -35,6 +35,7 @@ const StartStudySession = () => {
   const [showShare,     setShowShare]     = useState(false);
   const [participantes, setParticipantes] = useState([]);
   const [meta,          setMeta]          = useState(null);
+  const [sesionId] = useState(() => Math.random().toString(36).slice(2, 8));
   const [loading,       setLoading]       = useState(true);
 
   const sesionCumplida = tiempoTotal >= LIMITE_SESION;
@@ -298,7 +299,7 @@ const StartStudySession = () => {
             </p>
             <div style={{ display: 'flex', gap: 8, background: t.inputBg, border: `1px solid ${t.inputBorder}`, borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
               <span style={{ flex: 1, fontSize: 12, color: t.textSecondary, fontFamily: t.fontSecondary, wordBreak: 'break-all' }}>
-                aibert.app/sesion/sala-{Math.random().toString(36).slice(2, 8)}
+                aibert.app/sesion/sala-{sesionId}
               </span>
               <button style={{ background: t.primaryGradient, border: 'none', borderRadius: 7, padding: '4px 12px', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 Copiar

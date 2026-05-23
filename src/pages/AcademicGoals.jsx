@@ -402,6 +402,7 @@ const AcademicGoals = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMetas();
     fetchSummary();
   }, []);
@@ -533,9 +534,9 @@ const AcademicGoals = () => {
         <div style={s.iaContent}>
           <div style={s.iaTitle}>Recomendaciones IA</div>
           <p style={s.iaText}>
-            "Tu rendimiento en <strong>Arquitectura de Software</strong> ha bajado 0.3 en la
-            última semana. Sugiero revisar el módulo de Microservicios antes del examen del
-            viernes para mantener tu meta de 4.8."
+            &ldquo;Tu rendimiento en <strong>Arquitectura de Software</strong> ha bajado 0.3 en la
+            &uacute;ltima semana. Sugiero revisar el m&oacute;dulo de Microservicios antes del examen del
+            viernes para mantener tu meta de 4.8.&rdquo;
           </p>
         </div>
         <button style={s.saveBtn}>

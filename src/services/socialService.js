@@ -85,11 +85,6 @@ const socialService = {
     return data;
   },
 
-  getPendingStudyInvites: async (userId) => {
-    const { data } = await api.get(`/api/social/users/${userId}/study-invites/pending`);
-    return data;
-  },
-
   sendMessage: async (senderId, messageData) => {
     const { data } = await api.post(`/api/social/chat/${senderId}/messages`, messageData);
     return data;
@@ -127,11 +122,6 @@ const socialService = {
 
   redeemReferralCode: async (code, redeemData) => {
     const { data } = await api.post(`/api/social/invitations/${code}/redeem`, redeemData);
-    return data;
-  },
-
-  getPendingStudyInvites: async (userId) => {
-    const { data } = await api.get(`/api/social/users/${userId}/study-invites/pending`);
     return data;
   },
 

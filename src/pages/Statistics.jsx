@@ -290,10 +290,12 @@ const Statistics = () => {
 
         <div style={s.promedioHeaderCard}>
           <div style={s.promedioHeaderLabel}>Promedio Actual</div>
-          <div style={s.promedioHeaderVal}>{statsData.promedio} / 5.0</div>
+          <div style={s.promedioHeaderVal}>{PROMEDIO_GENERAL} / 5.0</div>
           <div style={s.riesgoModerado}>
             <AlertTriangle color="#EAB308" />
             <span>RIESGO MODERADO</span>
+          </div>
+        </div>
         <div style={{ position: 'relative', height: CHART_H, padding: '0 4px', marginBottom: 8 }}>
           <div style={{
             position: 'absolute',
@@ -525,8 +527,8 @@ const Statistics = () => {
             <div style={s.aibertLabel}>AI.BERT</div>
           </div>
           <p style={s.aibertQuote}>
-            "¡Vas en camino a terminar el semestre con{' '}
-            <strong>promedio sobresaliente!</strong>"
+            &ldquo;&iexcl;Vas en camino a terminar el semestre con{' '}
+            <strong>promedio sobresaliente!</strong>&rdquo;
           </p>
           <button style={s.aibertBtn} onClick={() => navigate('/sesion/crear')}>
             INICIAR SESIÓN DE ESTUDIO

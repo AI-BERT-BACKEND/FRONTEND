@@ -346,7 +346,7 @@ const AcademicProfile = () => {
           <div style={s.quoteCard}>
             <Quote size={16} color={isDark ? '#FF5B2E' : '#FF8430'} style={{ flexShrink: 0, marginTop: 2 }} />
             <p style={s.quoteText}>
-              "El 80% del éxito se basa simplemente en insistir." — Woody Allen
+              &ldquo;El 80% del &eacute;xito se basa simplemente en insistir.&rdquo; &mdash; Woody Allen
             </p>
           </div>
 

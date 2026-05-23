@@ -47,6 +47,56 @@ const HORA_FIN_DISPONIBILIDAD = 18;
 
 const VIEW_LABELS = { month: 'Mes', week: 'Semana' };
 
+/* ── SVG Icons ── */
+const IconPrev = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const IconNext = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const IconCalendar = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M0.5 4.5h12" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M3.5 0.5v2M9.5 0.5v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+const IconKanban = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <rect x="0.5" y="0.5" width="3.5" height="9" rx="1" stroke="currentColor" strokeWidth="1.2" />
+    <rect x="4.75" y="0.5" width="3.5" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" />
+    <rect x="9" y="0.5" width="3.5" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
+  </svg>
+);
+const IconClose = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" strokeWidth="1.6" />
+  </svg>
+);
+const IconClock = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M6 3.5v2.8l1.8 1.8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+const IconTag = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <path d="M1 1h4.5l5 5-4.5 4.5-5-5V1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+    <circle cx="3" cy="3" r="0.8" fill="currentColor" />
+  </svg>
+);
+const IconEventSmall = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="0.5" y="1.5" width="11" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.1" />
+    <path d="M0.5 4h11" stroke="currentColor" strokeWidth="1.1" />
+    <path d="M3 0.5v2M9 0.5v2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+  </svg>
+);
+
 const Calendar = () => {
   const { isDark } = useTheme();
   const t = createStyles(isDark);
@@ -171,107 +221,6 @@ const Calendar = () => {
 
   const today = new Date();
   const todayStr = dateStr(today.getFullYear(), today.getMonth(), today.getDate());
-
-  /* ── Icons específicos de esta pantalla ── */
-  const IconPrev = () => (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path
-        d="M9 11L5 7l4-4"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-  const IconNext = () => (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path
-        d="M5 3l4 4-4 4"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-  const IconCalendar = () => (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <rect
-        x="0.5"
-        y="1.5"
-        width="12"
-        height="10"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <path d="M0.5 4.5h12" stroke="currentColor" strokeWidth="1.2" />
-      <path
-        d="M3.5 0.5v2M9.5 0.5v2"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-  const IconKanban = () => (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <rect x="0.5" y="0.5" width="3.5" height="9" rx="1" stroke="currentColor" strokeWidth="1.2" />
-      <rect
-        x="4.75"
-        y="0.5"
-        width="3.5"
-        height="6"
-        rx="1"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <rect x="9" y="0.5" width="3.5" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-  const IconClose = () => (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <path
-        d="M1.5 1.5l10 10M11.5 1.5l-10 10"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-  const IconClock = () => (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M6 3.5v2.8l1.8 1.8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-  const IconTag = () => (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <path
-        d="M1 1h4.5l5 5-4.5 4.5-5-5V1z"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-      <circle cx="3" cy="3" r="0.8" fill="currentColor" />
-    </svg>
-  );
-  const IconEventSmall = () => (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <rect
-        x="0.5"
-        y="1.5"
-        width="11"
-        height="9"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.1"
-      />
-      <path d="M0.5 4h11" stroke="currentColor" strokeWidth="1.1" />
-      <path d="M3 0.5v2M9 0.5v2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
 
   return (
     <AppLayout>

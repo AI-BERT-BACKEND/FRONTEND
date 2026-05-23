@@ -43,7 +43,6 @@ const StudySession = () => {
 
   useEffect(() => {
     if (!user?.id) return;
-    setLoading(true);
     socialService.getUserSessions(user.id)
       .then((data) => setSesiones((data || []).map(mapSession)))
       .catch(() => setSesiones([]))
