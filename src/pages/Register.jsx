@@ -157,7 +157,7 @@ const Register = () => {
           <Field
             label="Nombre Completo"
             field="nombre"
-            placeholder="Isaac Burgos"
+            placeholder="Ingresa tu nombre completo"
             value={form.nombre}
             error={errors.nombre}
             onChange={handleChange}
