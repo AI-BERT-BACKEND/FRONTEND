@@ -73,9 +73,9 @@ const profileService = {
     return data;
   },
 
-  register: async (payload) => {
-    const { data } = await api.post('/api/auth/register', payload);
-    return data;
+  register: async (userData) => {
+      const { data } = await api.post('/api/auth/register', userData);
+      return data;
   },
 
   updateInternalUserAuth: async (id, payload) => {
