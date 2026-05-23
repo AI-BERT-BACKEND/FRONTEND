@@ -194,11 +194,12 @@ const adaptRecommendations = (suggestions, alerts, criticalRecs) => {
     });
   }
 
-  if (criticalRecs?.recommendations?.length) {
-    criticalRecs.recommendations.forEach((r, i) => {
+  if (criticalRecs?.criticalRecommendations?.length) {
+    criticalRecs.criticalRecommendations.forEach((r, i) => {
+      const priority = r.priorityLevel || r.priority || '';
       items.push({
         id: `crit-${i}`,
-        tipo: r.priority === 'high' ? 'ALERTA' : 'ENFOQUE',
+        tipo: (priority === 'HIGH' || priority === 'CRITICAL') ? 'ALERTA' : 'ENFOQUE',
         titulo: r.title || r.titulo || 'Recomendación',
         descripcion: r.description || r.message || '',
       });

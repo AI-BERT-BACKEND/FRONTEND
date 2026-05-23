@@ -112,10 +112,11 @@ const SmartSchedule = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [tasksRes, subjectsRes, riskRes] = await Promise.allSettled([
+        const [tasksRes, subjectsRes, riskRes, distributionRes] = await Promise.allSettled([
           taskService.getTasks(),
           academicService.getSubjects(),
           enginePlanningService.getHighRiskTasks().catch(() => null),
+          enginePlanningService.generateDistribution().catch(() => null),
         ]);
 
         if (tasksRes.status === 'fulfilled') {
@@ -156,7 +157,7 @@ const SmartSchedule = () => {
 
         if (riskRes.status === 'fulfilled' && riskRes.value) {
           const risk = riskRes.value;
-          const riskTasks = risk.tasks || risk.data || risk || [];
+          const riskTasks = risk?.highRiskTasks ?? risk?.tasks ?? (Array.isArray(risk) ? risk : []);
           const count = Array.isArray(riskTasks) ? riskTasks.length : 0;
           if (count > 0) {
             setAlertInfo({
@@ -166,6 +167,19 @@ const SmartSchedule = () => {
                 ? 'Tienes 1 tarea de alto riesgo. Organiza tu tiempo para priorizarla.'
                 : `Tienes ${count} tareas de alto riesgo. Revisa el motor de priorización.`
             });
+          }
+        }
+
+        if (distributionRes.status === 'fulfilled' && distributionRes.value) {
+          const dist = distributionRes.value;
+          const distItems = dist.distribution || dist.subjectDistribution || dist.subjects || [];
+          if (Array.isArray(distItems) && distItems.length > 0) {
+            const total = distItems.reduce((acc, d) => acc + (d.percentage || d.pct || d.hours || 0), 0) || 1;
+            setDistribucion(distItems.slice(0, 4).map((d, i) => ({
+              label: d.subject || d.name || d.label,
+              pct: Math.round(((d.percentage || d.pct || d.hours || 0) / total) * 100),
+              color: () => d.color || ['#FF8430', '#C4107A', '#3B82F6', '#22C55E'][i],
+            })));
           }
         }
       } catch {
@@ -178,6 +192,14 @@ const SmartSchedule = () => {
   }, []);
 
   const s = getStyles(isDark);
+
+  const handleConfirmar = async () => {
+    try {
+      await enginePlanningService.reorganizeSchedule();
+    } catch {
+      // silent
+    }
+  };
 
   if (loading) {
     return (
@@ -216,7 +238,7 @@ const SmartSchedule = () => {
             <ChevronLeft color={isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'} />
             Regresar
           </button>
-          <button style={s.confirmBtn}>Confirmar</button>
+          <button style={s.confirmBtn} onClick={handleConfirmar}>Confirmar</button>
         </div>
       </div>
 
