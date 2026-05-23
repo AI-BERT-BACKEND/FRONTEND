@@ -17,6 +17,7 @@ import taskService from '../services/taskService';
 import notificationService from '../services/notificationService';
 import academicService from '../services/academicService';
 import statsService from '../services/statsService';
+import recommendationService from '../services/recommendationService';
 
 const Dashboard = () => {
   const { isDark } = useTheme();
@@ -52,12 +53,14 @@ const Dashboard = () => {
    useEffect(() => {
      const fetchData = async () => {
        try {
-         const [alertasRes, summaryRes, tasksRes, statsRes, aiSugRes] = await Promise.allSettled([
+         const userId = user?.id || user?.userId || user?.sub || null;
+         const [alertasRes, summaryRes, tasksRes, statsRes, aiSugRes, dailyPlanRes] = await Promise.allSettled([
            notificationService.getAlertNotifications(),
            academicService.getSummary(),
            taskService.getTasks(),
            statsService.getDashboard(),
            notificationService.getTopStudySuggestion().catch(() => null),
+           userId ? recommendationService.getDailyPlan(userId).catch(() => null) : Promise.resolve(null),
          ]);
 
          if (alertasRes.status === 'fulfilled') {
@@ -108,6 +111,14 @@ const Dashboard = () => {
            const data = aiSugRes.value;
            const text = data.suggestion || data.text || data.message || data.title || data.advice || '';
            if (text) setAiSuggestion(text);
+         } else if (dailyPlanRes.status === 'fulfilled' && dailyPlanRes.value) {
+           const plan = dailyPlanRes.value;
+           const recs = plan.reorganization || plan.reorganizationSuggestions || [];
+           const first = recs[0];
+           if (first) {
+             const text = first.recommendation || first.description || first.message || '';
+             if (text) setAiSuggestion(text);
+           }
          }
        } catch {
          setLoadingAlertas(false);
