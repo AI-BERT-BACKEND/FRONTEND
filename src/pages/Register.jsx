@@ -12,7 +12,7 @@ import {
   validateRequired,
 } from '../utils/validators';
 import { createStyles } from '../theme/createStyles';
-import profileService from '../services/profileService';
+import authService from '../services/authService';
 
 const EyeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -87,13 +87,13 @@ const Register = () => {
   const navigate = useNavigate();
 
   const carreras = [
-    { label: 'Ing. Sistemas',    value: 'ING_SISTEMAS' },
-    { label: 'Ing. Industrial',  value: 'ING_INDUSTRIAL' },
-    { label: 'Ing. Civil',       value: 'ING_CIVIL' },
-    { label: 'Ing. Electrónica', value: 'ING_ELECTRONICA' },
-    { label: 'Ing. Biomédica',   value: 'ING_BIOMEDICA' },
-    { label: 'Ing. Eléctrica',   value: 'ING_ELECTRICA' },
-    { label: 'Ing. Mecánica',    value: 'ING_MECANICA' },
+    { label: 'Ing. Sistemas',    value: 'INGENIERIA_SISTEMAS' },
+    { label: 'Ing. Industrial',  value: 'INGENIERIA_INDUSTRIAL' },
+    { label: 'Ing. Civil',       value: 'INGENIERIA_CIVIL' },
+    { label: 'Ing. Electrónica', value: 'INGENIERIA_ELECTRONICA' },
+    { label: 'Ing. Biomédica',   value: 'INGENIERIA_BIOMEDICA' },
+    { label: 'Ing. Eléctrica',   value: 'INGENIERIA_ELECTRICA' },
+    { label: 'Ing. Mecánica',    value: 'INGENIERIA_MECANICA' },
     { label: 'Administración',   value: 'ADMINISTRACION_EMPRESAS' },
     { label: 'Matemáticas',      value: 'MATEMATICAS' },
   ];
@@ -116,24 +116,24 @@ const Register = () => {
   };
 
    const handleSubmit = async () => {
-      if (!validate()) return;
-      setLoading(true);
-      try {
-        const response = await profileService.register({
-          fullName: form.nombre,
-          email: form.email,
-          career: form.carrera,
-          password: form.password,
-          confirmPassword: form.confirmPassword,
-        });
-        navigate('/verify-email', { state: { userId: response.id, email: form.email } });
-      } catch (err) {
-        const msg = err?.response?.data?.message || err.message || 'Error al registrar';
-        setErrors((p) => ({ ...p, email: msg }));
-      } finally {
-        setLoading(false);
-      }
-    };
+     if (!validate()) return;
+     setLoading(true);
+     try {
+       const response = await authService.register({
+         fullName: form.nombre,
+         email: form.email,
+         career: form.carrera,
+         password: form.password,
+         confirmPassword: form.confirmPassword,
+       });
+       navigate('/verify-email', { state: { userId: response?.data?.id || response?.id, email: form.email } });
+     } catch (err) {
+       const msg = err?.response?.data?.message || err.message || 'Error al registrar';
+       setErrors((p) => ({ ...p, email: msg }));
+     } finally {
+       setLoading(false);
+     }
+   };
   
   const s = getStyles(isDark);
   const t = createStyles(isDark);
