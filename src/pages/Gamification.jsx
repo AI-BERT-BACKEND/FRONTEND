@@ -470,8 +470,7 @@ const st = (isDark, t) => ({
 
   insigniasGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(5, 140px)',
-    justifyContent: 'center',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
     gap: 14,
   },
 
@@ -551,7 +550,7 @@ const st = (isDark, t) => ({
 
   cursosGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
     gap: 14,
   },
 

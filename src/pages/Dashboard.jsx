@@ -274,7 +274,7 @@ const Dashboard = () => {
           </div>
         </section>
 
-         <section style={{ ...s.card, flex: '0 1 240px', alignItems: 'center', textAlign: 'center' }} aria-label="Progreso semanal">
+         <section style={{ ...s.card, flex: '1 1 240px', alignItems: 'center', textAlign: 'center' }} aria-label="Progreso semanal">
            <CircleProgress pct={progresoPorcentaje} isDark={isDark} size={130} label="Completado" />
           <p style={s.progressText(isDark)}>
             Vas por buen camino para cumplir tus metas de la semana.
@@ -355,7 +355,7 @@ const Dashboard = () => {
           </button>
         </section>
 
-        <section style={{ ...s.card, flex: '0 1 240px', alignItems: 'center', textAlign: 'center' }} aria-label="AI Assistant">
+        <section style={{ ...s.card, flex: '1 1 240px', alignItems: 'center', textAlign: 'center' }} aria-label="AI Assistant">
           <span style={s.aiLabel(isDark)}>AI ASSISTANT</span>
           <div style={s.aiImgWrap(isDark)}>
             <img src={AibertGif} alt="AI.BERT" style={s.aiImg} />

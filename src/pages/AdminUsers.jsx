@@ -575,7 +575,7 @@ const modalSt = (isDark, t) => ({
     fontFamily: "'Poppins',sans-serif", fontSize: 12,
     color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
   }),
-  fieldGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 },
+  fieldGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, marginBottom: 16 },
   field: (isDark) => ({
     background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)'}`,

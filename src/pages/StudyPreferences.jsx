@@ -625,7 +625,7 @@ const getStyles = (isDark) => {
   return {
     row2: {
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
       gap: 16,
       marginBottom: 16,
     },
@@ -740,7 +740,7 @@ const getStyles = (isDark) => {
     },
     metodosGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
       gap: 12,
     },
     metodoCard: {
@@ -778,7 +778,7 @@ const getStyles = (isDark) => {
     },
     ambientesGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(5, 1fr)',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
       gap: 12,
     },
     ambienteCard: {

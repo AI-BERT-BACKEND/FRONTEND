@@ -159,19 +159,19 @@ const Landing = () => {
 
       {/* ── NAVBAR ── */}
       <nav style={s.navbar}>
-        <div style={s.navInner}>
+        <div style={s.navInner} className="landing-nav-inner">
           <div style={s.navBrand}>
             <img src={LogoImg} alt="AI.BERT" style={s.navLogo} />
             <span style={s.navBrandText}>AI.BERT</span>
           </div>
-          <div style={s.navLinks}>
+          <div style={s.navLinks} className="landing-nav-links">
             <a href="#inicio"         style={s.navLink}>INICIO</a>
             <a href="#sobre-nosotros" style={s.navLink}>SOBRE NOSOTROS</a>
             <a href="#beneficios"     style={s.navLink}>BENEFICIOS</a>
             <a href="#opiniones"      style={s.navLink}>OPINIONES</a>
           </div>
-          <button 
-            style={s.navBtn} 
+          <button
+            style={s.navBtn}
             onClick={() => navigate('/login')}
             className="btn-lift"
           >
@@ -735,7 +735,7 @@ const st = (isDark, t) => ({
   },
   carouselTrack: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3,1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
     gap: 14,
     flex: 1,
   },
@@ -960,7 +960,7 @@ const st = (isDark, t) => ({
   },
   pasosGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4,1fr)',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
     gap: 16,
   },
    pasoCard: (i) => ({

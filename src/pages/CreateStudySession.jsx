@@ -371,7 +371,7 @@ const getStyles = (isDark) => {
     },
     row2: {
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
       gap: 12,
     },
 

@@ -249,3 +249,36 @@ html {
   animation: bounce-scroll 2s ease-in-out infinite;
 }
 
+/* ── Mobile Responsive Utilities ── */
+
+@media (max-width: 767px) {
+  /* Hide landing nav links on mobile */
+  .landing-nav-links {
+    display: none !important;
+  }
+
+  /* Shrink landing nav padding */
+  .landing-nav-inner {
+    padding: 0 16px !important;
+    gap: 16px !important;
+  }
+
+  /* Full-width problemaCards on small screens */
+  .problema-card-flex {
+    width: 100% !important;
+    flex-shrink: 1 !important;
+  }
+
+  /* Ensure cards in flex rows wrap cleanly */
+  .mobile-full-width {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Reduce large hero padding on mobile */
+  .landing-hero {
+    padding-top: 100px !important;
+    padding-bottom: 60px !important;
+  }
+}
+
