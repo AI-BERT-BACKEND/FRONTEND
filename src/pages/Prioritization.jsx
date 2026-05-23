@@ -8,6 +8,7 @@ import {
   Zap, Book, Scale 
 } from 'lucide-react';
 import taskService from '../services/taskService';
+import enginePlanningService from '../services/enginePlanningService';
 
 const AlertIcon = ({ color }) => (
   <AlertTriangle size={16} color={color} strokeWidth={2} />
@@ -66,21 +67,24 @@ const Prioritization = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [prioritizedRes, summaryRes] = await Promise.allSettled([
-          taskService.getPrioritizedTasks(),
-          taskService.getDailySummary(),
+        const [prioritizedRes, balanceRes, criticalsRes] = await Promise.allSettled([
+          enginePlanningService.getPrioritizedTasks(),
+          enginePlanningService.getWorkloadBalance(),
+          enginePlanningService.getPrioritizationCriticalTasks(),
         ]);
+
+        let mappedPrioritized = [];
 
         if (prioritizedRes.status === 'fulfilled') {
           const data = prioritizedRes.value;
           const items = data.tasks || data.prioritizedTasks || data || [];
-          const mapped = (Array.isArray(items) ? items : []).map(t => ({
+          mappedPrioritized = (Array.isArray(items) ? items : []).map(t => ({
             id: t.id,
             nombre: t.title || t.name || t.nombre,
             materia: t.subject || t.materia,
             tipo: t.type || t.tipo,
-            urgencia: t.urgency || t.urgencia || (t.priority === 'high' ? 'high' : 'medium'),
-            prioridad: t.priority || t.prioridad || (t.level === 'high' ? 'ALTO' : 'BAJO'),
+            urgencia: t.urgency || t.urgencia || (t.priority === 'HIGH' ? 'HIGH' : 'MEDIUM'),
+            prioridad: (t.priority === 'HIGH' || t.priority === 'CRITICAL' || t.prioridad === 'ALTO') ? 'ALTO' : 'BAJO',
             entrega: t.dueDate || t.entrega || t.fecha,
             estimado: t.estimatedHours ? `${t.estimatedHours}h necesarias` : t.estimado,
             tiempoEstudio: t.estimatedHours ? `${t.estimatedHours}h necesarios hoy` : t.tiempoEstudio,
@@ -90,22 +94,45 @@ const Prioritization = () => {
             accion: t.action || t.accion || 'REVISAR',
             completada: t.completed ?? t.completada,
           }));
-          setTareasCriticas(mapped.filter(t => t.tipo === 'CRITICO' || t.urgencia === 'high'));
-          setTareasPriorizadas(mapped);
+          setTareasPriorizadas(mappedPrioritized);
         }
 
-        if (summaryRes.status === 'fulfilled') {
-          const data = summaryRes.value;
+        if (criticalsRes.status === 'fulfilled' && criticalsRes.value) {
+          const data = criticalsRes.value;
+          const items = data.tasks || data.criticalTasks || data || [];
+          const mapped = (Array.isArray(items) ? items : []).map(t => ({
+            id: t.id,
+            nombre: t.title || t.name || t.nombre,
+            materia: t.subject || t.materia,
+            tipo: t.type || t.tipo || 'CRITICO',
+            urgencia: t.urgency || t.urgencia || (t.priority === 'HIGH' ? 'HIGH' : 'MEDIUM'),
+            prioridad: (t.priority === 'HIGH' || t.priority === 'CRITICAL') ? 'ALTO' : 'BAJO',
+            entrega: t.dueDate || t.entrega || t.fecha,
+            estimado: t.estimatedHours ? `${t.estimatedHours}h necesarias` : t.estimado,
+            tiempoEstudio: t.estimatedHours ? `${t.estimatedHours}h necesarios hoy` : t.tiempoEstudio,
+            nota: t.note || t.nota || t.dueDate || t.fecha,
+            diasDisponibles: t.daysAvailable ?? t.diasDisponibles,
+            horasEstimadas: t.estimatedHours ?? t.horasEstimadas,
+            accion: t.action || t.accion || 'REVISAR',
+            completada: t.completed ?? t.completada,
+          }));
+          setTareasCriticas(mapped);
+        } else {
+          setTareasCriticas(mappedPrioritized.filter(t => t.tipo === 'CRITICO' || t.urgencia === 'HIGH'));
+        }
+
+        if (balanceRes.status === 'fulfilled') {
+          const data = balanceRes.value;
           const summary = data.summary || data;
 
-          const balance = (summary.timeBalance || summary.balance || []).map(b => ({
+          const balance = (summary.timeBalance || summary.balance || summary.weeklyBalance || []).map(b => ({
             label: b.label || b.name,
             pct: b.percentage ?? b.pct ?? b.value,
             color: b.color,
           }));
           setBalanceTiempo(balance.length > 0 ? balance : []);
 
-          const risks = (summary.risks || summary.riskAssessment || []).map(r => ({
+          const risks = (summary.risks || summary.riskAssessment || summary.highRiskItems || []).map(r => ({
             id: r.id,
             nombre: r.name || r.nombre,
             detalle: r.detail || r.detalle,
@@ -137,7 +164,8 @@ const Prioritization = () => {
       setNotificacionVista(p => ({ ...p, [id]: true }));
       setTimeout(() => setNotificacionVista(p => ({ ...p, [id]: false })), 4000);
       try {
-        await taskService.updateTaskStatus(actualId, 'completed');
+        await taskService.updateTaskStatus(actualId, 'COMPLETED');
+        await enginePlanningService.notifyTaskChange({ taskId: actualId, status: 'COMPLETED' });
       } catch {
         // silent fail
       }
