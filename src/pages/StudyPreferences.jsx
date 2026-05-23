@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ProgressBar from '../components/ProgressBar';
+import academicService from '../services/academicService';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
@@ -199,22 +200,22 @@ const MusicaIcon = ({ active, isDark }) => (
   </svg>
 );
 
-const SilencioIcon = ({ active }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={active ? '#fff' : '#fff'}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-    <line x1="23" y1="9" x2="17" y2="15" />
-    <line x1="17" y1="9" x2="23" y2="15" />
-  </svg>
-);
+ const SilencioIcon = ({ active, isDark }) => (
+   <svg
+     width="22"
+     height="22"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke={active ? '#fff' : '#FF5B2E'}
+     strokeWidth="2"
+     strokeLinecap="round"
+     strokeLinejoin="round"
+   >
+     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+     <line x1="23" y1="9" x2="17" y2="15" />
+     <line x1="17" y1="9" x2="23" y2="15" />
+   </svg>
+ );
 
 const CasaIcon = ({ active, isDark }) => (
   <svg
@@ -397,11 +398,27 @@ const StudyPreferences = () => {
   const [showToast, setShowToast] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const prefs = await academicService.getStudyPreferences();
+        if (prefs.modalidad) setModalidad(prefs.modalidad);
+        if (prefs.metodo) setMetodo(prefs.metodo);
+        if (prefs.ambiente) setAmbiente(prefs.ambiente);
+      } catch {
+        // Usar defaults
+      } finally {
+        setInitialLoading(false);
+      }
+    })();
+  }, []);
 
   const handleGuardar = async () => {
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 600));
+      await academicService.saveStudyPreferences({ modalidad, metodo, ambiente });
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3500);
     } finally {
@@ -413,12 +430,19 @@ const StudyPreferences = () => {
 
   const t = createStyles(isDark);
 
-  return (
-    <AppLayout>
-      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
-        ← Volver
-      </button>
-      <div style={s.row2}>
+  if (initialLoading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300, color: t.textSecondary, fontFamily: t.fontPrimary, fontSize: 14 }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
+
+   return (
+     <AppLayout>
+       <div style={s.row2}>
         <div style={s.card}>
           <div style={s.cardHeader}>
             <div style={s.sectionLabel}>

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import { formatDate } from '../utils/dateUtils';
+import taskService from '../services/taskService';
+import academicService from '../services/academicService';
 
 import { 
   Search, Edit2, Trash2, Clock, ChevronDown, 
@@ -46,54 +48,6 @@ const ESTADO_CONFIG = {
   'ENTREGA':     { bg: 'rgba(34,197,94,0.18)', color: '#22C55E' },
 };
 
-const MATERIAS_OPCIONES = [
-  'Matemáticas II', 'Física', 'Historia', 'Literatura', 'Química',
-  'Programación', 'Cálculo', 'Estadística',
-];
-
-const INITIAL_TASKS = [
-  {
-    id: 1,
-    nombre: 'Problemas de Cálculo Integral',
-    descripcion: 'Resolver los ejercicios del 1 al 20 enfocados sobre integrales definidas e integrales dobles tipo curva.',
-    materia: 'Matemáticas II',
-    tipo: 'ENTREGA HOY',
-    fecha: '2026-05-20',
-    horasEstudio: '2:00',
-    estimado: '40M',
-  },
-  {
-    id: 2,
-    nombre: 'Laboratorio de Óptica',
-    descripcion: 'Preparar el reporte del laboratorio de física, incluye diagramas de rayos y cálculos de error.',
-    materia: 'Física',
-    tipo: 'TAREA',
-    fecha: '2026-05-23',
-    horasEstudio: '1:30',
-    estimado: '3 DIAS',
-  },
-  {
-    id: 3,
-    nombre: 'Resumen: Revolución Industrial',
-    descripcion: 'Leer los capítulos 2 y 3 del libro de texto principal y redactar un resumen de 500 palabras.',
-    materia: 'Historia',
-    tipo: 'ESTUDIO',
-    fecha: '2026-05-22',
-    horasEstudio: '1:00',
-    estimado: '2 DIAS',
-  },
-  {
-    id: 4,
-    nombre: 'Análisis Literario',
-    descripcion: 'Analizar el cuento "El aleph" de Borges e identificar los recursos literarios utilizados en el texto.',
-    materia: 'Literatura',
-    tipo: 'ENTREGA',
-    fecha: '2026-05-24',
-    horasEstudio: '1:30',
-    estimado: '4 DIAS',
-  },
-];
-
 const Spinner = () => (
   <>
     <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
@@ -107,7 +61,9 @@ const Spinner = () => (
 const Tasks = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState(INITIAL_TASKS);
+  const [tasks, setTasks] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [fetchLoading, setFetchLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [filtroMateria, setFiltroMateria] = useState('Todos los materias');
   const [showModal, setShowModal] = useState(false);
@@ -116,10 +72,43 @@ const Tasks = () => {
   const [detailTask, setDetailTask] = useState(null);
   const [editTask, setEditTask] = useState(null);
   const [form, setForm] = useState({
-    nombre: '', materia: 'Matemáticas II', tipo: 'TAREA',
+    nombre: '', materia: '', tipo: 'TAREA',
     descripcion: '', fecha: '', horas: '', estimado: '',
   });
   const [formErrors, setFormErrors] = useState({});
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [tasksData, subjectsData] = await Promise.all([
+          taskService.getTasks(),
+          academicService.getSubjects(),
+        ]);
+        const items = tasksData.tasks || tasksData || [];
+        setTasks(items.map((t) => ({
+          id: t.id || Date.now(),
+          nombre: t.title || t.name || t.nombre,
+          descripcion: t.description || t.descripcion || '',
+          materia: t.subject || t.materia || 'General',
+          tipo: t.type || t.tipo || 'TAREA',
+          fecha: t.dueDate || t.fecha || '',
+          horasEstudio: t.estimatedHours || t.horasEstudio || '1:00',
+          estimado: t.estimated || t.estimado || '—',
+        })));
+        const subs = subjectsData.subjects || subjectsData || [];
+        setSubjects(subs.map((s) => s.name || s.nombre || s));
+        if (subs.length > 0) {
+          const firstSub = subs[0].name || subs[0].nombre || subs[0];
+          setForm((f) => ({ ...f, materia: firstSub }));
+        }
+      } catch {
+        // fallback vacío
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const s = getStyles(isDark);
   const t = createStyles(isDark);
@@ -148,32 +137,52 @@ const Tasks = () => {
     if (!validateForm()) return;
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 500));
-      const nueva = {
-        id: Date.now(),
-        nombre: form.nombre,
-        descripcion: form.descripcion,
-        materia: form.materia,
-        tipo: form.tipo,
-        fecha: form.fecha,
-        horasEstudio: form.horas || '1:00',
-        estimado: form.estimado || '—',
+      const taskData = {
+        title: form.nombre,
+        description: form.descripcion,
+        subject: form.materia,
+        type: form.tipo,
+        dueDate: form.fecha,
+        estimatedHours: form.horas || '1:00',
+        estimated: form.estimado || '—',
       };
-      setTasks(p => [...p, nueva]);
+      const res = await taskService.createTask(taskData);
+      setTasks(p => [...p, { id: res.id || Date.now(), ...taskData }]);
       setForm({ nombre: '', materia: 'Matemáticas II', tipo: 'TAREA', descripcion: '', fecha: '', horas: '', estimado: '' });
       setFormErrors({});
       setShowModal(false);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 6000);
+    } catch {
+      // error silencioso
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEliminar = (id) => setTasks(p => p.filter(t => t.id !== id));
+  const handleEliminar = async (id) => {
+    try {
+      await taskService.deleteTask(id);
+      setTasks(p => p.filter(t => t.id !== id));
+    } catch {
+      setTasks(p => p.filter(t => t.id !== id));
+    }
+  };
 
-  const handleEditSave = (updated) => {
-    setTasks(p => p.map(t => t.id === updated.id ? updated : t));
+  const handleEditSave = async (updated) => {
+    try {
+      await taskService.updateTask(updated.id, {
+        title: updated.nombre,
+        description: updated.descripcion,
+        subject: updated.materia,
+        type: updated.tipo,
+        dueDate: updated.fecha,
+        estimatedHours: updated.horasEstudio,
+      });
+      setTasks(p => p.map(t => t.id === updated.id ? updated : t));
+    } catch {
+      setTasks(p => p.map(t => t.id === updated.id ? updated : t));
+    }
     setEditTask(null);
   };
 
@@ -224,14 +233,14 @@ const Tasks = () => {
         <div style={s.filterRight}>
           <span style={s.filterLabel}>FILTRAR POR</span>
           <div style={{ position: 'relative' }}>
-            <select
-              style={s.filterSelect}
-              value={filtroMateria}
-              onChange={e => setFiltroMateria(e.target.value)}
-            >
-              <option>Todos los materias</option>
-              {MATERIAS_OPCIONES.map(m => <option key={m}>{m}</option>)}
-            </select>
+             <select
+               style={s.filterSelect}
+               value={filtroMateria}
+               onChange={e => setFiltroMateria(e.target.value)}
+             >
+               <option>Todos los materias</option>
+               {subjects.map(m => <option key={m}>{m}</option>)}
+             </select>
             <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
           </div>
         </div>
@@ -239,7 +248,12 @@ const Tasks = () => {
 
       {/* ── GRID TAREAS ── */}
       <div style={s.tasksGrid}>
-        {tareasFiltradas.length === 0 && (
+        {fetchLoading && (
+          <div style={s.emptyState}>
+            <p style={s.emptyText}>Cargando tareas...</p>
+          </div>
+        )}
+        {!fetchLoading && tareasFiltradas.length === 0 && (
           <div style={s.emptyState}>
             <ClipboardList size={42} color={isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)'} />
             <p style={s.emptyText}>No hay tareas. ¡Crea tu primera tarea!</p>
@@ -386,10 +400,10 @@ const Tasks = () => {
                 <div style={{ ...s.mField, flex: 1 }}>
                   <label style={s.mLabel}>MATERIA</label>
                   <div style={{ position: 'relative' }}>
-                    <select style={{ ...s.mInput, ...s.mSelect }} value={editTask.materia}
-                      onChange={e => setEditTask(p => ({ ...p, materia: e.target.value }))}>
-                      {MATERIAS_OPCIONES.map(m => <option key={m}>{m}</option>)}
-                    </select>
+                     <select style={{ ...s.mInput, ...s.mSelect }} value={editTask.materia}
+                       onChange={e => setEditTask(p => ({ ...p, materia: e.target.value }))}>
+                       {subjects.map(m => <option key={m}>{m}</option>)}
+                     </select>
                     <ChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                 </div>
@@ -458,11 +472,11 @@ const Tasks = () => {
                 <div style={{ ...s.mField, flex: 1 }}>
                   <label style={s.mLabel}>MATERIA</label>
                   <div style={{ position: 'relative' }}>
-                    <select style={{ ...s.mInput, ...s.mSelect }}
-                      value={form.materia}
-                      onChange={e => setForm(p => ({ ...p, materia: e.target.value }))}>
-                      {MATERIAS_OPCIONES.map(m => <option key={m}>{m}</option>)}
-                    </select>
+                     <select style={{ ...s.mInput, ...s.mSelect }}
+                       value={form.materia}
+                       onChange={e => setForm(p => ({ ...p, materia: e.target.value }))}>
+                       {subjects.map(m => <option key={m}>{m}</option>)}
+                     </select>
                     <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
                   </div>
                 </div>

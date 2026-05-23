@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ProgressBar from '../components/ProgressBar';
 import StatusBadge from '../components/StatusBadge';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import academicService from '../services/academicService';
 
 import { Star, ClipboardList, ListTodo, CheckCircle2 } from 'lucide-react';
 
@@ -25,80 +26,6 @@ const IconTrash = ({ color }) => (
   </svg>
 );
 
-const INITIAL_DATA = {
-  materia: 'Detalles por Corte',
-  subtitulo: 'Seguimiento detallado de evaluaciones por período académico.',
-  stats: {
-    promedioGlobal: 8.4,
-    cortes: '2/3',
-    tareasPendientes: 18,
-    asistencia: 94,
-  },
-  cortes: [
-    {
-      id: 1,
-      nombre: 'Primer Corte',
-      color: '#FF8430',
-      estado: 'Completado',
-      estadoColor: '#22C55E',
-      estadoBg: 'rgba(34,197,94,0.15)',
-      peso: '30%',
-      puntaje: 9.2,
-      puntajeMax: 10.0,
-      progreso: 92,
-      actividades: [
-        { id: 'a1', nombre: 'Participación',    nota: 9.5, peso: '40%', color: '#22C55E' },
-        { id: 'a2', nombre: 'Taller Grupal',    nota: 9.0, peso: '30%', color: '#22C55E' },
-        { id: 'a3', nombre: 'Quiz Semana 2',    nota: 8.8, peso: '15%', color: '#22C55E' },
-        { id: 'a4', nombre: 'Participación',    nota: 9.5, peso: '15%', color: '#22C55E' },
-      ],
-    },
-    {
-      id: 2,
-      nombre: 'Segundo Corte',
-      color: '#A855F7',
-      estado: 'Completado',
-      estadoColor: '#22C55E',
-      estadoBg: 'rgba(34,197,94,0.15)',
-      peso: '30%',
-      puntaje: 7.8,
-      puntajeMax: 10.0,
-      progreso: 78,
-      actividades: [
-        { id: 'b1', nombre: 'Examen Midterm',   nota: 7.5, peso: '40%', color: '#EAB308' },
-        { id: 'b2', nombre: 'Examen Parcial',   nota: 8.0, peso: '30%', color: '#22C55E' },
-        { id: 'b3', nombre: 'Quiz Semana 7',    nota: 8.2, peso: '15%', color: '#22C55E' },
-        { id: 'b4', nombre: 'Asistencia',       nota: 8.0, peso: '15%', color: '#22C55E' },
-      ],
-    },
-    {
-      id: 3,
-      nombre: 'Tercer Corte',
-      color: '#F7306D',
-      estado: 'Sin registrar',
-      estadoColor: 'rgba(255,255,255,0.40)',
-      estadoBg: 'rgba(255,255,255,0.07)',
-      peso: '40%',
-      puntaje: null,
-      puntajeMax: 10.0,
-      progreso: 0,
-      actividades: [
-        { id: 'c1', nombre: 'Examen Final',     nota: null, peso: '50%', color: null },
-        { id: 'c2', nombre: 'Proyecto Práctico',nota: null, peso: '30%', color: null },
-        { id: 'c3', nombre: 'Tec',              nota: null, peso: '10%', color: null },
-        { id: 'c4', nombre: 'Exposición Oral',  nota: null, peso: '10%', color: null },
-      ],
-    },
-  ],
-  bottomStats: {
-    promedioFinal: 8.47,
-    proyeccion: '8.1 – 9.0',
-    fallasPorMaterias: 'Ninguno',
-    coloresMaterias: ['#FF8430', '#A855F7', '#F7306D'],
-    restantes: 4,
-  },
-};
-
 const Spinner = () => (
   <>
     <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
@@ -109,7 +36,7 @@ const Spinner = () => (
   </>
 );
 
-const ActividadModal = ({ corteNombre, actividad, isDark, onSave, onClose }) => {
+const ActividadModal = ({ subjectId, corteId, corteNombre, actividad, isDark, onSave, onClose }) => {
   const t = createStyles(isDark);
   const [nombre, setNombre]   = useState(actividad?.nombre || '');
   const [nota,   setNota]     = useState(actividad?.nota   != null ? String(actividad.nota) : '');
@@ -160,10 +87,22 @@ const ActividadModal = ({ corteNombre, actividad, isDark, onSave, onClose }) => 
     if (!nombre.trim()) return;
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 400));
       const notaNum = parseFloat(nota);
-      const notaColor = isNaN(notaNum) ? null : notaNum >= 6 ? '#22C55E' : notaNum >= 4 ? '#EAB308' : '#F00707';
-      onSave({ nombre: nombre.trim(), nota: isNaN(notaNum) ? null : notaNum, peso: peso || '—', color: notaColor });
+      const pesoNum = parseInt(peso) || 0;
+      const payload = { nombre: nombre.trim(), grade: isNaN(notaNum) ? null : notaNum, weight: pesoNum };
+      let saved;
+      if (isEdit) {
+        saved = await academicService.updateGrade(subjectId, corteId, actividad.id, payload);
+      } else {
+        saved = await academicService.registerGrade(subjectId, corteId, payload);
+      }
+      const gradeRes = saved.grade || saved.data || saved;
+      const returnedNota = gradeRes.grade ?? gradeRes.nota ?? gradeRes.score ?? notaNum;
+      const returnedWeight = gradeRes.weight ?? gradeRes.peso ?? pesoNum;
+      const notaColor = isNaN(returnedNota) ? null : returnedNota >= 6 ? '#22C55E' : returnedNota >= 4 ? '#EAB308' : '#F00707';
+      onSave({ nombre: gradeRes.name || gradeRes.nombre || nombre.trim(), nota: isNaN(returnedNota) ? null : returnedNota, peso: returnedWeight ? `${returnedWeight}%` : peso, color: notaColor });
+    } catch (err) {
+      console.error('Error saving grade:', err);
     } finally {
       setLoading(false);
     }
@@ -357,49 +296,170 @@ const getCorteStyles = (isDark, t, accentColor) => ({
 const CourseGrades = () => {
   const { isDark } = useTheme();
   const navigate   = useNavigate();
-  const [data, setData]             = useState(INITIAL_DATA);
-  const [modal, setModal]           = useState(null); // { corteId, actividad? }
+  const { id: subjectId } = useParams();
+  const [subject, setSubject] = useState(null);
+  const [averages, setAverages] = useState(null);
+  const [cuts, setCuts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState(null);
   const s = getStyles(isDark);
   const t = createStyles(isDark);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [subjectRes, averagesRes, structureRes] = await Promise.all([
+          academicService.getSubjectById(subjectId),
+          academicService.getSubjectAverages(subjectId),
+          academicService.getEvaluationStructure(subjectId),
+        ]);
+
+        setSubject({
+          nombre: subjectRes.name || subjectRes.nombre || subjectRes.materia || 'Detalles por Corte',
+          descripcion: subjectRes.description || subjectRes.descripcion || subjectRes.subtitulo || 'Seguimiento detallado de evaluaciones por período académico.',
+        });
+
+        const avg = averagesRes.averages || averagesRes.data || averagesRes;
+        setAverages({
+          promedioGlobal: avg.promedioGlobal ?? avg.average ?? avg.globalAverage ?? 0,
+          cortes: avg.cortes || (avg.cortesCompletados != null ? `${avg.cortesCompletados}/${avg.totalCortes || 3}` : '0/3'),
+          tareasPendientes: avg.tareasPendientes ?? avg.pendingTasks ?? 0,
+          asistencia: avg.asistencia ?? avg.attendance ?? 0,
+          promedioFinal: avg.promedioFinal ?? avg.finalAverage ?? 0,
+            proyeccion: avg.proyeccion ?? avg.projection ?? '—',
+            fallasPorMaterias: avg.fallasPorMaterias ?? avg.failures ?? 'Ninguno',
+          coloresMaterias: avg.coloresMaterias ?? avg.subjectColors ?? ['#FF8430', '#A855F7', '#F7306D'],
+          restantes: avg.restantes ?? avg.remaining ?? 0,
+        });
+
+        const rawCuts = structureRes.cuts || structureRes.estructura || structureRes || [];
+        const gradesPromises = rawCuts.map(cut =>
+          academicService.getGradesByCut(subjectId, cut.id)
+        );
+        const gradesResults = await Promise.allSettled(gradesPromises);
+
+        const mergedCuts = rawCuts.map((cut, index) => {
+          const gradesData = gradesResults[index]?.status === 'fulfilled'
+            ? (gradesResults[index].value.grades || gradesResults[index].value.data || gradesResults[index].value || [])
+            : [];
+
+          const actividades = (cut.activities || cut.actividades || []).map(act => {
+            const grade = gradesData.find(g =>
+              (g.activityId === act.id || g.activity_id === act.id || g.actividadId === act.id || g.activityId === act.activityId)
+            );
+            const nota = grade?.grade ?? grade?.nota ?? grade?.score ?? null;
+            return {
+              id: act.id,
+              nombre: act.name || act.nombre,
+              nota: nota,
+              peso: act.weight != null ? `${act.weight}%` : act.peso || '—',
+              color: nota !== null
+                ? (nota >= 6 ? '#22C55E' : nota >= 4 ? '#EAB308' : '#F00707')
+                : null,
+            };
+          });
+
+          const notasValidas = actividades.filter(a => a.nota !== null);
+          const puntaje = notasValidas.length
+            ? parseFloat((notasValidas.reduce((s, a) => s + a.nota, 0) / notasValidas.length).toFixed(1))
+            : null;
+
+          return {
+            id: cut.id,
+            nombre: cut.name || cut.nombre,
+            color: cut.color || (cut.id === 1 ? '#FF8430' : cut.id === 2 ? '#A855F7' : '#F7306D'),
+            estado: puntaje !== null ? 'Completado' : 'Sin registrar',
+            estadoColor: puntaje !== null ? '#22C55E' : 'rgba(255,255,255,0.40)',
+            estadoBg: puntaje !== null ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.07)',
+            peso: cut.weight != null ? `${cut.weight}%` : cut.peso || '—',
+            puntaje,
+            puntajeMax: 10.0,
+            progreso: puntaje ? Math.round(puntaje * 10) : 0,
+            actividades,
+          };
+        });
+
+        setCuts(mergedCuts);
+      } catch (err) {
+        console.error('Error loading course grades:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [subjectId]);
 
   const handleAddActividad = (corteId) => setModal({ corteId, actividad: null });
   const handleEditActividad = (corteId, actividad) => setModal({ corteId, actividad });
 
-  const handleDeleteActividad = (corteId, actId) => {
-    setData(prev => ({
-      ...prev,
-      cortes: prev.cortes.map(c =>
+  const handleDeleteActividad = async (corteId, actId) => {
+    try {
+      await academicService.deleteGrade(subjectId, corteId, actId);
+      setCuts(prev => prev.map(c =>
         c.id === corteId
           ? { ...c, actividades: c.actividades.filter(a => a.id !== actId) }
           : c
-      ),
-    }));
+      ));
+    } catch (err) {
+      console.error('Error deleting grade:', err);
+    }
   };
 
-  const handleSaveActividad = ({ nombre, nota, peso, color }) => {
-    setData(prev => ({
-      ...prev,
-      cortes: prev.cortes.map(c => {
-        if (c.id !== modal.corteId) return c;
+  const handleSaveActividad = async ({ nombre, nota, peso, color }) => {
+    const corteId = modal.corteId;
+    try {
+      let savedGrade;
+      if (modal.actividad) {
+        savedGrade = await academicService.updateGrade(subjectId, corteId, modal.actividad.id, { nombre, grade: nota, weight: parseInt(peso) || 0 });
+      } else {
+        savedGrade = await academicService.registerGrade(subjectId, corteId, { nombre, grade: nota, weight: parseInt(peso) || 0 });
+      }
+      const gradeData = savedGrade.grade || savedGrade.data || savedGrade;
+      const returnedId = gradeData.id || modal.actividad?.id || `new-${Date.now()}`;
+      const returnedNota = gradeData.grade ?? gradeData.nota ?? gradeData.score ?? nota;
+      const notaColor = returnedNota !== null
+        ? (returnedNota >= 6 ? '#22C55E' : returnedNota >= 4 ? '#EAB308' : '#F00707')
+        : null;
+
+      setCuts(prev => prev.map(c => {
+        if (c.id !== corteId) return c;
         let acts;
         if (modal.actividad) {
           acts = c.actividades.map(a =>
-            a.id === modal.actividad.id ? { ...a, nombre, nota, peso, color } : a
+            a.id === modal.actividad.id ? { ...a, nombre, nota: returnedNota, peso: peso || '—', color: notaColor } : a
           );
         } else {
-          acts = [...c.actividades, { id: `new-${Date.now()}`, nombre, nota, peso, color }];
+          acts = [...c.actividades, { id: returnedId, nombre, nota: returnedNota, peso: peso || '—', color: notaColor }];
         }
         const notasValidas = acts.filter(a => a.nota !== null);
         const nuevoPuntaje = notasValidas.length
           ? parseFloat((notasValidas.reduce((s, a) => s + a.nota, 0) / notasValidas.length).toFixed(1))
           : null;
         return { ...c, actividades: acts, puntaje: nuevoPuntaje, progreso: nuevoPuntaje ? Math.round(nuevoPuntaje * 10) : 0 };
-      }),
-    }));
+      }));
+    } catch (err) {
+      console.error('Error saving grade:', err);
+    }
     setModal(null);
   };
 
-  const { stats, cortes, bottomStats } = data;
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400, color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)', fontFamily: t.fontSecondary, fontSize: 14 }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const topStats = averages ? [
+    { label: 'Promedio Global',     val: averages.promedioGlobal, icon: Star, accent: isDark ? '#FF5B2E' : '#FF8430' },
+    { label: 'Cortes',              val: averages.cortes,         icon: ClipboardList,         accent: isDark ? '#A855F7' : '#A855F7' },
+    { label: 'Tareas Pendientes',   val: averages.tareasPendientes, icon: ListTodo, accent: isDark ? '#FF5B2E' : '#FF8430' },
+    { label: 'Asistencia',          val: `${averages.asistencia}%`, icon: CheckCircle2, accent: '#22C55E' },
+  ] : [];
 
   return (
     <AppLayout>
@@ -411,19 +471,14 @@ const CourseGrades = () => {
       {/* ── HEADER ── */}
       <div style={s.pageHeader}>
         <div>
-          <h1 style={s.pageTitle}>{data.materia}</h1>
-          <p style={s.pageDesc}>{data.subtitulo}</p>
+          <h1 style={s.pageTitle}>{subject?.nombre || 'Detalles por Corte'}</h1>
+          <p style={s.pageDesc}>{subject?.descripcion || 'Seguimiento detallado de evaluaciones por período académico.'}</p>
         </div>
       </div>
 
       {/* ── TOP STATS ── */}
       <div style={s.statsRow}>
-        {[
-          { label: 'Promedio Global',     val: stats.promedioGlobal, icon: Star, accent: isDark ? '#FF5B2E' : '#FF8430' },
-          { label: 'Cortes',              val: stats.cortes,         icon: ClipboardList,         accent: isDark ? '#A855F7' : '#A855F7' },
-          { label: 'Tareas Pendientes',   val: stats.tareasPendientes, icon: ListTodo, accent: isDark ? '#FF5B2E' : '#FF8430' },
-          { label: 'Asistencia',          val: `${stats.asistencia}%`, icon: CheckCircle2, accent: '#22C55E' },
-        ].map((item, i) => (
+        {topStats.map((item, i) => (
           <div key={i} style={s.statCard}>
             <div style={s.statIconWrap}>
               <item.icon size={18} color={item.accent} />
@@ -438,7 +493,7 @@ const CourseGrades = () => {
 
       {/* ── CORTES GRID ── */}
       <div style={s.cortesGrid}>
-        {cortes.map(corte => (
+        {cuts.map(corte => (
           <CorteCard
             key={corte.id}
             corte={corte}
@@ -454,26 +509,26 @@ const CourseGrades = () => {
       <div style={s.bottomBar}>
         <div style={s.bottomItem}>
           <div style={s.bottomLabel}>PROMEDIO FINAL</div>
-          <div style={s.bottomVal}>{bottomStats.promedioFinal}</div>
+          <div style={s.bottomVal}>{averages?.promedioFinal ?? '—'}</div>
           <div style={s.bottomSub}>promedio ponderado</div>
         </div>
         <div style={s.bottomDivider} />
         <div style={s.bottomItem}>
           <div style={s.bottomLabel}>PROYECCIÓN</div>
-          <div style={s.bottomVal}>{bottomStats.proyeccion}</div>
+          <div style={s.bottomVal}>{averages?.proyeccion || '—'}</div>
           <div style={s.bottomSub}>rango esperado final</div>
         </div>
         <div style={s.bottomDivider} />
         <div style={s.bottomItem}>
           <div style={s.bottomLabel}>FALLAS POR MATERIAS</div>
-          <div style={{ ...s.bottomVal, color: '#22C55E' }}>{bottomStats.fallasPorMaterias}</div>
+          <div style={{ ...s.bottomVal, color: '#22C55E' }}>{averages?.fallasPorMaterias || 'Ninguno'}</div>
           <div style={s.bottomSub}>sin materias en riesgo</div>
         </div>
         <div style={s.bottomDivider} />
         <div style={s.bottomItem}>
           <div style={s.bottomLabel}>MATERIAS</div>
           <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-            {bottomStats.coloresMaterias.map((c, i) => (
+            {(averages?.coloresMaterias ?? ['#FF8430', '#A855F7', '#F7306D']).map((c, i) => (
               <div key={i} style={{ width: 18, height: 18, borderRadius: 5, background: c }} />
             ))}
           </div>
@@ -483,7 +538,7 @@ const CourseGrades = () => {
         <div style={s.bottomItem}>
           <div style={s.bottomLabel}>EVALUACIONES RESTANTES</div>
           <div style={{ ...s.bottomVal, color: isDark ? '#FF5B2E' : '#FF8430' }}>
-            {bottomStats.restantes} restantes
+            {averages?.restantes ?? 0} restantes
           </div>
           <div style={s.bottomSub}>por completar</div>
         </div>
@@ -492,7 +547,9 @@ const CourseGrades = () => {
       {/* ── MODAL ── */}
       {modal && (
         <ActividadModal
-          corteNombre={cortes.find(c => c.id === modal.corteId)?.nombre}
+          subjectId={subjectId}
+          corteId={modal.corteId}
+          corteNombre={cuts.find(c => c.id === modal.corteId)?.nombre}
           actividad={modal.actividad}
           isDark={isDark}
           onSave={handleSaveActividad}
@@ -506,13 +563,13 @@ const CourseGrades = () => {
 const getStyles = (isDark) => {
   const t = createStyles(isDark);
   return {
-    volverBtn: {
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      background: 'none', border: 'none', cursor: 'pointer',
-      fontSize: 13, fontWeight: 600,
-      color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)',
-      fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14,
-    },
+     volverBtn: {
+       display: 'inline-flex', alignItems: 'center', gap: 6,
+       background: 'none', border: 'none', cursor: 'pointer',
+       fontSize: 15, fontWeight: 600,
+       color: '#FFFFFF',
+       fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14,
+     },
     pageHeader: {
       display: 'flex', alignItems: 'flex-start',
       justifyContent: 'space-between', marginBottom: 20,

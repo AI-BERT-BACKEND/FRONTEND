@@ -1,81 +1,83 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import socialService from '../services/socialService';
+import academicService from '../services/academicService';
 import { createStyles } from '../theme/createStyles';
 
-// ── DATOS ─────────────────────────────────────────────────────────────────────
-
-const SESIONES = [
-  {
-    id: 1,
-    estado: 'EN CURSO',
-    titulo: 'Optimización de Grafos',
-    materia: 'Algoritmos Avanzados',
-    materiaKey: 'ALGORITMOS',
-    anfitrion: 'David Kovac',
-    iniciales: 'DK',
-    lugar: 'Virtual (Discord)',
-    duracion: '90 min',
-    tags: ['GRAFOS', 'FINALES', 'PYTHON'],
-    participantes: '12/20',
-    accion: 'UNIRSE AHORA',
-  },
-  {
-    id: 2,
-    estado: 'PRÓXIMA',
-    hora: '14:00',
-    titulo: 'Bioética y Transhumanismo',
-    materia: 'Filosofía de la Ciencia',
-    materiaKey: 'FILOSOFÍA',
-    anfitrion: 'Elena Rossi',
-    iniciales: 'ER',
-    lugar: 'Bibl. Central L4',
-    fecha: 'Hoy, 20 Oct',
-    tags: ['ETICA', 'FUTURISMO'],
-    participantes: '5/8',
-    accion: 'RESERVAR CUPO',
-  },
-  {
-    id: 3,
-    estado: 'EN CURSO',
-    titulo: 'Termodinámica Estadística',
-    materia: 'Física Química II',
-    materiaKey: 'FÍSICA',
-    anfitrion: 'Marc Thorne',
-    iniciales: 'MT',
-    lugar: 'Google Meet',
-    restante: '45m',
-    tags: ['FISICA', 'QUIMICA'],
-    participantes: '7/8',
-    accion: 'UNIRSE AHORA',
-  },
-  {
-    id: 4,
-    estado: 'FINALIZADA',
-    titulo: 'Taller de UX Research',
-    materia: 'Diseño Industrial',
-    materiaKey: 'DISEÑO',
-    anfitrion: 'Sara Miller',
-    iniciales: 'SM',
-    descripcion: 'Excelente sesión, compartimos las grabaciones en el canal de recursos.',
-    tags: [],
-    accion: 'VER GRABACIÓN',
-  },
-];
-
-const MATERIAS = ['TODAS', 'ALGORITMOS', 'FILOSOFÍA', 'FÍSICA', 'DISEÑO'];
 const ESTADOS  = ['TODAS', 'EN CURSO', 'PRÓXIMA', 'FINALIZADA'];
 
 // ── COMPONENTE PRINCIPAL ──────────────────────────────────────────────────────
 
-const StudySession = () => {
-  const { isDark } = useTheme();
-  const navigate = useNavigate();
-  const s = getStyles(isDark);
+ const StudySession = () => {
+   const { isDark } = useTheme();
+   const { user } = useAuth();
+   const navigate = useNavigate();
+   const s = getStyles(isDark);
 
-  const [filtroMateria, setFiltroMateria] = useState('TODAS');
-  const [filtroEstado,  setFiltroEstado]  = useState('TODAS');
+   const [filtroMateria, setFiltroMateria] = useState('TODAS');
+   const [filtroEstado,  setFiltroEstado]  = useState('TODAS');
+   const [sesiones, setSesiones] = useState([]);
+   const [subjects, setSubjects] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const [loadingSubjects, setLoadingSubjects] = useState(true);
+
+   const MATERIAS = useMemo(() => {
+     const staticList = ['TODAS'];
+     if (subjects.length > 0) {
+       const fromSubjects = subjects.map((s) => {
+         const name = s.name || s.nombre || s.label || '';
+         return name.toUpperCase().replace(/\s+/g, '_');
+       }).filter(Boolean);
+       return [...staticList, ...fromSubjects];
+     }
+     const fromSessions = [...new Set(sesiones.map((s) => s.materiaKey).filter(Boolean))];
+     return [...staticList, ...fromSessions];
+   }, [subjects, sesiones]);
+
+  const mapSession = (s) => ({
+    id: s.id || s._id,
+    estado: s.status === 'in_progress' ? 'EN CURSO' : s.status === 'scheduled' ? 'PRÓXIMA' : 'FINALIZADA',
+    materiaKey: s.subject?.toUpperCase?.()?.replace(/\s+/g, '_') || '',
+    titulo: s.title,
+    materia: s.subject,
+    anfitrion: s.host,
+    iniciales: s.host?.split(' ').map(w => w[0]).join('').toUpperCase() || '',
+    lugar: s.location,
+    duracion: s.duration,
+    hora: s.time,
+    fecha: s.date,
+    restante: s.remaining,
+    tags: s.tags || [],
+    participantes: s.participants ? `${s.participants.current}/${s.participants.max}` : '',
+    descripcion: s.description,
+    accion: s.status === 'finished' ? 'VER GRABACIÓN' : s.status === 'scheduled' ? 'RESERVAR CUPO' : 'UNIRSE AHORA',
+  });
+
+   useEffect(() => {
+     const fetchSubjects = async () => {
+       try {
+         const data = await academicService.getSubjects();
+         const items = data.subjects || data.data || data || [];
+         setSubjects(items);
+       } catch {
+         setSubjects([]);
+       } finally {
+         setLoadingSubjects(false);
+       }
+     };
+     fetchSubjects();
+   }, []);
+
+   useEffect(() => {
+     if (!user?.id) return;
+     socialService.getUserSessions(user.id)
+       .then((data) => setSesiones((data || []).map(mapSession)))
+       .catch(() => setSesiones([]))
+       .finally(() => setLoading(false));
+   }, [user?.id]);
 
   const ciclar = (actual, opciones, setter) => {
     const idx = opciones.indexOf(actual);
@@ -87,11 +89,21 @@ const StudySession = () => {
     setFiltroEstado('TODAS');
   };
 
-  const sesionesVisibles = SESIONES.filter((ses) => {
+  const sesionesVisibles = sesiones.filter((ses) => {
     const okEstado  = filtroEstado  === 'TODAS' || ses.estado      === filtroEstado;
     const okMateria = filtroMateria === 'TODAS' || ses.materiaKey  === filtroMateria;
     return okEstado && okMateria;
   });
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ textAlign: 'center', padding: '80px 0', color: '#888' }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>

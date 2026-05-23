@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from '../components/ProtectedRoute';
+import AdminRoute from '../components/AdminRoute';
 import ScrollToTop from '../components/ScrollToTop';
 
 import Landing from '../pages/Landing';
@@ -32,6 +33,10 @@ import StudySession from '../pages/StudySession';
 import CreateStudySession from '../pages/CreateStudySession';
 import StartStudySession from '../pages/StartStudySession';
 import GradeDetail from '../pages/GradeDetail';
+import AdminProfile from '../pages/AdminProfile';
+import AdminUsers from '../pages/AdminUsers';
+import AdminStats from '../pages/AdminStats';
+import AdminConfig from '../pages/AdminConfig';
 
 const AppRouter = () => {
   return (
@@ -47,14 +52,7 @@ const AppRouter = () => {
         <Route path="/verified-success" element={<VerifiedSuccess />} />
 
         {/* Protected Routes */}
-        <Route
-          path="/academic-profile"
-          element={
-            <ProtectedRoute>
-              <AcademicProfile />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/academic-profile" element={<Navigate to="/dashboard" replace />} />
         <Route
           path="/dashboard"
           element={
@@ -221,6 +219,40 @@ const AppRouter = () => {
             <ProtectedRoute>
               <StartStudySession />
             </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin/perfil"
+          element={
+            <AdminRoute>
+              <AdminProfile />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <AdminRoute>
+              <AdminUsers />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/estadisticas"
+          element={
+            <AdminRoute>
+              <AdminStats />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/configuracion"
+          element={
+            <AdminRoute>
+              <AdminConfig />
+            </AdminRoute>
           }
         />
       </Routes>

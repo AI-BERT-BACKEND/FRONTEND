@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { ChevronDown } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import taskService from '../services/taskService';
+import academicService from '../services/academicService';
 
 const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
-const WEEK_DAYS_MONTH = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEK_DAYS_MONTH = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const HOURS = [
   '07:00',
   '08:00',
@@ -37,88 +39,135 @@ const HOURS = [
   '20:00',
 ];
 
-const EVENTS_INIT = [
-  {
-    id: 1,
-    titulo: 'Clase de DOSW',
-    fecha: '2026-05-18',
-    hora: '11:00',
-    materia: 'DOSW',
-    estado: 'pendiente',
-    color: '#FF8430',
-  },
-  {
-    id: 2,
-    titulo: 'Lab de AYSR',
-    fecha: '2026-05-18',
-    hora: '14:00',
-    materia: 'AYSR',
-    estado: 'pendiente',
-    color: '#C4107A',
-  },
-  {
-    id: 3,
-    titulo: 'Entrega Proyecto FUPR',
-    fecha: '2026-05-20',
-    hora: '08:30',
-    materia: 'FUPR',
-    estado: 'urgente',
-    color: '#FF5B2E',
-  },
-  {
-    id: 4,
-    titulo: 'Parcial TPRO',
-    fecha: '2026-05-21',
-    hora: '10:00',
-    materia: 'TPRO',
-    estado: 'examen',
-    color: '#C4107A',
-  },
-  {
-    id: 5,
-    titulo: 'Parcial DOSW',
-    fecha: '2026-05-22',
-    hora: '08:00',
-    materia: 'DOSW',
-    estado: 'examen',
-    color: '#C4107A',
-  },
-  {
-    id: 6,
-    titulo: 'Parcial IPRO',
-    fecha: '2026-05-23',
-    hora: '09:00',
-    materia: 'IPRO',
-    estado: 'examen',
-    color: '#C4107A',
-  },
-];
 
-const SUBJECTS_INIT = ['All subjects', 'DOSW', 'AYSR', 'FUPR', 'TPRO', 'IPRO'];
-const STATUSES = ['All', 'pendiente', 'urgente', 'examen', 'completado'];
+const STATUSES = ['Todos', 'pendiente', 'urgente', 'examen', 'completado'];
 
-// Bloques bloqueados por horario universitario: { diaSemana(0-6): [horas] }
-const UNIVERSITY_BLOCKS = {
-  1: ['07:00', '08:00', '11:00', '12:00'],  // Lunes
-  2: ['08:00', '09:00', '14:00', '15:00'],  // Martes
-  3: ['11:00', '12:00', '16:00'],            // Miércoles
-  4: ['07:00', '08:00', '10:00'],            // Jueves
-  5: ['09:00', '10:00', '14:00'],            // Viernes
-};
+
+const HORA_FIN_DISPONIBILIDAD = 18;
+
+const VIEW_LABELS = { month: 'Mes', week: 'Semana' };
+
+/* ── SVG Icons ── */
+const IconPrev = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const IconNext = () => (
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+    <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+const IconCalendar = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <rect x="0.5" y="1.5" width="12" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M0.5 4.5h12" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M3.5 0.5v2M9.5 0.5v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+const IconKanban = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <rect x="0.5" y="0.5" width="3.5" height="9" rx="1" stroke="currentColor" strokeWidth="1.2" />
+    <rect x="4.75" y="0.5" width="3.5" height="6" rx="1" stroke="currentColor" strokeWidth="1.2" />
+    <rect x="9" y="0.5" width="3.5" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
+  </svg>
+);
+const IconClose = () => (
+  <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+    <path d="M1.5 1.5l10 10M11.5 1.5l-10 10" stroke="currentColor" strokeWidth="1.6" />
+  </svg>
+);
+const IconClock = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
+    <path d="M6 3.5v2.8l1.8 1.8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+  </svg>
+);
+const IconTag = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <path d="M1 1h4.5l5 5-4.5 4.5-5-5V1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+    <circle cx="3" cy="3" r="0.8" fill="currentColor" />
+  </svg>
+);
+const IconEventSmall = () => (
+  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+    <rect x="0.5" y="1.5" width="11" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.1" />
+    <path d="M0.5 4h11" stroke="currentColor" strokeWidth="1.1" />
+    <path d="M3 0.5v2M9 0.5v2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
+  </svg>
+);
 
 const Calendar = () => {
   const { isDark } = useTheme();
   const t = createStyles(isDark);
   const [view, setView] = useState('month');
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 4, 1));
-  const [events, setEvents] = useState(EVENTS_INIT);
-  const [subjects, setSubjects] = useState(SUBJECTS_INIT);
-  const [filterSubject, setFilterSubject] = useState('All subjects');
-  const [filterStatus, setFilterStatus] = useState('All');
+  const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [events, setEvents] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [filterSubject, setFilterSubject] = useState('Todas las materias');
+  const [filterStatus, setFilterStatus] = useState('Todos');
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
   const [blockConflict, setBlockConflict] = useState(null);
+  const [panelDragging, setPanelDragging] = useState(null);
+  const [panelDragOver, setPanelDragOver] = useState(null);
+  const [droppedEvents, setDroppedEvents] = useState({});
+  const [loading, setLoading] = useState(true);
+  const panelDragOccurred = React.useRef(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [tasksData, subjectsData] = await Promise.all([
+          taskService.getTasks().catch(() => ({ tasks: [] })),
+          academicService.getSubjects().catch(() => ({ subjects: [] })),
+        ]);
+        
+        const tasks = tasksData.tasks || tasksData || [];
+        const taskSubjects = new Set();
+        
+        const formattedEvents = tasks.map((t) => {
+          const subjectName = t.subject || t.materia || 'General';
+          taskSubjects.add(subjectName);
+          return {
+            id: t.id || Date.now(),
+            titulo: t.title || t.name || t.nombre || 'Evento',
+            descripcion: t.description || t.descripcion || '',
+            materia: subjectName,
+            estado: t.type || t.tipo || t.status || 'pendiente',
+            fecha: t.dueDate || t.fecha || t.scheduledDate || '',
+            hora: t.hora || '09:00',
+            color: t.type === 'examen' || t.tipo === 'examen' 
+              ? '#C4107A' 
+              : t.type === 'urgente' || t.urgencia === 'high'
+                ? '#FF5B2E'
+                : t.type === 'completado' || t.status === 'completed'
+                  ? '#22C55E'
+                  : '#3B82F6',
+          };
+        });
+        
+        setEvents(formattedEvents);
+        
+        const subs = subjectsData.subjects || subjectsData || [];
+        let subjectNames = subs.map((s) => s.name || s.nombre || s);
+        
+        if (subjectNames.length === 0 && taskSubjects.size > 0) {
+          subjectNames = Array.from(taskSubjects);
+        }
+        
+        if (subjectNames.length > 0) {
+          setSubjects(['Todas las materias', ...subjectNames]);
+        }
+      } catch {
+        // fallback empty
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const s = getStyles(isDark);
 
@@ -138,7 +187,7 @@ const Calendar = () => {
   };
 
   const getWeekDays = () => {
-    const today = new Date(2026, 4, 18);
+    const today = new Date();
     const sun = new Date(today);
     sun.setDate(today.getDate() - today.getDay());
     return Array.from({ length: 7 }, (_, i) => {
@@ -152,8 +201,8 @@ const Calendar = () => {
     `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
   const filteredEvents = events.filter((e) => {
-    const okS = filterSubject === 'All subjects' || e.materia === filterSubject;
-    const okSt = filterStatus === 'All' || e.estado === filterStatus;
+    const okS = filterSubject === 'Todas las materias' || e.materia === filterSubject;
+    const okSt = filterStatus === 'Todos' || e.estado === filterStatus;
     return okS && okSt;
   });
 
@@ -180,14 +229,20 @@ const Calendar = () => {
     setDragOver(key);
   };
   const isBlockedHour = (fecha, hora) => {
-    const d = new Date(fecha + 'T00:00:00');
-    const dayOfWeek = d.getDay();
-    return (UNIVERSITY_BLOCKS[dayOfWeek] || []).includes(hora);
+    return false;
   };
+  const isOutsideAvailability = (hora) => parseInt(hora) >= HORA_FIN_DISPONIBILIDAD;
 
   const handleDrop = (e, fecha, hora = null) => {
     e.preventDefault();
     if (dragging) {
+      if (hora && isOutsideAvailability(hora)) {
+        setBlockConflict('Este horario está fuera de tu disponibilidad.');
+        setTimeout(() => setBlockConflict(null), 3000);
+        setDragging(null);
+        setDragOver(null);
+        return;
+      }
       if (hora && isBlockedHour(fecha, hora)) {
         setBlockConflict('Este horario está bloqueado por clases universitarias.');
         setTimeout(() => setBlockConflict(null), 3000);
@@ -203,113 +258,23 @@ const Calendar = () => {
     setDragOver(null);
   };
 
+  const handlePanelDragStart = (e, ev) => {
+    panelDragOccurred.current = true;
+    setPanelDragging(ev);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handlePanelDragEnd = () => {
+    setPanelDragging(null);
+    setPanelDragOver(null);
+  };
+
   const autoAddSubject = (materia) => {
     setSubjects((prev) => prev.includes(materia) ? prev : [...prev, materia]);
   };
 
-  const today = new Date(2026, 4, 18);
+  const today = new Date();
   const todayStr = dateStr(today.getFullYear(), today.getMonth(), today.getDate());
-
-  /* ── Icons específicos de esta pantalla ── */
-  const IconPrev = () => (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path
-        d="M9 11L5 7l4-4"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-  const IconNext = () => (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-      <path
-        d="M5 3l4 4-4 4"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-  const IconCalendar = () => (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <rect
-        x="0.5"
-        y="1.5"
-        width="12"
-        height="10"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <path d="M0.5 4.5h12" stroke="currentColor" strokeWidth="1.2" />
-      <path
-        d="M3.5 0.5v2M9.5 0.5v2"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-  const IconKanban = () => (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <rect x="0.5" y="0.5" width="3.5" height="9" rx="1" stroke="currentColor" strokeWidth="1.2" />
-      <rect
-        x="4.75"
-        y="0.5"
-        width="3.5"
-        height="6"
-        rx="1"
-        stroke="currentColor"
-        strokeWidth="1.2"
-      />
-      <rect x="9" y="0.5" width="3.5" height="11" rx="1" stroke="currentColor" strokeWidth="1.2" />
-    </svg>
-  );
-  const IconClose = () => (
-    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-      <path
-        d="M1.5 1.5l10 10M11.5 1.5l-10 10"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-  const IconClock = () => (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M6 3.5v2.8l1.8 1.8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
-  );
-  const IconTag = () => (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <path
-        d="M1 1h4.5l5 5-4.5 4.5-5-5V1z"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinejoin="round"
-      />
-      <circle cx="3" cy="3" r="0.8" fill="currentColor" />
-    </svg>
-  );
-  const IconEventSmall = () => (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <rect
-        x="0.5"
-        y="1.5"
-        width="11"
-        height="9"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.1"
-      />
-      <path d="M0.5 4h11" stroke="currentColor" strokeWidth="1.1" />
-      <path d="M3 0.5v2M9 0.5v2" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" />
-    </svg>
-  );
 
   return (
     <AppLayout>
@@ -322,7 +287,7 @@ const Calendar = () => {
             }
           >
             <IconPrev />
-            <span>Prev</span>
+            <span>Ant</span>
           </button>
           <button
             style={s.navBtn}
@@ -330,7 +295,7 @@ const Calendar = () => {
               setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
             }
           >
-            <span>Next</span>
+            <span>Sig</span>
             <IconNext />
           </button>
         </div>
@@ -339,39 +304,28 @@ const Calendar = () => {
           {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h2>
 
-        <div style={s.viewGroup}>
-          {['month', 'week'].map((v) => (
+          <div style={s.viewGroup}>
+            {['month', 'week'].map((v) => (
+              <button
+                key={v}
+                style={{ ...s.viewBtn, ...(view === v ? s.viewBtnActive : {}) }}
+                onClick={() => setView(v)}
+              >
+                {VIEW_LABELS[v]}
+              </button>
+            ))}
             <button
-              key={v}
-              style={{ ...s.viewBtn, ...(view === v ? s.viewBtnActive : {}) }}
-              onClick={() => setView(v)}
+              style={{
+                ...s.viewBtn,
+                ...s.viewBtnIcon,
+                ...(view === 'kanban' ? s.viewBtnActive : {}),
+              }}
+              onClick={() => setView('kanban')}
             >
-              {v.charAt(0).toUpperCase() + v.slice(1)}
+              <IconKanban />
+              <span>Kanban</span>
             </button>
-          ))}
-          <button
-            style={{
-              ...s.viewBtn,
-              ...s.viewBtnIcon,
-              ...(view === 'calendar' ? s.viewBtnActive : {}),
-            }}
-            onClick={() => setView('calendar')}
-          >
-            <IconCalendar />
-            <span>Calendar</span>
-          </button>
-          <button
-            style={{
-              ...s.viewBtn,
-              ...s.viewBtnIcon,
-              ...(view === 'kanban' ? s.viewBtnActive : {}),
-            }}
-            onClick={() => setView('kanban')}
-          >
-            <IconKanban />
-            <span>Kanban</span>
-          </button>
-        </div>
+          </div>
 
         <div style={s.filtersGroup}>
           <div style={{ position: 'relative' }}>
@@ -409,6 +363,27 @@ const Calendar = () => {
         </div>
       </div>
 
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{
+            width: 16, height: 12, borderRadius: 4, flexShrink: 0,
+            background: isDark
+              ? 'rgba(239,68,68,0.80) repeating-linear-gradient(45deg, rgba(239,68,68,0.40), rgba(239,68,68,0.40) 3px, transparent 3px, transparent 8px)'
+              : 'rgba(239,68,68,0.18) repeating-linear-gradient(45deg, rgba(239,68,68,0.35), rgba(239,68,68,0.35) 3px, transparent 3px, transparent 8px)',
+            border: '1px solid rgba(239,68,68,0.50)',
+          }} />
+          <span style={{ fontSize: 10, color: t.textSecondary, fontFamily: t.fontSecondary }}>Clases universitarias</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{
+            width: 16, height: 12, borderRadius: 4, flexShrink: 0,
+            background: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.12)',
+            border: isDark ? '2px dashed rgba(255,255,255,0.40)' : '2px dashed rgba(0,0,0,0.25)',
+          }} />
+          <span style={{ fontSize: 10, color: t.textSecondary, fontFamily: t.fontSecondary }}>Fuera de disponibilidad</span>
+        </div>
+      </div>
+
       {blockConflict && (
         <div style={{
           background: 'rgba(239,68,68,0.14)', border: '1px solid rgba(239,68,68,0.35)',
@@ -438,8 +413,10 @@ const Calendar = () => {
                 const dayEvents = fecha
                   ? filteredEvents.filter((e) => e.fecha === fecha)
                   : [];
+                const droppedForDay = fecha ? (droppedEvents[fecha] || []) : [];
                 const isToday = fecha === todayStr;
                 const isDragTarget = dragOver === fecha;
+                const isPanelDragTarget = panelDragOver === fecha;
                 return (
                   <div
                     key={idx}
@@ -447,10 +424,33 @@ const Calendar = () => {
                       ...s.monthCell,
                       ...(isToday ? s.monthCellToday : {}),
                       ...(isDragTarget ? s.dragOverCell : {}),
+                      ...(isPanelDragTarget ? s.panelDragOverCell : {}),
                       opacity: day ? 1 : 0.3,
                     }}
-                    onDragOver={(e) => fecha && handleDragOver(e, fecha)}
-                    onDrop={(e) => fecha && handleDrop(e, fecha)}
+                    onDragOver={(e) => {
+                      if (!fecha) return;
+                      if (panelDragging) {
+                        e.preventDefault();
+                        setPanelDragOver(fecha);
+                      } else {
+                        handleDragOver(e, fecha);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      if (!fecha) return;
+                      if (panelDragging) {
+                        e.preventDefault();
+                        const newEv = { ...panelDragging, id: `panel-${Date.now()}`, fecha };
+                        setDroppedEvents((prev) => ({
+                          ...prev,
+                          [fecha]: [...(prev[fecha] || []), newEv],
+                        }));
+                        setPanelDragging(null);
+                        setPanelDragOver(null);
+                      } else {
+                        handleDrop(e, fecha);
+                      }
+                    }}
                   >
                     {day && (
                       <>
@@ -465,8 +465,9 @@ const Calendar = () => {
                               onDragStart={(e) => handleDragStart(e, ev)}
                               style={{
                                 ...s.eventChip,
-                                background: ev.color + '33',
+                                background: ev.color + '40',
                                 borderLeft: `2px solid ${ev.color}`,
+                                ...(isDark ? { boxShadow: `inset 0 0 0 1px ${ev.color}80` } : {}),
                               }}
                               onClick={() => setEventDetail(ev)}
                             >
@@ -476,8 +477,25 @@ const Calendar = () => {
                             </div>
                           ))}
                           {dayEvents.length > 2 && (
-                            <span style={s.moreEvents}>+{dayEvents.length - 2} more</span>
+                            <span style={s.moreEvents}>+{dayEvents.length - 2} más</span>
                           )}
+                          {droppedForDay.map((dev) => (
+                            <div
+                              key={`d-${dev.id}`}
+                              style={{
+                                ...s.eventChip,
+                                background: dev.color + '40',
+                                borderLeft: `2px solid ${dev.color}`,
+                                animation: 'appleFadeIn 0.3s ease forwards',
+                                ...(isDark ? { boxShadow: `inset 0 0 0 1px ${dev.color}80` } : {}),
+                              }}
+                              onClick={() => setEventDetail(dev)}
+                            >
+                              <span style={{ ...s.eventChipText, color: dev.color }}>
+                                {dev.titulo}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </>
                     )}
@@ -516,23 +534,57 @@ const Calendar = () => {
                       (e) => e.fecha === fecha && e.hora === hour
                     );
                     const isDragTarget = dragOver === `${fecha}-${hour}`;
+                    const isPanelWeekDragTarget = panelDragOver === `${fecha}-${hour}`;
                     const isBlocked = isBlockedHour(fecha, hour);
+                    const isOutside = isOutsideAvailability(hour);
+                    const droppedEvsInCell = (droppedEvents[fecha] || []).filter((e) => e.hora === hour);
                     return (
                       <div
                         key={i}
                         style={{
                           ...s.weekCell,
                           ...(isDragTarget ? s.dragOverCell : {}),
+                          ...(isPanelWeekDragTarget ? s.panelDragOverCell : {}),
                           ...(isBlocked ? {
                             background: isDark
-                              ? 'repeating-linear-gradient(45deg, rgba(239,68,68,0.06), rgba(239,68,68,0.06) 3px, transparent 3px, transparent 8px)'
-                              : 'repeating-linear-gradient(45deg, rgba(239,68,68,0.05), rgba(239,68,68,0.05) 3px, transparent 3px, transparent 8px)',
+                              ? 'repeating-linear-gradient(45deg, rgba(239,68,68,0.55), rgba(239,68,68,0.55) 3px, rgba(239,68,68,0.15) 3px, rgba(239,68,68,0.15) 8px)'
+                              : 'repeating-linear-gradient(45deg, rgba(239,68,68,0.45), rgba(239,68,68,0.45) 3px, rgba(239,68,68,0.12) 3px, rgba(239,68,68,0.12) 8px)',
+                            borderLeft: '3px solid rgba(239,68,68,0.90)',
+                            cursor: 'not-allowed',
+                          } : {}),
+                          ...(isOutside && !isBlocked ? {
+                            background: isDark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.10)',
+                            borderTop: isDark ? '2px dashed rgba(255,255,255,0.35)' : '2px dashed rgba(0,0,0,0.28)',
                             cursor: 'not-allowed',
                           } : {}),
                         }}
-                        onDragOver={(e) => !isBlocked && handleDragOver(e, `${fecha}-${hour}`)}
-                        onDrop={(e) => handleDrop(e, fecha, hour)}
-                        title={isBlocked ? '🔒 Horario universitario bloqueado' : undefined}
+                        onDragOver={(e) => {
+                          if (panelDragging) {
+                            if (!isBlocked && !isOutside) {
+                              e.preventDefault();
+                              setPanelDragOver(`${fecha}-${hour}`);
+                            }
+                          } else if (!isBlocked && !isOutside) {
+                            handleDragOver(e, `${fecha}-${hour}`);
+                          }
+                        }}
+                        onDrop={(e) => {
+                          if (panelDragging) {
+                            e.preventDefault();
+                            if (!isBlocked && !isOutside) {
+                              const newEv = { ...panelDragging, id: `panel-${Date.now()}`, fecha, hora: hour };
+                              setDroppedEvents((prev) => ({
+                                ...prev,
+                                [fecha]: [...(prev[fecha] || []), newEv],
+                              }));
+                            }
+                            setPanelDragging(null);
+                            setPanelDragOver(null);
+                          } else {
+                            handleDrop(e, fecha, hour);
+                          }
+                        }}
+                        title={isBlocked ? 'Clases universitarias' : isOutside ? 'Fuera de disponibilidad' : undefined}
                       >
                         {ev && (
                           <div
@@ -540,16 +592,34 @@ const Calendar = () => {
                             onDragStart={(e) => handleDragStart(e, ev)}
                             style={{
                               ...s.weekEvent,
-                              background: ev.color + '33',
+                              background: ev.color + '40',
                               borderLeft: `2px solid ${ev.color}`,
+                              ...(isDark ? { boxShadow: `inset 0 0 0 1px ${ev.color}80` } : {}),
                             }}
                             onClick={() => setEventDetail(ev)}
                           >
-                            <span style={{ fontSize: 10, color: ev.color, fontWeight: 600 }}>
+                            <span style={{ fontSize: 10, color: ev.color, fontWeight: 700 }}>
                               {ev.titulo}
                             </span>
                           </div>
                         )}
+                        {droppedEvsInCell.map((dev) => (
+                          <div
+                            key={`d-${dev.id}`}
+                            style={{
+                              ...s.weekEvent,
+                              background: dev.color + '40',
+                              borderLeft: `2px solid ${dev.color}`,
+                              animation: 'appleFadeIn 0.3s ease forwards',
+                              ...(isDark ? { boxShadow: `inset 0 0 0 1px ${dev.color}80` } : {}),
+                            }}
+                            onClick={() => setEventDetail(dev)}
+                          >
+                            <span style={{ fontSize: 10, color: dev.color, fontWeight: 700 }}>
+                              {dev.titulo}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     );
                   })}
@@ -610,19 +680,36 @@ const Calendar = () => {
             <span style={{ color: isDark ? '#FF5B2E' : '#FF8430' }}>
               <IconEventSmall />
             </span>
-            <span style={s.upcomingTitle}>Upcoming Events</span>
+            <span style={s.upcomingTitle}>Próximos Eventos</span>
           </div>
           <div style={s.upcomingList}>
             {upcomingEvents.length === 0 && (
-              <div style={s.upcomingEmpty}>No events match the selected filters</div>
+              <div style={s.upcomingEmpty}>No hay eventos que coincidan con los filtros seleccionados</div>
             )}
             {upcomingEvents.map((ev) => {
               const badge = statusBadgeColor(ev.estado);
+              const isBeingDragged = panelDragging?.id === ev.id;
               return (
                 <div
                   key={ev.id}
-                  style={{ ...s.upcomingItem, borderLeft: `3px solid ${ev.color}` }}
-                  onClick={() => setEventDetail(ev)}
+                  draggable
+                  onDragStart={(e) => handlePanelDragStart(e, ev)}
+                  onDragEnd={handlePanelDragEnd}
+                  style={{
+                    ...s.upcomingItem,
+                    borderLeft: `3px solid ${ev.color}`,
+                    cursor: isBeingDragged ? 'grabbing' : 'grab',
+                    opacity: isBeingDragged ? 0.5 : 1,
+                    transition: 'opacity 0.2s',
+                    userSelect: 'none',
+                  }}
+                  onClick={() => {
+                    if (panelDragOccurred.current) {
+                      panelDragOccurred.current = false;
+                      return;
+                    }
+                    setEventDetail(ev);
+                  }}
                 >
                   <div style={s.upcomingTop}>
                     <span style={s.upcomingEventTitle}>{ev.titulo}</span>
@@ -675,7 +762,7 @@ const Calendar = () => {
                   <IconClock />
                 </span>
                 <div>
-                  <div style={s.modalRowLabel}>Date & Time</div>
+                  <div style={s.modalRowLabel}>Fecha y hora</div>
                   <div style={s.modalRowVal}>
                     {eventDetail.fecha} · {eventDetail.hora}
                   </div>
@@ -686,7 +773,7 @@ const Calendar = () => {
                   <IconTag />
                 </span>
                 <div>
-                  <div style={s.modalRowLabel}>Subject</div>
+                  <div style={s.modalRowLabel}>Materia</div>
                   <div style={{ ...s.modalRowVal, color: eventDetail.color }}>
                     {eventDetail.materia}
                   </div>
@@ -697,7 +784,7 @@ const Calendar = () => {
                   <IconEventSmall />
                 </span>
                 <div>
-                  <div style={s.modalRowLabel}>Status</div>
+                  <div style={s.modalRowLabel}>Estado</div>
                   <div style={s.modalRowVal}>
                     {eventDetail.estado.charAt(0).toUpperCase() + eventDetail.estado.slice(1)}
                   </div>
@@ -706,9 +793,9 @@ const Calendar = () => {
             </div>
             <div style={s.modalFooter}>
               <button style={s.modalBtnOutline} onClick={() => setEventDetail(null)}>
-                Close
+                Cerrar
               </button>
-              <button style={s.modalBtnFill}>Edit event</button>
+              <button style={s.modalBtnFill}>Editar evento</button>
             </div>
           </div>
         </div>
@@ -830,6 +917,11 @@ const getStyles = (isDark) => {
       outlineOffset: '-1px',
     },
     dragOverCell: { background: isDark ? 'rgba(196,16,122,0.15)' : 'rgba(255,132,48,0.15)' },
+    panelDragOverCell: {
+      background: isDark ? 'rgba(196,16,122,0.15)' : 'rgba(255,132,48,0.15)',
+      outline: `2px dashed ${isDark ? '#FF5B2E' : '#FF8430'}`,
+      outlineOffset: '-2px',
+    },
     dayNum: {
       fontSize: 12,
       fontWeight: 500,
@@ -842,7 +934,7 @@ const getStyles = (isDark) => {
     eventChip: { borderRadius: 4, padding: '2px 5px', cursor: 'grab', userSelect: 'none' },
     eventChipText: {
       fontSize: 9,
-      fontWeight: 600,
+      fontWeight: 700,
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
@@ -880,7 +972,7 @@ const getStyles = (isDark) => {
       color: t.textPrimary,
     },
     weekDayNumToday: { color: isDark ? '#FF5B2E' : '#FF8430' },
-    weekBody: { overflowY: 'auto', maxHeight: 'calc(100vh - 240px)' },
+     weekBody: { overflowY: 'auto', maxHeight: 'calc(100vh - 150px)' },
     weekRow: {
       display: 'grid',
       gridTemplateColumns: '52px repeat(7, 1fr)',

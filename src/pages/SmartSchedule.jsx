@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import taskService from '../services/taskService';
+import academicService from '../services/academicService';
+import enginePlanningService from '../services/enginePlanningService';
 
 const ChevronLeft = ({ color }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -45,68 +48,169 @@ const AlertIcon = ({ color }) => (
 );
 
 const DIAS = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
-const FECHAS = [14, 15, 16, 17, 18, 19, 20];
-const DIA_HOY = 2;
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-const EVENTOS = {
-  0: [
-    { id: 1, hora: '08:00 - 10:00', nombre: 'Neurociencia I', color: '#3B82F6', tipo: 'clase' },
-  ],
-  1: [
-    { id: 2, hora: '11:00 - 13:00', nombre: 'Examen: Cálculo II', color: '#F00707', tipo: 'examen', badge: 'ALTA PRIORIDAD' },
-    { id: 3, hora: '15:00 - 16:00', nombre: 'Física Teórica', color: '#A855F7', tipo: 'clase' },
-  ],
-  2: [
-    { id: 4, hora: '09:00 - 11:00', nombre: 'IA Aplicada', color: '#FF5B2E', tipo: 'clase' },
-    { id: 5, hora: '13:00 - 14:00', nombre: 'Neurociencia I', color: '#3B82F6', tipo: 'clase' },
-    { id: 6, hora: '14:00 - 15:00', nombre: 'Laboratorio', color: '#22C55E', tipo: 'lab' },
-  ],
-  3: [
-    { id: 7, hora: '10:00 - 11:30', nombre: 'Neurociencia I', color: '#3B82F6', tipo: 'clase' },
-    { id: 8, hora: '14:00 - 16:00', nombre: 'Entrega: Proyecto Final', color: '#EAB308', tipo: 'entrega' },
-    { id: 9, hora: '', nombre: 'Estudio Grupal', color: '#6B7280', tipo: 'estudio' },
-  ],
-  4: [
-    { id: 10, hora: '09:00 - 10:30', nombre: 'Física Teórica', color: '#A855F7', tipo: 'clase' },
-    { id: 11, hora: '16:00 - 17:00', nombre: 'Sesión Mentoría', color: '#FF8430', tipo: 'mentoria', badge: '' },
-    { id: 12, hora: '', nombre: 'Break', color: '#22C55E', tipo: 'break' },
-  ],
-  5: [
-    { id: 13, hora: '', nombre: 'Taller Opcional', color: '#6B7280', tipo: 'opcional' },
-    { id: 14, hora: '', nombre: 'Investigación', color: '#6B7280', tipo: 'estudio' },
-    { id: 15, hora: '', nombre: 'Física Teórica', color: '#A855F7', tipo: 'clase' },
-  ],
-  6: [],
+const calcularSemanaActual = () => {
+  const hoy = new Date();
+  const jsDay = hoy.getDay();
+  const ourDay = (jsDay + 6) % 7;
+
+  const lunes = new Date(hoy);
+  const diasDesdeLunes = ourDay;
+  lunes.setDate(hoy.getDate() - diasDesdeLunes);
+
+  const fechas = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lunes);
+    d.setDate(lunes.getDate() + i);
+    fechas.push(d.getDate());
+  }
+
+  const mes = lunes.getMonth();
+  const mesFin = (lunes.getDate() + 6 > new Date(lunes.getFullYear(), mes + 1, 0).getDate()) ? mes + 1 : mes;
+
+  const formatMes = (m) => MESES[m];
+  const rangoFechas = mes === mesFin
+    ? `${formatMes(mes)} ${fechas[0]} - ${fechas[6]}, ${lunes.getFullYear()}`
+    : `${formatMes(mes)} ${fechas[0]} - ${formatMes(mesFin)} ${fechas[6]}, ${lunes.getFullYear()}`;
+
+  const startDate = new Date(lunes.getFullYear(), 0, 1);
+  const weekNum = Math.ceil((((lunes - startDate) / 86400000) + startDate.getDay() + 1) / 7);
+
+  return {
+    FECHAS: fechas,
+    DIA_HOY: ourDay,
+    MES_INICIO: mes,
+    RANGO: rangoFechas,
+    SEMANA: weekNum,
+  };
 };
 
-const DISTRIBUCION = [
-  { label: 'Estudio', pct: 68, color: isDarkHelper => isDarkHelper ? '#FF5B2E' : '#FF8430' },
-  { label: 'Práctica', pct: 22, color: () => '#C4107A' },
-  { label: 'Descanso', pct: 10, color: () => '#3B82F6' },
-];
+const datosSemana = calcularSemanaActual();
+const FECHAS = datosSemana.FECHAS;
+const DIA_HOY = datosSemana.DIA_HOY;
+
+const TIPO_COLORS = {
+  examen: '#F00707', clase: '#3B82F6', lab: '#22C55E',
+  entrega: '#EAB308', estudio: '#6B7280', mentoria: '#FF8430',
+  break: '#22C55E', opcional: '#6B7280', tarea: '#3B82F6', default: '#6B7280',
+};
 
 const SmartSchedule = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
-  const [semana, setSemana] = useState(12);
+  const [semana, setSemana] = useState(datosSemana.SEMANA);
+  const [eventos, setEventos] = useState({});
+  const [distribucion, setDistribucion] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [alertInfo, setAlertInfo] = useState({
+    show: false,
+    count: 0,
+    message: '',
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [tasksRes, subjectsRes, riskRes] = await Promise.allSettled([
+          taskService.getTasks(),
+          academicService.getSubjects(),
+          enginePlanningService.getHighRiskTasks().catch(() => null),
+        ]);
+
+        if (tasksRes.status === 'fulfilled') {
+          const data = tasksRes.value;
+          const items = data.tasks || data || [];
+          const diarios = {};
+          (Array.isArray(items) ? items : []).forEach(t => {
+            const dayMap = [0,1,2,3,4,5,6];
+            const f = t.dueDate || t.fecha || t.startTime || '';
+            const d = t.dayOfWeek ?? t.day ?? (f ? new Date(f).getDay() : null);
+            const dayIdx = d !== null && dayMap.includes(d) ? d : 0;
+            if (!diarios[dayIdx]) diarios[dayIdx] = [];
+            diarios[dayIdx].push({
+              id: t.id,
+              hora: t.time || t.hora || t.schedule || (t.startTime && t.endTime ? `${t.startTime} - ${t.endTime}` : ''),
+              nombre: t.title || t.name || t.nombre,
+              color: t.color || TIPO_COLORS[t.type || t.tipo] || TIPO_COLORS.default,
+              tipo: t.type || t.tipo || 'clase',
+              badge: (t.priority === 'high' || t.urgencia === 'high' || t.prioridad === 'ALTA PRIORIDAD') ? 'ALTA PRIORIDAD' : undefined,
+            });
+          });
+          for (let i = 0; i < 7; i++) { if (!diarios[i]) diarios[i] = []; }
+          setEventos(diarios);
+        }
+
+        if (subjectsRes.status === 'fulfilled') {
+          const data = subjectsRes.value;
+          const items = data.subjects || data || [];
+          if (Array.isArray(items) && items.length > 0) {
+            const total = items.reduce((acc, s) => acc + (s.percentage || s.pct || s.progress || 0), 0) || 1;
+            setDistribucion(items.slice(0, 4).map((s, i) => ({
+              label: s.name || s.nombre,
+              pct: Math.round(((s.percentage || s.pct || s.progress || 0) / total) * 100),
+              color: () => s.color || ['#FF8430', '#C4107A', '#3B82F6', '#22C55E'][i],
+            })));
+          }
+        }
+
+        if (riskRes.status === 'fulfilled' && riskRes.value) {
+          const risk = riskRes.value;
+          const riskTasks = risk.tasks || risk.data || risk || [];
+          const count = Array.isArray(riskTasks) ? riskTasks.length : 0;
+          if (count > 0) {
+            setAlertInfo({
+              show: true,
+              count,
+              message: count === 1
+                ? 'Tienes 1 tarea de alto riesgo. Organiza tu tiempo para priorizarla.'
+                : `Tienes ${count} tareas de alto riesgo. Revisa el motor de priorización.`
+            });
+          }
+        }
+      } catch {
+        // fallback - state stays as initialized
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const s = getStyles(isDark);
 
-  return (
-    <AppLayout>
-      <button style={s.volverBtn} onClick={() => navigate(-1)}>← Volver</button>
-      <div style={s.alertBanner}>
-        <div style={s.alertLeft}>
-          <div style={s.alertDot} />
-          <span style={s.alertBrand}>Albert rebalanceo</span>
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          minHeight: 300, fontSize: 14, color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+          fontFamily: s.fontSecondary || 'sans-serif',
+        }}>
+          Cargando...
         </div>
-        <span style={s.alertText}>Se han reorganizado 2 sesiones para optimizar tu descanso y maximizar la retención cognitiva.</span>
-      </div>
+      </AppLayout>
+    );
+  }
 
-      <div style={s.pageHeader}>
-        <div>
-          <h1 style={s.pageTitle}>Semana {semana}</h1>
-          <p style={s.pageDesc}>Octubre 14 - Octubre 20, 2024</p>
-        </div>
+   return (
+     <AppLayout>
+       <button style={s.volverBtn} onClick={() => navigate(-1)}>← Volver</button>
+       {alertInfo.show && (
+         <div style={s.alertBanner}>
+           <div style={s.alertLeft}>
+             <div style={s.alertDot} />
+             <span style={s.alertBrand}>Albert rebalanceo</span>
+           </div>
+           <span style={s.alertText}>{alertInfo.message}</span>
+         </div>
+       )}
+
+       <div style={s.pageHeader}>
+         <div>
+           <h1 style={s.pageTitle}>Semana {semana}</h1>
+           <p style={s.pageDesc}>{datosSemana.RANGO}</p>
+         </div>
         <div style={s.headerBtns}>
           <button style={s.navBtn} onClick={() => setSemana(p => p - 1)}>
             <ChevronLeft color={isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'} />
@@ -130,7 +234,7 @@ const SmartSchedule = () => {
                 </span>
               </div>
               <div style={s.diaEventos}>
-                {(EVENTOS[i] || []).map(ev => (
+                {(eventos[i] || []).map(ev => (
                   <div key={ev.id} style={{
                     ...s.evento,
                     borderLeft: `3px solid ${ev.color}`,
@@ -155,7 +259,7 @@ const SmartSchedule = () => {
         <div style={s.distribucionCard}>
           <div style={s.sectionTitle}>Distribución de Carga</div>
           <div style={s.distribList}>
-            {DISTRIBUCION.map(d => (
+            {(distribucion || []).map(d => (
               <div key={d.label} style={s.distribItem}>
                 <div style={s.distribLabelRow}>
                   <span style={s.distribLabel}>{d.label}</span>
@@ -208,13 +312,13 @@ const SmartSchedule = () => {
 const getStyles = (isDark) => {
   const t = createStyles(isDark);
   return {
-    volverBtn: {
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      background: 'none', border: 'none', cursor: 'pointer',
-      fontSize: 13, fontWeight: 600,
-      color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)',
-      fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 12,
-    },
+     volverBtn: {
+       display: 'inline-flex', alignItems: 'center', gap: 6,
+       background: 'none', border: 'none', cursor: 'pointer',
+       fontSize: 15, fontWeight: 600,
+       color: '#FFFFFF',
+       fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 12,
+     },
     alertBanner: {
       display: 'flex',
       alignItems: 'center',

@@ -26,11 +26,24 @@ const NAV_PERSONAL = [
 
 const Sidebar = ({ collapsed, onToggle }) => {
   const { isDark } = useTheme();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showLogout, setShowLogout] = useState(false);
   const s = getStyles(isDark, collapsed);
+
+  const getUserName = () => {
+    if (!user) return 'USUARIO';
+    if (user.name) return user.name;
+    if (user.firstName) return user.firstName;
+    if (user.email) return user.email.split('@')[0];
+    return 'USUARIO';
+  };
+
+  const getUserRole = () => {
+    if (!user || !user.role) return 'ESTUDIANTE';
+    return user.role.toUpperCase();
+  };
 
   const iconColor = (active) => {
     if (active) return '#FFFFFF';
@@ -87,8 +100,8 @@ const Sidebar = ({ collapsed, onToggle }) => {
               <User size={20} color="#fff" />
             </div>
             <div>
-              <div style={s.userName}>USUARIO</div>
-              <div style={s.userRole}>ESTUDIANTE</div>
+              <div style={s.userName}>{getUserName()}</div>
+              <div style={s.userRole}>{getUserRole()}</div>
             </div>
           </div>
         )}
@@ -318,7 +331,7 @@ const getStyles = (isDark, collapsed) => {
   userName: {
     fontSize: 13,
     fontWeight: 600,
-    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    color: '#FFFFFF',
     fontFamily: "'Poppins', sans-serif",
     lineHeight: 1.3,
   },
@@ -451,7 +464,7 @@ const getStyles = (isDark, collapsed) => {
     fontWeight: 500,
     cursor: 'pointer',
     },
-    };
+  };
 };
 
 export default Sidebar;

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import academicService from '../services/academicService';
 
 const IconUser = ({ color }) => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -20,64 +21,16 @@ const IconEdit = ({ color }) => (
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 );
+const IconTrash = ({ color }) => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4h6v2" />
+  </svg>
+);
 const IconPin = ({ color }) => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="1">
     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" />
   </svg>
 );
-
-const MATERIA_DATA = {
-  nombre: 'Estructuras Avanzadas II',
-  profesor: 'Prof. Roberto Méndez',
-  promedio: 3.8,
-  promedioMax: 5.0,
-  progresoSemestre: 76,
-  notaParaAprobar: 3.2,
-  estadoDesempeno: 'Aprobado Parcial',
-  mejorNota: 4.5,
-  menorNota: 3.2,
-  inasistencias: '2/4',
-  recomendacion:
-    'Para asegurar una nota final de 4.0, debes obtener al menos 4.3 en el Proyecto Final. Hemos analizado tus talleres previos y te sugerimos enfocarte en los cálculos de carga sísmica.',
-  cortes: [
-    {
-      id: 1,
-      nombre: 'Corte 1',
-      porcentaje: 30,
-      estado: 'completado',
-      fecha: 'Completado el 15 de Sep',
-      puntaje: 4.2,
-      actividades: [
-        { nombre: 'Examen Parcial', peso: 60, nota: 4.5 },
-        { nombre: 'Taller de Maquetas', peso: 40, nota: 3.8 },
-      ],
-    },
-    {
-      id: 2,
-      nombre: 'Corte 2',
-      porcentaje: 30,
-      estado: 'completado',
-      fecha: 'Completado el 28 de Oct',
-      puntaje: 3.4,
-      actividades: [
-        { nombre: 'Análisis Estructural', peso: 50, nota: 3.5 },
-        { nombre: 'Informe de Campo', peso: 50, nota: 3.3 },
-      ],
-    },
-    {
-      id: 3,
-      nombre: 'Corte 3',
-      porcentaje: 40,
-      estado: 'en_progreso',
-      fecha: 'En progreso · Cierra el 12 de Dic',
-      puntaje: null,
-      actividades: [
-        { nombre: 'Proyecto Final de Estructura', peso: 70, nota: null },
-        { nombre: 'Sustentación Oral', peso: 30, nota: null },
-      ],
-    },
-  ],
-};
 
 const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
   const t = createStyles(isDark);
@@ -165,12 +118,56 @@ const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
 };
 
 const SubjectDetail = () => {
-  const { isDark } = useTheme();           // ✅ ESTE ERA EL QUE FALTABA
+  const { isDark } = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
   const [simuladorCorte, setSimuladorCorte] = useState(null);
+  const [deleteActivityConfirm, setDeleteActivityConfirm] = useState(null);
+  const [cortesData, setCortesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [materiaData, setMateriaData] = useState(null);
   const s = getStyles(isDark);
-  const m = MATERIA_DATA;
+  const t = createStyles(isDark);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await academicService.getSubject(id);
+        setMateriaData(data);
+        setCortesData(data.cortes || []);
+      } catch {
+        setMateriaData(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id]);
+
+  if (loading || !materiaData) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, color: 'var(--text-muted, #888)' }}>
+            {loading ? 'Cargando...' : 'Error al cargar la materia'}
+          </span>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const m = materiaData;
+
+  const deleteActivity = () => {
+    const { corteId, actIndex } = deleteActivityConfirm;
+    setCortesData((prev) =>
+      prev.map((c) =>
+        c.id === corteId
+          ? { ...c, actividades: c.actividades.filter((_, i) => i !== actIndex) }
+          : c
+      )
+    );
+    setDeleteActivityConfirm(null);
+  };
 
   const estadoColor = {
     'Aprobado Parcial': { bg: isDark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.12)', color: '#22C55E' },
@@ -251,7 +248,7 @@ const SubjectDetail = () => {
       <div style={s.sectionTitle}>Gestión de Cortes</div>
 
       <div style={s.cortesWrap}>
-        {m.cortes.map((corte) => {
+        {cortesData.map((corte) => {
           const completado = corte.estado === 'completado';
           const enProgreso = corte.estado === 'en_progreso';
           return (
@@ -263,7 +260,8 @@ const SubjectDetail = () => {
                   ? isDark ? 'rgba(255,91,46,0.40)' : 'rgba(255,132,48,0.40)'
                   : isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)'}`,
               opacity: enProgreso ? 0.85 : 1,
-            }}>
+              cursor: 'pointer',
+            }} onClick={() => navigate(`/materias/${id}/cortes`)}>
               <div style={s.corteHeader}>
                 <div style={s.corteLeft}>
                   <div style={{ ...s.corteNum, color: completado ? isDark ? '#FF5B2E' : '#FF8430' : s.corteNum.color }}>
@@ -283,10 +281,7 @@ const SubjectDetail = () => {
                           {corte.puntaje}
                         </div>
                       </div>
-                      <button style={s.editBtn} title="Editar" onClick={() => navigate(`/materias/${id}/cortes`)}>
-                        <IconEdit color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />
-                      </button>
-                      <button style={s.simularBtn} onClick={() => setSimuladorCorte(corte)}>
+                      <button style={s.simularBtn} onClick={(e) => { e.stopPropagation(); setSimuladorCorte(corte); }}>
                         Simular
                       </button>
                     </>
@@ -296,7 +291,7 @@ const SubjectDetail = () => {
                         <div style={s.puntajeLabel}>ESTIMADO</div>
                         <div style={{ ...s.puntajeVal, color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.25)' }}>—</div>
                       </div>
-                      <button style={{ ...s.simularBtn, opacity: 0.6 }} onClick={() => setSimuladorCorte(corte)}>
+                      <button style={{ ...s.simularBtn, opacity: 0.6 }} onClick={(e) => { e.stopPropagation(); setSimuladorCorte(corte); }}>
                         Simular Notas
                       </button>
                     </>
@@ -308,17 +303,25 @@ const SubjectDetail = () => {
                 {corte.actividades.map((act, i) => (
                   <div key={i} style={s.actividadItem}>
                     <span style={s.actividadNombre}>{act.nombre} ({act.peso}%)</span>
-                    {act.nota !== null ? (
-                      <span style={{
-                        ...s.actividadNota,
-                        color: act.nota >= 3.0 ? isDark ? '#FF5B2E' : '#FF8430' : '#F00707',
-                        background: act.nota >= 3.0 ? isDark ? 'rgba(255,91,46,0.12)' : 'rgba(255,132,48,0.10)' : 'rgba(240,7,7,0.10)',
-                      }}>
-                        {act.nota}
-                      </span>
-                    ) : (
-                      <span style={s.actividadPendiente}>Pendiente</span>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {act.nota !== null ? (
+                        <span style={{
+                          ...s.actividadNota,
+                          color: act.nota >= 3.0 ? isDark ? '#FF5B2E' : '#FF8430' : '#F00707',
+                          background: act.nota >= 3.0 ? isDark ? 'rgba(255,91,46,0.12)' : 'rgba(255,132,48,0.10)' : 'rgba(240,7,7,0.10)',
+                        }}>
+                          {act.nota}
+                        </span>
+                      ) : (
+                        <span style={s.actividadPendiente}>Pendiente</span>
+                      )}
+                      <button
+                        style={s.trashBtn}
+                        onClick={(e) => { e.stopPropagation(); setDeleteActivityConfirm({ corteId: corte.id, actIndex: i }); }}
+                      >
+                        <IconTrash color={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)'} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -345,6 +348,32 @@ const SubjectDetail = () => {
           isDark={isDark}
           onClose={() => setSimuladorCorte(null)}
         />
+      )}
+
+      {deleteActivityConfirm && (
+        <div style={s.deleteOverlay} onClick={() => setDeleteActivityConfirm(null)}>
+          <div style={s.deleteModal} onClick={(e) => e.stopPropagation()}>
+            <div style={s.deleteModalIcon}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <defs>
+                  <linearGradient id="delGradAct" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor={isDark ? '#FF5B2E' : '#FF8430'} />
+                    <stop offset="100%" stopColor={isDark ? '#C4107A' : '#F7306D'} />
+                  </linearGradient>
+                </defs>
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="url(#delGradAct)" />
+                <line x1="12" y1="9" x2="12" y2="13" stroke="url(#delGradAct)" />
+                <line x1="12" y1="17" x2="12.01" y2="17" stroke="url(#delGradAct)" />
+              </svg>
+            </div>
+            <div style={s.deleteModalTitle}>¿Eliminar esta actividad?</div>
+            <p style={s.deleteModalDesc}>Se eliminará permanentemente de este corte.</p>
+            <div style={s.deleteModalFooter}>
+              <button style={s.deleteModalCancelBtn} onClick={() => setDeleteActivityConfirm(null)}>Cancelar</button>
+              <button style={s.deleteBtn} onClick={deleteActivity}>Eliminar</button>
+            </div>
+          </div>
+        </div>
       )}
     </AppLayout>
   );
@@ -518,6 +547,81 @@ const getStyles = (isDark) => {
       background: t.primaryGradient, border: 'none', borderRadius: 8,
       padding: '9px 18px', color: '#fff', fontFamily: t.fontPrimary,
       fontSize: 12, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+    },
+    trashBtn: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: 4,
+      display: 'flex',
+      alignItems: 'center',
+      borderRadius: 4,
+      flexShrink: 0,
+    },
+    deleteOverlay: {
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.70)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 200,
+      backdropFilter: 'blur(2px)',
+    },
+    deleteModal: {
+      background: t.cardBg,
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: 16,
+      width: '100%',
+      maxWidth: 340,
+      margin: '0 20px',
+      boxShadow: t.modalShadow,
+      padding: '32px 28px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+      gap: 12,
+    },
+    deleteModalIcon: { marginBottom: 4 },
+    deleteModalTitle: {
+      fontFamily: t.fontPrimary,
+      fontSize: 18,
+      fontWeight: 800,
+      color: t.textPrimary,
+    },
+    deleteModalDesc: {
+      fontSize: 13,
+      color: t.textSecondary,
+      lineHeight: 1.5,
+      margin: 0,
+    },
+    deleteModalFooter: {
+      display: 'flex',
+      gap: 10,
+      marginTop: 8,
+    },
+    deleteModalCancelBtn: {
+      padding: '9px 20px',
+      borderRadius: 8,
+      border: `1px solid ${t.inputBorder}`,
+      background: 'transparent',
+      cursor: 'pointer',
+      fontFamily: t.fontSecondary,
+      fontSize: 13,
+      fontWeight: 500,
+      color: t.textSecondary,
+    },
+    deleteBtn: {
+      padding: '9px 20px',
+      borderRadius: 8,
+      border: 'none',
+      background: '#F00707',
+      cursor: 'pointer',
+      fontFamily: t.fontPrimary,
+      fontSize: 13,
+      fontWeight: 700,
+      color: '#fff',
     },
   };
 };

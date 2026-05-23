@@ -12,6 +12,7 @@ import {
   validateRequired,
 } from '../utils/validators';
 import { createStyles } from '../theme/createStyles';
+import authService from '../services/authService';
 
 const EyeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -119,8 +120,11 @@ const Register = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 600));
+      await authService.register(form);
       navigate('/verify-email');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || 'Error al registrar';
+      setErrors((p) => ({ ...p, email: msg }));
     } finally {
       setLoading(false);
     }

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import academicService from '../services/academicService';
+import { useAuth } from '../context/AuthContext';
 
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
@@ -13,11 +15,11 @@ const HORAS = [
 ];
 
 const CATEGORIAS_INIT = [
-  { id: 'libre',    label: 'Tiempo libre',       desc: 'Actividades de ocio y disfrute personal', horas: 2.0, color: '#FF8430' },
-  { id: 'descanso', label: 'Descanso',            desc: 'Sueño y recuperación',                    horas: 8.0, color: '#A855F7' },
-  { id: 'personal', label: 'Tiempo personal',     desc: 'Actividades personales e higiene',        horas: 2.0, color: '#F7306D' },
-  { id: 'social',   label: 'Tiempo social',       desc: 'Tiempo con amigos y familia',             horas: 2.0, color: '#FF8430' },
-  { id: 'estudio',  label: 'Máx. estudio por día',desc: 'Límite máximo de horas de estudio',       horas: 8.0, color: '#00CFFF' },
+  { id: 'estudio',  label: 'Estudio',   desc: 'Tiempo dedicado a estudiar',          color: '#22C55E' },
+  { id: 'descanso', label: 'Descanso',  desc: 'Pausas y tiempo libre',               color: '#EAB308' },
+  { id: 'personal', label: 'Personal',  desc: 'Actividades personales y familiares',  color: '#00CFFF' },
+  { id: 'social',   label: 'Social',    desc: 'Interacción con amigos y redes',       color: '#A855F7' },
+  { id: 'libre',    label: 'Libre',     desc: 'Tiempo no asignado',                  color: '#FF8430' },
 ];
 
 const ICONOS = {
@@ -43,12 +45,30 @@ const Availability = () => {
   const { isDark } = useTheme();
   const s = getStyles(isDark);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [selected, setSelected]   = useState(new Set());
   const [categorias, setCategorias] = useState(CATEGORIAS_INIT);
+  const [activeCategory, setActiveCategory] = useState(null);
+  const [cellBlocks, setCellBlocks] = useState({});
   const [saved, setSaved] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await academicService.getScheduleAvailability();
+        if (data.categorias) setCategorias(data.categorias);
+        if (data.availability || data.cellBlocks) setCellBlocks(data.availability || data.cellBlocks || {});
+      } catch (err) {
+        console.error('Error loading availability config', err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
@@ -57,12 +77,21 @@ const Availability = () => {
   });
 
   const toggleCell = (dayIdx, hora) => {
-    const key = `${dayIdx}-${hora}`;
-    setSelected((prev) => {
-      const next = new Set(prev);
-      next.has(key) ? next.delete(key) : next.add(key);
+    if (!activeCategory) return;
+    const cellKey = `${dayIdx}-${hora}`;
+    setCellBlocks((prev) => {
+      const next = { ...prev };
+      if (next[cellKey] === activeCategory) {
+        delete next[cellKey];
+      } else {
+        next[cellKey] = activeCategory;
+      }
       return next;
     });
+  };
+
+  const selectCategory = (id) => {
+    setActiveCategory((prev) => (prev === id ? null : id));
   };
 
   const prevWeek = () => {
@@ -87,25 +116,30 @@ const Availability = () => {
     );
   };
 
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      await new Promise(r => setTimeout(r, 600));
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } finally {
-      setLoading(false);
-    }
-  };
+   const handleSave = async () => {
+     setSaving(true);
+     try {
+       await academicService.saveScheduleAvailability({ categorias, cellBlocks, weekStart: weekStart.toISOString() });
+       setSaved(true);
+       setTimeout(() => setSaved(false), 3000);
+     } finally {
+       setSaving(false);
+     }
+   };
 
   const t = createStyles(isDark);
 
-  return (
-    <AppLayout>
-      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
-        ← Volver
-      </button>
-      <div style={s.layout}>
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ padding: 40, textAlign: 'center', color: t.textSecondary }}>Cargando...</div>
+      </AppLayout>
+    );
+  }
+
+   return (
+     <AppLayout>
+       <div style={s.layout}>
 
         {/* ── IZQUIERDA: CALENDARIO SEMANAL ─────────────────── */}
         <div style={s.calSection}>
@@ -115,6 +149,19 @@ const Availability = () => {
             <button style={s.navBtn} onClick={prevWeek}>← Prev</button>
             <span style={s.monthLabel}>{formatMes(weekDays[0])}</span>
             <button style={s.navBtn} onClick={nextWeek}>Sig →</button>
+          </div>
+
+          {/* Leyenda */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12, flexWrap: 'wrap' }}>
+            {CATEGORIAS_INIT.map((cat) => (
+              <div key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{
+                  width: 16, height: 12, borderRadius: 4, flexShrink: 0,
+                  background: cat.color + (isDark ? 'CC' : '80'),
+                }} />
+                <span style={{ fontSize: 10, color: t.textSecondary, fontFamily: t.fontSecondary }}>{cat.label}</span>
+              </div>
+            ))}
           </div>
 
           {/* Grid */}
@@ -136,11 +183,19 @@ const Availability = () => {
                 <div key={hora} style={s.gridRow}>
                   <div style={s.timeLabel}>{hora}</div>
                   {weekDays.map((_, di) => {
-                    const isOn = selected.has(`${di}-${hora}`);
+                    const cellKey = `${di}-${hora}`;
+                    const catId = cellBlocks[cellKey];
+                    const catColor = catId ? CATEGORIAS_INIT.find((c) => c.id === catId)?.color : null;
                     return (
                       <div
                         key={di}
-                        style={{ ...s.cell, ...(isOn ? s.cellOn : {}) }}
+                        style={{
+                          ...s.cell,
+                          ...(catColor ? {
+                            background: catColor + '40',
+                            borderLeft: `2px solid ${catColor}`,
+                          } : {}),
+                        }}
                         onClick={() => toggleCell(di, hora)}
                       />
                     );
@@ -173,7 +228,19 @@ const Availability = () => {
           {/* Lista de categorías */}
           <div style={s.catList}>
             {categorias.map((cat) => (
-              <div key={cat.id} style={s.catRow}>
+              <div key={cat.id} style={{
+                ...s.catRow,
+                ...(activeCategory === cat.id ? {
+                  border: `2px solid ${cat.color}`,
+                  background: cat.color + '22',
+                  borderRadius: 10,
+                  padding: '8px 10px',
+                  marginBottom: 4,
+                } : {
+                  borderBottom: `1px solid ${t.cardBorder}`,
+                }),
+                cursor: 'pointer',
+              }} onClick={() => selectCategory(cat.id)}>
                 <div style={{ ...s.catIcon, background: `${cat.color}22`, color: cat.color }}>
                   {ICONOS[cat.id]}
                 </div>
@@ -182,9 +249,9 @@ const Availability = () => {
                   <div style={s.catDesc}>{cat.desc}</div>
                 </div>
                 <div style={s.horasRow}>
-                  <button style={s.horasBtn} onClick={() => adjustHoras(cat.id, -0.5)}>−</button>
+                  <button style={s.horasBtn} onClick={(e) => { e.stopPropagation(); adjustHoras(cat.id, -0.5); }}>−</button>
                   <span style={s.horasVal}>{cat.horas.toFixed(1)}</span>
-                  <button style={s.horasBtn} onClick={() => adjustHoras(cat.id, +0.5)}>+</button>
+                  <button style={s.horasBtn} onClick={(e) => { e.stopPropagation(); adjustHoras(cat.id, +0.5); }}>+</button>
                   <span style={s.horasUnit}>horas</span>
                 </div>
               </div>
@@ -204,8 +271,8 @@ const Availability = () => {
 
           {/* Botón guardar */}
           <div style={s.saveRow}>
-            <button style={{ ...s.saveBtn, ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSave} disabled={loading}>
-              {loading ? 'Guardando...' : (
+            <button style={{ ...s.saveBtn, ...(saving ? { opacity: 0.7, cursor: 'not-allowed' } : {}) }} onClick={handleSave} disabled={saving}>
+              {saving ? 'Guardando...' : (
                 <>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -325,10 +392,6 @@ const getStyles = (isDark) => {
       cursor: 'pointer',
       transition: 'background 0.15s',
     },
-    cellOn: {
-      background: isDark ? 'rgba(196,16,122,0.22)' : 'rgba(255,132,48,0.16)',
-      borderLeft: `1px solid ${isDark ? 'rgba(255,91,46,0.45)' : 'rgba(255,132,48,0.45)'}`,
-    },
 
     // ── PANEL DERECHO ─────────────────────────────────────────
     panel: {
@@ -372,7 +435,6 @@ const getStyles = (isDark) => {
       alignItems: 'center',
       gap: 10,
       padding: '10px 0',
-      borderBottom: `1px solid ${t.cardBorder}`,
     },
     catIcon: {
       width: 32,

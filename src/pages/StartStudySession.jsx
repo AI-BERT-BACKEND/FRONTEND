@@ -4,34 +4,11 @@ import AppLayout from '../components/Layout/AppLayout';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import { useAuth } from '../context/AuthContext';
+import socialService from '../services/socialService';
+import academicService from '../services/academicService';
 
 
-
-const BITACORA_INIT = [
-  {
-    id: 1, tiempo: '14:20', autor: 'LUCAS', color: '#FF8430',
-    texto: 'Terminamos arquitectura base de gateways. Iniciando lógica de autenticación.',
-  },
-  {
-    id: 2, tiempo: '14:05', autor: 'ELENA', color: '#F7306D',
-    texto: 'Diagrama de flujo de datos actualizado en el repositorio compartido.',
-  },
-  {
-    id: 3, tiempo: '13:45', autor: 'SOMBRA', color: '#A855F7',
-    texto: 'Revisión de dependencias completada. Sin conflictos detectados.',
-  },
-];
-
-const PARTICIPANTES = [
-  { id: 1, nombre: 'Elena Vance',   iniciales: 'EV', activo: true  },
-  { id: 2, nombre: 'Marcus H.',     iniciales: 'MH', activo: true  },
-  { id: 3, nombre: 'Sombra Thorne', iniciales: 'ST', activo: false },
-];
-
-const META = {
-  titulo: 'Optimización de latencia en peticiones transversales.',
-  progreso: 74,
-};
 
 const TOTAL_BLOQUES = 4;
 
@@ -43,6 +20,7 @@ const fmt = (s) =>
 const LIMITE_SESION = 3 * 60 * 60; // 3 horas en segundos
 
 const StartStudySession = () => {
+  const { user } = useAuth();
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const s = getStyles(isDark);
@@ -51,10 +29,14 @@ const StartStudySession = () => {
   const [segundos,      setSegundos]      = useState(23 * 60 + 41);
   const [corriendo,     setCorriendo]     = useState(true);
   const [bloque,        setBloque]        = useState(2);
-  const [bitacora,      setBitacora]      = useState(BITACORA_INIT);
+  const [bitacora,      setBitacora]      = useState([]);
   const [anotacion,     setAnotacion]     = useState('');
   const [tiempoTotal,   setTiempoTotal]   = useState(0);
   const [showShare,     setShowShare]     = useState(false);
+  const [participantes, setParticipantes] = useState([]);
+  const [meta,          setMeta]          = useState(null);
+  const [sesionId] = useState(() => Math.random().toString(36).slice(2, 8));
+  const [loading,       setLoading]       = useState(true);
 
   const sesionCumplida = tiempoTotal >= LIMITE_SESION;
 
@@ -66,6 +48,33 @@ const StartStudySession = () => {
     }, 1000);
     return () => clearInterval(id);
   }, [corriendo, sesionCumplida]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+
+    const fetchData = async () => {
+      try {
+        const [panel, goals] = await Promise.all([
+          socialService.getSocialPanel(user.id),
+          academicService.getGoals(),
+        ]);
+        if (cancelled) return;
+        if (panel?.bitacora) setBitacora(panel.bitacora);
+        if (panel?.participantes) setParticipantes(panel.participantes);
+        if (goals?.length) {
+          setMeta({ titulo: goals[0].titulo, progreso: goals[0].progreso });
+        }
+      } catch {
+        // fallback to empty/null
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const irBloque = (delta) => {
     const next = bloque + delta;
@@ -87,11 +96,21 @@ const StartStudySession = () => {
     setAnotacion('');
   };
 
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 520, color: t.textMuted, fontFamily: t.fontSecondary, fontSize: 13 }}>
+          Cargando…
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
-      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
-        ← Volver
-      </button>
+       <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 600, color: '#FFFFFF', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
+         ← Volver
+       </button>
       <div style={s.layout}>
 
         {/* ── IZQUIERDA: BITÁCORA ───────────────────────────── */}
@@ -222,7 +241,7 @@ const StartStudySession = () => {
           </div>
 
           <div style={s.participantesList}>
-            {PARTICIPANTES.map((p) => (
+            {participantes.map((p) => (
               <div key={p.id} style={s.participanteRow}>
                 <div style={s.avatarWrap}>
                   <div style={s.avatar}>{p.iniciales}</div>
@@ -249,10 +268,10 @@ const StartStudySession = () => {
           {/* Meta actual */}
           <div style={s.metaCard}>
             <span style={s.metaLabel}>META ACTUAL</span>
-            <p style={s.metaDesc}>{META.titulo}</p>
+            <p style={s.metaDesc}>{meta?.titulo || ''}</p>
             <span style={s.progresoLabel}>PROGRESO</span>
-            <ProgressBar value={META.progreso} isDark={isDark} />
-            <span style={s.progresoPct}>{META.progreso}%</span>
+            <ProgressBar value={meta?.progreso || 0} isDark={isDark} />
+            <span style={s.progresoPct}>{meta?.progreso || 0}%</span>
           </div>
 
         </div>
@@ -280,7 +299,7 @@ const StartStudySession = () => {
             </p>
             <div style={{ display: 'flex', gap: 8, background: t.inputBg, border: `1px solid ${t.inputBorder}`, borderRadius: 10, padding: '10px 14px', marginBottom: 16 }}>
               <span style={{ flex: 1, fontSize: 12, color: t.textSecondary, fontFamily: t.fontSecondary, wordBreak: 'break-all' }}>
-                aibert.app/sesion/sala-{Math.random().toString(36).slice(2, 8)}
+                aibert.app/sesion/sala-{sesionId}
               </span>
               <button style={{ background: t.primaryGradient, border: 'none', borderRadius: 7, padding: '4px 12px', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
                 Copiar

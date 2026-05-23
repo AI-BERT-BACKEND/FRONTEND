@@ -44,8 +44,10 @@ const Login = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      await login({ email, password });
+      await login({ email, password, rememberMe: remember });
       navigate('/academic-profile');
+    } catch {
+      setErrors({ email: 'Credenciales inválidas o servidor no disponible' });
     } finally {
       setLoading(false);
     }
@@ -190,7 +192,6 @@ const getStyles = (isDark) => {
       whiteSpace: 'nowrap',
       lineHeight: 1.2,
       margin: '0 auto 6px',
-      whiteSpace: 'nowrap',
       textAlign: 'center',
     },
     subtitle: {

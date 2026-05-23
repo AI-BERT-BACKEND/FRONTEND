@@ -5,9 +5,10 @@ import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import { useNavigate } from 'react-router-dom';
+import academicService from '../services/academicService';
 import { 
   ChevronDown, BookOpen, User, Clipboard, 
-  Star, Calendar, MoreVertical, Layout, Trash2 
+  Star, Calendar, MoreVertical, Trash2 
 } from 'lucide-react';
 
 const LocalChevronDown = ({ color }) => (
@@ -39,42 +40,14 @@ const Subjects = () => {
   const [showModal, setShowModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
-  const [materias, setMaterias] = useState([
-    {
-      id: 1,
-      nombre: 'Diseño de Operaciones de Software',
-      profesor: 'Dr. Alberto García',
-      creditos: '4',
-      semestre: 'Sexto Semestre',
-      color: '#FF8430',
-      activo: true,
-      progreso: 65,
-    },
-    {
-      id: 2,
-      nombre: 'Arquitectura y Sistemas de Red',
-      profesor: 'Dra. María López',
-      creditos: '3',
-      semestre: 'Sexto Semestre',
-      color: '#C4107A',
-      activo: true,
-      progreso: 40,
-    },
-    {
-      id: 3,
-      nombre: 'Ciclos de Vida y Desarrollo de Software',
-      profesor: 'Martín Cantor',
-      creditos: '4',
-      semestre: 'Sexto Semestre',
-      color: '#A855F7',
-      activo: true,
-      progreso: 55,
-    },
-  ]);
+  const [materias, setMaterias] = useState([]);
 
   const [form, setForm] = useState({
     nombre: '',
@@ -85,6 +58,30 @@ const Subjects = () => {
     horario: {},
   });
   const [formErrors, setFormErrors] = useState({});
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const data = await academicService.getSubjects();
+        const items = data.subjects || data || [];
+        setMaterias(items.map((s, i) => ({
+          id: s.id || Date.now() + i,
+          nombre: s.name || s.nombre,
+          profesor: s.teacher || s.profesor || '',
+          creditos: String(s.credits || s.creditos || ''),
+          semestre: s.semester || s.semestre || '',
+          color: s.color || COLORS[i % COLORS.length],
+          activo: s.active !== undefined ? s.active : true,
+          progreso: s.progress || s.progreso || 0,
+        })));
+      } catch {
+        // fallback vacío
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+    fetchSubjects();
+  }, []);
 
   const creditosOptions = ['1','2','3','4','5','6'];
   const semestresOptions = [
@@ -124,28 +121,60 @@ const Subjects = () => {
     if (!validateForm()) return;
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 500));
-      setMaterias((prev) => [...prev, { ...form, id: Date.now(), activo: true, progreso: 0 }]);
+      const subjectData = {
+        name: form.nombre,
+        teacher: form.profesor,
+        credits: Number(form.creditos),
+        semester: form.semestre,
+        color: form.color,
+        schedule: form.horario,
+      };
+
+      if (editingId) {
+        await academicService.updateSubject(editingId, subjectData);
+        setMaterias((prev) => prev.map((m) =>
+          m.id === editingId ? { ...m, ...subjectData, id: editingId } : m
+        ));
+      } else {
+        const res = await academicService.createSubject(subjectData);
+        setMaterias((prev) => [...prev, { ...subjectData, id: res.id || Date.now(), activo: true, progreso: 0 }]);
+      }
+
       setForm({ nombre: '', profesor: '', creditos: '', semestre: '', color: '#FF8430', horario: {} });
+      setEditingId(null);
       setFormErrors({});
       setShowModal(false);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 4000);
+    } catch {
+      // error silencioso
     } finally {
       setLoading(false);
     }
   };
 
   const handleEliminar = (id) => {
-    setMaterias((prev) => prev.filter((m) => m.id !== id));
+    setDeleteConfirm(id);
     setMenuOpen(null);
+  };
+
+  const confirmDelete = () => {
+    setMaterias((prev) => prev.filter((m) => m.id !== deleteConfirm));
+    setDeleteConfirm(null);
   };
 
   const handleEditar = (id) => {
     const m = materias.find((x) => x.id === id);
     if (m) {
-      setForm({ ...m });
-      setMaterias((prev) => prev.filter((x) => x.id !== id));
+      setForm({
+        nombre: m.nombre,
+        profesor: m.profesor,
+        creditos: m.creditos,
+        semestre: m.semestre,
+        color: m.color,
+        horario: m.horario || {},
+      });
+      setEditingId(id);
       setShowModal(true);
     }
     setMenuOpen(null);
@@ -194,7 +223,12 @@ const Subjects = () => {
 
       {/* GRID MATERIAS + CRÉDITOS */}
       <div style={s.materiasGrid}>
-        {materias.length === 0 && (
+        {fetchLoading && (
+          <div style={s.emptyState}>
+            <p style={s.emptyText}>Cargando materias...</p>
+          </div>
+        )}
+        {!fetchLoading && materias.length === 0 && (
           <div style={s.emptyState}>
             <BookOpen size={32} color={isDark ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.15)'} />
             <p style={s.emptyText}>Aún no tienes materias. ¡Agrega tu primera materia!</p>
@@ -202,7 +236,7 @@ const Subjects = () => {
         )}
 
         {materias.map((m) => (
-          <div key={m.id} style={s.materiaCard}>
+          <div key={m.id} style={{ ...s.materiaCard, cursor: 'pointer' }} onClick={() => navigate(`/materias/${m.id}`)}>
             <div style={s.cardTop}>
               <div style={{
                 ...s.activoBadge,
@@ -212,14 +246,11 @@ const Subjects = () => {
                 {m.activo ? '● Activo' : '● Inactivo'}
               </div>
               <div style={{ position: 'relative' }} ref={menuOpen === m.id ? menuRef : null}>
-                <button style={s.menuBtn} onClick={() => setMenuOpen(menuOpen === m.id ? null : m.id)}>
+                <button style={s.menuBtn} onClick={(e) => { e.stopPropagation(); setMenuOpen(menuOpen === m.id ? null : m.id); }}>
                   <MoreVertical size={16} />
                 </button>
                 {menuOpen === m.id && (
-                  <div style={s.dropdown}>
-                    <button style={s.dropdownItem} onClick={() => navigate(`/materias/${m.id}`)}>
-                      📊 Ver detalle
-                    </button>
+                  <div style={s.dropdown} onClick={(e) => e.stopPropagation()}>
                     <button style={{ ...s.dropdownItem, color: '#F00707' }} onClick={() => handleEliminar(m.id)}>
                       <Trash2 size={12} style={{ marginRight: 6 }} /> Eliminar materia
                     </button>
@@ -294,6 +325,33 @@ const Subjects = () => {
           </div>
         </div>
       </div>
+
+      {/* MODAL CONFIRMAR ELIMINAR */}
+      {deleteConfirm && (
+        <div style={s.modalOverlay} onClick={() => setDeleteConfirm(null)}>
+          <div style={s.deleteModal} onClick={(e) => e.stopPropagation()}>
+            <div style={s.deleteModalIcon}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <defs>
+                  <linearGradient id="delGradSubj" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor={isDark ? '#FF5B2E' : '#FF8430'} />
+                    <stop offset="100%" stopColor={isDark ? '#C4107A' : '#F7306D'} />
+                  </linearGradient>
+                </defs>
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="url(#delGradSubj)" />
+                <line x1="12" y1="9" x2="12" y2="13" stroke="url(#delGradSubj)" />
+                <line x1="12" y1="17" x2="12.01" y2="17" stroke="url(#delGradSubj)" />
+              </svg>
+            </div>
+            <div style={s.deleteModalTitle}>¿Eliminar esta materia?</div>
+            <p style={s.deleteModalDesc}>Esta acción no se puede deshacer. Se perderán todas las notas y cortes asociados.</p>
+            <div style={s.deleteModalFooter}>
+              <button style={s.mCancelBtn} onClick={() => setDeleteConfirm(null)}>Cancelar</button>
+              <button style={s.deleteBtn} onClick={confirmDelete}>Eliminar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL NUEVA MATERIA */}
       {showModal && (
@@ -811,6 +869,50 @@ const getStyles = (isDark) => {
       fontWeight: 700,
       color: '#fff',
       letterSpacing: '0.03em',
+    },
+    deleteModal: {
+      background: t.cardBg,
+      border: `1px solid ${t.cardBorder}`,
+      borderRadius: 16,
+      width: '100%',
+      maxWidth: 340,
+      margin: '0 20px',
+      boxShadow: t.modalShadow,
+      padding: '32px 28px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      textAlign: 'center',
+      gap: 12,
+    },
+    deleteModalIcon: { marginBottom: 4 },
+    deleteModalTitle: {
+      fontFamily: t.fontPrimary,
+      fontSize: 18,
+      fontWeight: 800,
+      color: t.textPrimary,
+    },
+    deleteModalDesc: {
+      fontSize: 13,
+      color: t.textSecondary,
+      lineHeight: 1.5,
+      margin: 0,
+    },
+    deleteModalFooter: {
+      display: 'flex',
+      gap: 10,
+      marginTop: 8,
+    },
+    deleteBtn: {
+      padding: '9px 20px',
+      borderRadius: 8,
+      border: 'none',
+      background: '#F00707',
+      cursor: 'pointer',
+      fontFamily: t.fontPrimary,
+      fontSize: 13,
+      fontWeight: 700,
+      color: '#fff',
     },
   };
 };
