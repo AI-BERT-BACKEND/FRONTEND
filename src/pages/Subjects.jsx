@@ -5,9 +5,10 @@ import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import { useNavigate } from 'react-router-dom';
+import academicService from '../services/academicService';
 import { 
   ChevronDown, BookOpen, User, Clipboard, 
-  Star, Calendar, MoreVertical, Layout, Trash2 
+  Star, Calendar, MoreVertical, Trash2 
 } from 'lucide-react';
 
 const LocalChevronDown = ({ color }) => (
@@ -39,43 +40,13 @@ const Subjects = () => {
   const [showModal, setShowModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const menuRef = useRef(null);
   const navigate = useNavigate();
 
-  const [materias, setMaterias] = useState([
-    {
-      id: 1,
-      nombre: 'Diseño de Operaciones de Software',
-      profesor: 'Dr. Alberto García',
-      creditos: '4',
-      semestre: 'Sexto Semestre',
-      color: '#FF8430',
-      activo: true,
-      progreso: 65,
-    },
-    {
-      id: 2,
-      nombre: 'Arquitectura y Sistemas de Red',
-      profesor: 'Dra. María López',
-      creditos: '3',
-      semestre: 'Sexto Semestre',
-      color: '#C4107A',
-      activo: true,
-      progreso: 40,
-    },
-    {
-      id: 3,
-      nombre: 'Ciclos de Vida y Desarrollo de Software',
-      profesor: 'Martín Cantor',
-      creditos: '4',
-      semestre: 'Sexto Semestre',
-      color: '#A855F7',
-      activo: true,
-      progreso: 55,
-    },
-  ]);
+  const [materias, setMaterias] = useState([]);
 
   const [form, setForm] = useState({
     nombre: '',
@@ -86,6 +57,30 @@ const Subjects = () => {
     horario: {},
   });
   const [formErrors, setFormErrors] = useState({});
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const data = await academicService.getSubjects();
+        const items = data.subjects || data || [];
+        setMaterias(items.map((s, i) => ({
+          id: s.id || Date.now() + i,
+          nombre: s.name || s.nombre,
+          profesor: s.teacher || s.profesor || '',
+          creditos: String(s.credits || s.creditos || ''),
+          semestre: s.semester || s.semestre || '',
+          color: s.color || COLORS[i % COLORS.length],
+          activo: s.active !== undefined ? s.active : true,
+          progreso: s.progress || s.progreso || 0,
+        })));
+      } catch {
+        // fallback vacío
+      } finally {
+        setFetchLoading(false);
+      }
+    };
+    fetchSubjects();
+  }, []);
 
   const creditosOptions = ['1','2','3','4','5','6'];
   const semestresOptions = [
@@ -125,13 +120,33 @@ const Subjects = () => {
     if (!validateForm()) return;
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 500));
-      setMaterias((prev) => [...prev, { ...form, id: Date.now(), activo: true, progreso: 0 }]);
+      const subjectData = {
+        name: form.nombre,
+        teacher: form.profesor,
+        credits: Number(form.creditos),
+        semester: form.semestre,
+        color: form.color,
+        schedule: form.horario,
+      };
+
+      if (editingId) {
+        await academicService.updateSubject(editingId, subjectData);
+        setMaterias((prev) => prev.map((m) =>
+          m.id === editingId ? { ...m, ...subjectData, id: editingId } : m
+        ));
+      } else {
+        const res = await academicService.createSubject(subjectData);
+        setMaterias((prev) => [...prev, { ...subjectData, id: res.id || Date.now(), activo: true, progreso: 0 }]);
+      }
+
       setForm({ nombre: '', profesor: '', creditos: '', semestre: '', color: '#FF8430', horario: {} });
+      setEditingId(null);
       setFormErrors({});
       setShowModal(false);
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 4000);
+    } catch {
+      // error silencioso
     } finally {
       setLoading(false);
     }
@@ -150,8 +165,15 @@ const Subjects = () => {
   const handleEditar = (id) => {
     const m = materias.find((x) => x.id === id);
     if (m) {
-      setForm({ ...m });
-      setMaterias((prev) => prev.filter((x) => x.id !== id));
+      setForm({
+        nombre: m.nombre,
+        profesor: m.profesor,
+        creditos: m.creditos,
+        semestre: m.semestre,
+        color: m.color,
+        horario: m.horario || {},
+      });
+      setEditingId(id);
       setShowModal(true);
     }
     setMenuOpen(null);
@@ -200,7 +222,12 @@ const Subjects = () => {
 
       {/* GRID MATERIAS + CRÉDITOS */}
       <div style={s.materiasGrid}>
-        {materias.length === 0 && (
+        {fetchLoading && (
+          <div style={s.emptyState}>
+            <p style={s.emptyText}>Cargando materias...</p>
+          </div>
+        )}
+        {!fetchLoading && materias.length === 0 && (
           <div style={s.emptyState}>
             <BookOpen size={32} color={isDark ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.15)'} />
             <p style={s.emptyText}>Aún no tienes materias. ¡Agrega tu primera materia!</p>

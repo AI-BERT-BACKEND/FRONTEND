@@ -6,54 +6,78 @@ import { createStyles } from '../theme/createStyles';
 import CircleProgress from '../components/CircleProgress';
 import ProgressBar from '../components/ProgressBar';
 import AibertGif from '../assets/aibert-logo-sin-negro-corregido.gif';
-import AibertVerde from '../assets/aibert-verde.gif';
-import AibertAmarillo from '../assets/aibert-amarillo.gif';
-import AibertRojo from '../assets/aibert-rojo.gif';
 import { ArrowRight, Plus, Clock, AlertTriangle, TrendingDown, X, Bell } from 'lucide-react';
-
-const NIVEL_COLOR = {
-  verde: '#22C55E',
-  amarillo: '#EAB308',
-  rojo: '#F00707',
-};
-
-const ALERTAS_INIT = [
-  {
-    id: 1,
-    tipo: 'warning',
-    texto: 'Sobrecarga detectada para mañana',
-    detalle: 'Tienes 3 entregas acumuladas el mismo día.',
-  },
-  {
-    id: 2,
-    tipo: 'danger',
-    texto: 'Bajo rendimiento en Cálculo',
-    detalle: 'Tu promedio bajó 12 puntos este período.',
-  },
-];
-
-const MATERIAS_RESUMEN = [
-  { nombre: 'Matemáticas',      pct: 80, color: '#FF8430' },
-  { nombre: 'Historia Moderna', pct: 45, color: '#F7306D' },
-  { nombre: 'Programación',     pct: 63, color: '#A855F7' },
-];
-
-const TAREAS_INIT = [
-  { id: 1, texto: 'Resolver ejercicios de cálculo integral', materia: 'Matemáticas', color: '#FF8430', hora: '10:00 AM', done: false },
-  { id: 2, texto: 'Leer capítulo 4 de Historia',            materia: 'Historia',     color: '#F7306D', hora: '2:00 PM',  done: true  },
-  { id: 3, texto: 'Entregar taller de Programación',        materia: 'Programación', color: '#A855F7', hora: '11:59 PM', done: false },
-];
+import taskService from '../services/taskService';
+import notificationService from '../services/notificationService';
+import academicService from '../services/academicService';
 
 const Dashboard = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const t = createStyles(isDark);
 
-  const [alertas, setAlertas]       = useState(ALERTAS_INIT);
-  const [tareas, setTareas]         = useState(TAREAS_INIT);
+  const [alertas, setAlertas] = useState([]);
+  const [materias, setMaterias] = useState([]);
+  const [tareas, setTareas] = useState([]);
+  const [loadingAlertas, setLoadingAlertas] = useState(true);
+  const [loadingSummary, setLoadingSummary] = useState(true);
+  const [loadingTasks, setLoadingTasks] = useState(true);
   const [showNewTask, setShowNewTask] = useState(false);
   const [newTask, setNewTask]       = useState('');
   const [pulseBorder, setPulseBorder] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [alertasRes, summaryRes, tasksRes] = await Promise.allSettled([
+          notificationService.getAlertNotifications(),
+          academicService.getSummary(),
+          taskService.getTasks(),
+        ]);
+
+        if (alertasRes.status === 'fulfilled') {
+          const data = alertasRes.value;
+          setAlertas((data.alerts || data || []).map((a, i) => ({
+            id: a.id || i + 1,
+            tipo: a.type === 'danger' ? 'danger' : 'warning',
+            texto: a.title || a.message || a.texto,
+            detalle: a.description || a.detail || a.detalle,
+          })));
+        }
+        setLoadingAlertas(false);
+
+        if (summaryRes.status === 'fulfilled') {
+          const data = summaryRes.value;
+          const subjects = data.subjects || data || [];
+          setMaterias(subjects.map((s) => ({
+            nombre: s.name || s.nombre,
+            pct: s.percentage || s.pct || s.progress || 0,
+            color: s.color || '#FF8430',
+          })));
+        }
+        setLoadingSummary(false);
+
+        if (tasksRes.status === 'fulfilled') {
+          const data = tasksRes.value;
+          const tasks = data.tasks || data || [];
+          setTareas(tasks.slice(0, 5).map((t) => ({
+            id: t.id || Date.now(),
+            texto: t.title || t.name || t.nombre || t.texto,
+            materia: t.subject || t.materia || 'General',
+            color: t.color || '#00CFFF',
+            hora: t.time || t.hora || t.schedule || '',
+            done: t.completed || t.done || false,
+          })));
+        }
+        setLoadingTasks(false);
+      } catch {
+        setLoadingAlertas(false);
+        setLoadingSummary(false);
+        setLoadingTasks(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const dismissAlerta = (id) => setAlertas((prev) => prev.filter((a) => a.id !== id));
 
@@ -132,40 +156,50 @@ const Dashboard = () => {
       </section>
 
       {/* ── CENTRO DE ALERTAS ── */}
-      {alertas.length > 0 && (
-        <section style={s.card} aria-label="Centro de Alertas">
-          <div style={s.cardHeader}>
-            <div style={s.cardTitleRow}>
-              <Bell size={18} color={isDark ? '#FF5B2E' : '#FF8430'} />
-              <span style={s.cardTitle}>Centro de Alertas</span>
+      <section style={s.card} aria-label="Centro de Alertas">
+        <div style={s.cardHeader}>
+          <div style={s.cardTitleRow}>
+            <Bell size={18} color={isDark ? '#FF5B2E' : '#FF8430'} />
+            <span style={s.cardTitle}>Centro de Alertas</span>
+            {alertas.length > 0 && (
               <span style={s.alertBadge(isDark)}>{alertas.length}</span>
-            </div>
+            )}
           </div>
+        </div>
 
-          <div style={s.alertList}>
-            {alertas.map((a) => (
-              <div key={a.id} style={s.alertItem(a.tipo, isDark)}>
-                <div style={s.alertIcon(a.tipo)}>
-                  {a.tipo === 'warning'
-                    ? <AlertTriangle size={14} color="#EAB308" />
-                    : <TrendingDown size={14} color="#F7306D" />}
-                </div>
-                <div style={s.alertBody}>
-                  <span style={s.alertText(isDark)}>{a.texto}</span>
-                  <span style={s.alertDetail(isDark)}>{a.detalle}</span>
-                </div>
-                <button style={s.alertDismiss} onClick={() => dismissAlerta(a.id)} aria-label="Descartar alerta">
-                  <X size={13} color={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)'} />
-                </button>
+        <div style={s.alertList}>
+          {loadingAlertas && (
+            <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic' }}>Cargando alertas...</span>
+          )}
+          {!loadingAlertas && alertas.length === 0 && (
+            <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic' }}>No hay alertas pendientes</span>
+          )}
+          {alertas.map((a) => (
+            <div key={a.id} style={s.alertItem(a.tipo, isDark)}>
+              <div style={s.alertIcon(a.tipo)}>
+                {a.tipo === 'warning'
+                  ? <AlertTriangle size={14} color="#EAB308" />
+                  : <TrendingDown size={14} color="#F7306D" />}
               </div>
-            ))}
-          </div>
+              <div style={s.alertBody}>
+                <span style={s.alertText(isDark)}>{a.texto}</span>
+                <span style={s.alertDetail(isDark)}>{a.detalle}</span>
+              </div>
+              <button
+                style={s.alertDismiss}
+                onClick={() => dismissAlerta(a.id)}
+                aria-label="Descartar alerta"
+              >
+                <X size={13} color={isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.30)'} />
+              </button>
+            </div>
+          ))}
+        </div>
 
-          <button style={s.linkBtn} onClick={() => navigate('/estadisticas')}>
-            Ver detalle <ArrowRight size={13} style={{ marginLeft: 4 }} />
-          </button>
-        </section>
-      )}
+        <button style={s.linkBtn} onClick={() => navigate('/estadisticas')}>
+          Ver detalle <ArrowRight size={13} style={{ marginLeft: 4 }} />
+        </button>
+      </section>
 
       {/* ── FILA CENTRAL: Resumen + Progreso ── */}
       <div style={s.row2}>
@@ -182,7 +216,13 @@ const Dashboard = () => {
             </div>
           </div>
           <div style={s.materiasList}>
-            {MATERIAS_RESUMEN.map((m) => (
+            {materias.length === 0 && loadingSummary && (
+              <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic' }}>Cargando...</span>
+            )}
+            {materias.length === 0 && !loadingSummary && (
+              <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic' }}>Sin datos disponibles</span>
+            )}
+            {materias.map((m) => (
               <div key={m.nombre} style={s.materiaRow}>
                 <div style={s.materiaRowHeader}>
                   <span style={s.materiaRowName(isDark)}>{m.nombre}</span>
@@ -240,6 +280,12 @@ const Dashboard = () => {
           )}
 
           <ul style={s.taskList}>
+            {loadingTasks && (
+              <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic' }}>Cargando tareas...</span>
+            )}
+            {!loadingTasks && tareas.length === 0 && (
+              <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic' }}>No hay tareas pendientes</span>
+            )}
             {tareas.map((tarea) => (
               <li key={tarea.id} style={s.taskItem(isDark, tarea.done)}>
                 <button style={s.checkbox(tarea.done, tarea.color)} onClick={() => toggleTarea(tarea.id)}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import CircleProgress from '../components/CircleProgress';
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import academicService from '../services/academicService';
 
 const LocalChevronDown = ({ isDark }) => (
   <ChevronDown
@@ -59,7 +60,11 @@ const AddMetaModal = ({ isDark, onClose }) => {
     if (!valid) return;
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 500));
+      await academicService.setGoal({
+        name: nombre.trim(),
+        target_grade: nota ? parseFloat(nota) : undefined,
+        subject: materia || undefined,
+      });
       onClose();
     } finally {
       setLoading(false);
@@ -352,36 +357,54 @@ const getModalStyles = (isDark) => ({
 const AcademicGoals = () => {
   const { isDark } = useTheme();
   const [showModal, setShowModal] = useState(false);
+  const [loadingMetas, setLoadingMetas] = useState(true);
+  const [loadingSummary, setLoadingSummary] = useState(true);
+  const [metas, setMetas] = useState([]);
+  const [summary, setSummary] = useState(null);
   const navigate = useNavigate();
   const s = getStyles(isDark);
   const t = createStyles(isDark);
 
-  const metas = [
-    {
-      id: 1,
-      materia: 'Arquitectura de Software',
-      facultad: 'Facultad de Ingeniería',
-      actual: 4.2,
-      meta: 4.8,
-      estado: 'EN CAMINO',
-      estadoColor: isDark ? '#FF5B2E' : '#FF8430',
-      estadoBg: isDark ? 'rgba(255,91,46,0.15)' : 'rgba(255,132,48,0.12)',
-      icon: Library,
-      iconColor: isDark ? '#FF5B2E' : '#FF8430',
-    },
-    {
-      id: 2,
-      materia: 'Inteligencia Artificial',
-      facultad: 'Ciencias Computacionales',
-      actual: 4.9,
-      meta: 5.0,
-      estado: 'META ALTA',
-      estadoColor: '#22C55E',
-      estadoBg: 'rgba(34,197,94,0.15)',
-      icon: Target,
-      iconColor: '#22C55E',
-    },
-  ];
+  const mapGoal = (g) => ({
+    id: g.id,
+    materia: g.subject || g.materia || g.name || '',
+    facultad: g.faculty || g.facultad || '',
+    actual: g.current_grade ?? g.currentGrade ?? g.nota_actual ?? g.actual ?? 0,
+    meta: g.target_grade ?? g.targetGrade ?? g.nota_meta ?? g.meta ?? 0,
+    estado: g.status || g.estado || '',
+    estadoColor: g.estadoColor ?? (isDark ? '#FF5B2E' : '#FF8430'),
+    estadoBg: g.estadoBg ?? (isDark ? 'rgba(255,91,46,0.15)' : 'rgba(255,132,48,0.12)'),
+    icon: Library,
+    iconColor: g.iconColor ?? (isDark ? '#FF5B2E' : '#FF8430'),
+  });
+
+  const fetchMetas = async () => {
+    try {
+      const data = await academicService.getGoals();
+      const list = Array.isArray(data) ? data : data.goals || data.data || [];
+      setMetas(list.map(mapGoal));
+    } catch {
+      setMetas([]);
+    } finally {
+      setLoadingMetas(false);
+    }
+  };
+
+  const fetchSummary = async () => {
+    try {
+      const data = await academicService.getSummary();
+      setSummary(data);
+    } catch {
+      setSummary(null);
+    } finally {
+      setLoadingSummary(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMetas();
+    fetchSummary();
+  }, []);
 
   return (
     <AppLayout>
@@ -397,15 +420,23 @@ const AcademicGoals = () => {
             <div style={s.metaGeneralStat}>
               <div style={s.statLabel}>PROMEDIO OBJETIVO</div>
               <div style={s.statVal}>
-                4.5
-                <StatusBadge label="ALTO" color="#FF8430" bgColor={isDark ? 'rgba(255,132,48,0.18)' : 'rgba(255,132,48,0.12)'} />
+                {summary?.target_average ?? summary?.targetAverage ?? summary?.promedio_objetivo ?? '-'}
+                <StatusBadge
+                  label="ALTO"
+                  color="#FF8430"
+                  bgColor={isDark ? 'rgba(255,132,48,0.18)' : 'rgba(255,132,48,0.12)'}
+                />
               </div>
             </div>
             <div style={s.metaGeneralStat}>
               <div style={s.statLabel}>PROMEDIO ACTUAL</div>
               <div style={s.statVal}>
-                4.1
-                <StatusBadge label="EN CAMINO" color="#FF5B2E" bgColor={isDark ? 'rgba(255,91,46,0.18)' : 'rgba(255,91,46,0.10)'} />
+                {summary?.current_average ?? summary?.currentAverage ?? summary?.promedio_actual ?? '-'}
+                <StatusBadge
+                  label="EN CAMINO"
+                  color="#FF5B2E"
+                  bgColor={isDark ? 'rgba(255,91,46,0.18)' : 'rgba(255,91,46,0.10)'}
+                />
               </div>
             </div>
           </div>
@@ -418,7 +449,7 @@ const AcademicGoals = () => {
           <div style={s.statCard}>
             <div>
               <div style={s.statCardLabel}>EN RIESGO</div>
-              <div style={s.statCardNum}>01</div>
+              <div style={s.statCardNum}>{summary?.at_risk ?? summary?.atRisk ?? summary?.en_riesgo ?? '-'}</div>
             </div>
             <div style={s.statCardIcon}>
               <AlertTriangle size={20} color="#FF5B2E" />
@@ -427,7 +458,7 @@ const AcademicGoals = () => {
           <div style={s.statCard}>
             <div>
               <div style={s.statCardLabel}>CUMPLIDAS</div>
-              <div style={{ ...s.statCardNum, color: '#22C55E' }}>12</div>
+              <div style={{ ...s.statCardNum, color: '#22C55E' }}>{summary?.completed ?? summary?.cumplidas ?? '-'}</div>
             </div>
             <div style={s.statCardIcon}>
               <Check size={20} color="#22C55E" />
@@ -436,7 +467,9 @@ const AcademicGoals = () => {
           <div style={s.statCard}>
             <div>
               <div style={s.statCardLabel}>RENDIMIENTO</div>
-              <div style={{ ...s.statCardNum, color: isDark ? '#FF5B2E' : '#FF8430' }}>A+</div>
+              <div style={{ ...s.statCardNum, color: isDark ? '#FF5B2E' : '#FF8430' }}>
+                {summary?.performance ?? summary?.rendimiento ?? '-'}
+              </div>
             </div>
             <div style={s.statCardIcon}>
               <BarChart3 size={20} color={isDark ? '#FF5B2E' : '#FF8430'} />
@@ -454,23 +487,38 @@ const AcademicGoals = () => {
       </div>
 
       <div style={s.metasGrid}>
-        {metas.map((m) => (
-          <div key={m.id} style={s.materiaMetaCard}>
-            <div style={s.materiaMetaTop}>
-              <div style={{ ...s.materiaMetaIcon, background: m.iconColor + '20' }}>
-                <m.icon size={18} color={m.iconColor} />
+        {loadingMetas ? (
+          <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic', gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0' }}>Cargando metas...</span>
+        ) : metas.length === 0 ? (
+          <span style={{ fontSize: 12, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontStyle: 'italic', gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0' }}>Sin metas registradas</span>
+        ) : (
+          metas.map((m) => (
+            <div key={m.id} style={s.materiaMetaCard}>
+              <div style={s.materiaMetaTop}>
+                <div style={{ ...s.materiaMetaIcon, background: m.iconColor + '20' }}>
+                  <m.icon size={18} color={m.iconColor} />
+                </div>
+                <StatusBadge label={m.estado} color={m.estadoColor} bgColor={m.estadoBg} />
               </div>
-              <StatusBadge label={m.estado} color={m.estadoColor} bgColor={m.estadoBg} />
+              <div style={s.materiaNombre}>{m.materia}</div>
+              <div style={s.materiaFacultad}>{m.facultad}</div>
+              <div style={s.metaRow}>
+                <span style={s.metaLabel}>
+                  Actual: <strong style={{ color: m.estadoColor }}>{m.actual}</strong>
+                </span>
+                <span style={s.metaLabel}>
+                  Meta:{' '}
+                  <strong
+                    style={{ color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)' }}
+                  >
+                    {m.meta}
+                  </strong>
+                </span>
+              </div>
+              <ProgressBar value={(m.actual / m.meta) * 100} isDark={isDark} color={m.estadoColor} />
             </div>
-            <div style={s.materiaNombre}>{m.materia}</div>
-            <div style={s.materiaFacultad}>{m.facultad}</div>
-            <div style={s.metaRow}>
-              <span style={s.metaLabel}>Actual: <strong style={{ color: m.estadoColor }}>{m.actual}</strong></span>
-              <span style={s.metaLabel}>Meta: <strong style={{ color: isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)' }}>{m.meta}</strong></span>
-            </div>
-            <ProgressBar value={(m.actual / m.meta) * 100} isDark={isDark} color={m.estadoColor} />
-          </div>
-        ))}
+          ))
+        )}
 
         <div style={s.addMetaCard} onClick={() => setShowModal(true)}>
           <Plus size={24} color={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.25)'} />
@@ -495,7 +543,7 @@ const AcademicGoals = () => {
         </button>
       </div>
 
-      {showModal && <AddMetaModal isDark={isDark} onClose={() => setShowModal(false)} />}
+      {showModal && <AddMetaModal isDark={isDark} onClose={() => { setShowModal(false); fetchMetas(); }} />}
     </AppLayout>
   );
 };

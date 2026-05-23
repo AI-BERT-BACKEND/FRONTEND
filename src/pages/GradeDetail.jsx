@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import academicService from '../services/academicService';
 
 // ── ICONOS ─────────────────────────────────────────────────────────────────────
 
@@ -41,162 +42,6 @@ const IconBook = ({ color }) => (
   </svg>
 );
 
-// ── DATOS ──────────────────────────────────────────────────────────────────────
-
-const MATERIAS = [
-  {
-    id: 'mat4',
-    nombre: 'Matemáticas IV',
-    codigo: 'MAT-401',
-    profesor: 'Dr. Alejandro Ramírez',
-    creditos: 4,
-    color: '#FF8430',
-    notaActual: 8.5,
-    avance: 67,
-    evaluacionesPend: 5,
-    evaluacionesTotal: 5,
-    estado: 'Aprobando',
-    faltas: 2,
-    porcentajeEvaluado: 40,
-    cortes: [
-      { id: 1, nombre: 'CORTE 1',     porcentaje: 30, nota: 8.7 },
-      { id: 2, nombre: 'CORTE 2',     porcentaje: 30, nota: 7.2 },
-      { id: 3, nombre: 'CORTE FINAL', porcentaje: 40, nota: null },
-    ],
-    historial: {
-      1: [
-        { id: 'h1', actividad: 'Taller Integrales Definidas', fecha: '12 Mar 2024', peso: '15%', nota: 9.0 },
-        { id: 'h2', actividad: 'Quiz Unidad 4 – Integración',  fecha: '15 Mar 2024', peso: '15%', nota: 8.4 },
-      ],
-      2: [
-        { id: 'h3', actividad: 'Examen Parcial Cálculo',           fecha: '10 Abr 2024', peso: '20%', nota: 7.5 },
-        { id: 'h4', actividad: 'Taller Ecuaciones Diferenciales', fecha: '25 Abr 2024', peso: '10%', nota: 6.9 },
-      ],
-      3: [],
-    },
-  },
-  {
-    id: 'hist',
-    nombre: 'Historia',
-    codigo: 'HIS-301',
-    profesor: 'Dra. Patricia Mora',
-    creditos: 3,
-    color: '#A855F7',
-    notaActual: 7.9,
-    avance: 55,
-    evaluacionesPend: 3,
-    evaluacionesTotal: 6,
-    estado: 'Aprobando',
-    faltas: 1,
-    porcentajeEvaluado: 60,
-    cortes: [
-      { id: 1, nombre: 'CORTE 1',     porcentaje: 30, nota: 8.2 },
-      { id: 2, nombre: 'CORTE 2',     porcentaje: 30, nota: 7.6 },
-      { id: 3, nombre: 'CORTE FINAL', porcentaje: 40, nota: null },
-    ],
-    historial: {
-      1: [
-        { id: 'h5', actividad: 'Ensayo Edad Media', fecha: '05 Mar 2024', peso: '15%', nota: 8.5 },
-        { id: 'h6', actividad: 'Examen Semana 4',   fecha: '20 Mar 2024', peso: '15%', nota: 7.9 },
-      ],
-      2: [
-        { id: 'h7', actividad: 'Presentación Renacimiento',   fecha: '08 Abr 2024', peso: '20%', nota: 7.2 },
-        { id: 'h8', actividad: 'Quiz Revolución Industrial', fecha: '22 Abr 2024', peso: '10%', nota: 8.0 },
-      ],
-      3: [],
-    },
-  },
-  {
-    id: 'fis',
-    nombre: 'Física Moderna',
-    codigo: 'FIS-401',
-    profesor: 'Dr. Carlos Vega',
-    creditos: 4,
-    color: '#00CFFF',
-    notaActual: 6.8,
-    avance: 45,
-    evaluacionesPend: 7,
-    evaluacionesTotal: 8,
-    estado: 'En Riesgo',
-    faltas: 4,
-    porcentajeEvaluado: 30,
-    cortes: [
-      { id: 1, nombre: 'CORTE 1',     porcentaje: 30, nota: 6.5 },
-      { id: 2, nombre: 'CORTE 2',     porcentaje: 30, nota: null },
-      { id: 3, nombre: 'CORTE FINAL', porcentaje: 40, nota: null },
-    ],
-    historial: {
-      1: [
-        { id: 'h9',  actividad: 'Lab Óptica Cuántica',       fecha: '02 Mar 2024', peso: '20%', nota: 6.8 },
-        { id: 'h10', actividad: 'Quiz Mecánica Relativista', fecha: '18 Mar 2024', peso: '10%', nota: 6.2 },
-      ],
-      2: [],
-      3: [],
-    },
-  },
-  {
-    id: 'comp',
-    nombre: 'Comprensión Lectora',
-    codigo: 'COM-101',
-    profesor: 'Mg. Laura Rincón',
-    creditos: 2,
-    color: '#22C55E',
-    notaActual: 9.1,
-    avance: 80,
-    evaluacionesPend: 2,
-    evaluacionesTotal: 4,
-    estado: 'Aprobando',
-    faltas: 0,
-    porcentajeEvaluado: 70,
-    cortes: [
-      { id: 1, nombre: 'CORTE 1',     porcentaje: 30, nota: 9.4 },
-      { id: 2, nombre: 'CORTE 2',     porcentaje: 30, nota: 8.8 },
-      { id: 3, nombre: 'CORTE FINAL', porcentaje: 40, nota: null },
-    ],
-    historial: {
-      1: [
-        { id: 'h11', actividad: 'Análisis Texto Narrativo', fecha: '07 Mar 2024', peso: '15%', nota: 9.5 },
-        { id: 'h12', actividad: 'Taller Inferencias',       fecha: '21 Mar 2024', peso: '15%', nota: 9.3 },
-      ],
-      2: [
-        { id: 'h13', actividad: 'Síntesis Ensayo Académico', fecha: '11 Abr 2024', peso: '20%', nota: 8.7 },
-        { id: 'h14', actividad: 'Quiz Comprensión Crítica',  fecha: '28 Abr 2024', peso: '10%', nota: 8.9 },
-      ],
-      3: [],
-    },
-  },
-  {
-    id: 'sis',
-    nombre: 'Sistemas I',
-    codigo: 'SIS-201',
-    profesor: 'Ing. Pedro Salcedo',
-    creditos: 3,
-    color: '#F7306D',
-    notaActual: 7.4,
-    avance: 50,
-    evaluacionesPend: 4,
-    evaluacionesTotal: 6,
-    estado: 'Aprobando',
-    faltas: 2,
-    porcentajeEvaluado: 50,
-    cortes: [
-      { id: 1, nombre: 'CORTE 1',     porcentaje: 30, nota: 7.8 },
-      { id: 2, nombre: 'CORTE 2',     porcentaje: 30, nota: 7.0 },
-      { id: 3, nombre: 'CORTE FINAL', porcentaje: 40, nota: null },
-    ],
-    historial: {
-      1: [
-        { id: 'h15', actividad: 'Taller Diagramas ER',  fecha: '04 Mar 2024', peso: '15%', nota: 8.0 },
-        { id: 'h16', actividad: 'Quiz Normalización',   fecha: '19 Mar 2024', peso: '15%', nota: 7.6 },
-      ],
-      2: [
-        { id: 'h17', actividad: 'Examen SQL Avanzado',  fecha: '09 Abr 2024', peso: '20%', nota: 7.2 },
-        { id: 'h18', actividad: 'Proyecto Modelado BD', fecha: '26 Abr 2024', peso: '10%', nota: 6.8 },
-      ],
-      3: [],
-    },
-  },
-];
 
 // ── COMPONENTE PRINCIPAL ───────────────────────────────────────────────────────
 
@@ -208,14 +53,110 @@ const GradeDetail = () => {
   const s          = getStyles(isDark);
   const accent     = isDark ? '#FF5B2E' : '#FF8430';
 
+  const [materias, setMaterias] = useState([]);
+  const [materiaActual, setMateriaActual] = useState(null);
   const [materiaIdx, setMateriaIdx] = useState(0);
-  const [corteIdx,   setCorteIdx]   = useState(0);
-  const [busqueda,   setBusqueda]   = useState('');
+  const [corteIdx, setCorteIdx] = useState(0);
+  const [busqueda, setBusqueda] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [historial, setHistorial] = useState({});
 
-  const materia       = MATERIAS[materiaIdx];
-  const corteActual   = materia.cortes[corteIdx];
-  const todosRegistros = materia.historial[corteActual.id] || [];
-  const registros     = busqueda
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const data = await academicService.getSubjects();
+        const items = data.subjects || data || [];
+        const mapped = items.map((s) => ({
+          id: s.id,
+          nombre: s.name || s.nombre || '',
+          codigo: s.code || s.codigo || '',
+          profesor: s.teacher || s.profesor || '',
+          creditos: s.credits || s.creditos || 0,
+          color: s.color || '#FF8430',
+          notaActual: s.currentGrade || s.notaActual || 0,
+          avance: s.progress || s.avance || 0,
+          evaluacionesPend: s.pendingEvals || s.evaluacionesPend || 0,
+          evaluacionesTotal: s.totalEvals || s.evaluacionesTotal || 0,
+          estado: s.status || s.estado || 'Aprobando',
+          faltas: s.absences || s.faltas || 0,
+          porcentajeEvaluado: s.evaluatedPercent || s.porcentajeEvaluado || 0,
+          cortes: (s.cuts || s.cortes || []).map((c) => ({
+            id: c.id,
+            nombre: c.name || c.nombre,
+            porcentaje: c.percentage || c.porcentaje,
+            nota: c.grade ?? c.nota ?? null,
+          })),
+        }));
+        setMaterias(mapped);
+      } catch {
+        setMaterias([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSubjects();
+  }, []);
+
+  useEffect(() => {
+    if (materias.length === 0) return;
+    const s = materias[materiaIdx];
+    if (!s) return;
+    const fetchDetail = async () => {
+      try {
+        const data = await academicService.getSubjectById(s.id);
+        const d = data.subject || data;
+        setMateriaActual({
+          ...s,
+          notaActual: d.currentGrade ?? d.notaActual ?? s.notaActual,
+          avance: d.progress ?? d.avance ?? s.avance,
+          evaluacionesPend: d.pendingEvals ?? d.evaluacionesPend ?? s.evaluacionesPend,
+          evaluacionesTotal: d.totalEvals ?? d.evaluacionesTotal ?? s.evaluacionesTotal,
+          estado: d.status ?? d.estado ?? s.estado,
+          faltas: d.absences ?? d.faltas ?? s.faltas,
+          porcentajeEvaluado: d.evaluatedPercent ?? d.porcentajeEvaluado ?? s.porcentajeEvaluado,
+          cortes: (d.cuts || d.cortes || s.cortes).map((c) => ({
+            id: c.id,
+            nombre: c.name || c.nombre,
+            porcentaje: c.percentage || c.porcentaje,
+            nota: c.grade ?? c.nota ?? null,
+          })),
+        });
+      } catch {
+        setMateriaActual(s);
+      }
+    };
+    fetchDetail();
+  }, [materiaIdx, materias]);
+
+  useEffect(() => {
+    if (!materiaActual) return;
+    const c = materiaActual.cortes?.[corteIdx];
+    if (!c?.id) return;
+    const fetchGrades = async () => {
+      try {
+        const data = await academicService.getGradesByCut(materiaActual.id, c.id);
+        const grades = data.grades || data || [];
+        setHistorial((prev) => ({
+          ...prev,
+          [c.id]: grades.map((g) => ({
+            id: g.id,
+            actividad: g.activityName || g.actividad || '',
+            fecha: g.date || g.fecha || '',
+            peso: g.weight || g.peso || '',
+            nota: g.grade ?? g.nota ?? 0,
+          })),
+        }));
+      } catch {
+        setHistorial((prev) => ({ ...prev, [c.id]: [] }));
+      }
+    };
+    fetchGrades();
+  }, [materiaActual, corteIdx]);
+
+  const materia = materiaActual || { nombre: '', codigo: '', profesor: '', creditos: 0, color: '#FF8430', notaActual: 0, avance: 0, evaluacionesPend: 0, evaluacionesTotal: 0, estado: 'Aprobando', faltas: 0, porcentajeEvaluado: 0, cortes: [] };
+  const corteActual = materia.cortes?.[corteIdx] || { id: null, nombre: '', porcentaje: 0, nota: null };
+  const todosRegistros = historial[corteActual.id] || [];
+  const registros = busqueda
     ? todosRegistros.filter((r) => r.actividad.toLowerCase().includes(busqueda.toLowerCase()))
     : todosRegistros;
 
@@ -231,6 +172,16 @@ const GradeDetail = () => {
     return { color: '#F00707', bg: isDark ? 'rgba(240,7,7,0.18)' : 'rgba(240,7,7,0.12)' };
   };
 
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ padding: '60px 0', textAlign: 'center', color: t.textMuted, fontFamily: t.fontSecondary, fontSize: 13 }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
 
@@ -242,7 +193,7 @@ const GradeDetail = () => {
 
       {/* ── TABS DE MATERIAS ── */}
       <div style={s.tabsRow}>
-        {MATERIAS.map((m, i) => (
+        {materias.map((m, i) => (
           <button
             key={m.id}
             style={i === materiaIdx ? s.tabActive : s.tab}

@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import statsService from '../services/statsService';
+import academicService from '../services/academicService';
 import AppLayout from '../components/Layout/AppLayout';
 import CircleProgress from '../components/CircleProgress';
 import ProgressBar from '../components/ProgressBar';
@@ -98,21 +100,78 @@ const AcademicManagement = () => {
   const s = getStyles(isDark);
   const t = createStyles(isDark);
 
+  const [loading, setLoading] = useState(true);
+  const [sessionHistory, setSessionHistory] = useState([]);
+  const [gradeEvolution, setGradeEvolution] = useState([]);
+  const [promedio, setPromedio] = useState(0);
+  const [progreso, setProgreso] = useState(0);
+  const [entregas, setEntregas] = useState(0);
+  const [rendimiento, setRendimiento] = useState('');
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [dashboard, summary] = await Promise.all([
+          statsService.getDashboard(),
+          academicService.getSummary(),
+        ]);
+
+        setSessionHistory(dashboard.sessionHistory ?? []);
+        setGradeEvolution(dashboard.gradeEvolution ?? []);
+        setPromedio(dashboard.average ?? 0);
+        setProgreso(dashboard.progress ?? 0);
+        setEntregas(summary.pendingDeliveries ?? 0);
+        setRendimiento(summary.performance ?? '');
+      } catch {
+        // Keep defaults on error
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh', color: t.textMuted }}>
+          Cargando...
+        </div>
+      </AppLayout>
+    );
+  }
+
   const renderExtra = (extra) => {
     if (extra === 'promedio') {
       return (
         <div style={s.extraBlock}>
           <div style={s.promedioRow}>
             <span style={s.promedioLabel}>PROMEDIO GENERAL</span>
-            <span style={s.promedioVal}>4.8 <span style={s.promedioMax}>/5.0</span></span>
-          </div>
-          <ProgressBar value={75} isDark={isDark} />
-          <div style={s.badgeRow}>
-            <span style={{ ...s.badge, background: isDark ? 'rgba(196,16,122,0.18)' : 'rgba(255,132,48,0.12)', color: isDark ? '#FF5B2E' : '#FF8430', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Pin size={10} /> PRÓXIMAS ENTREGAS: 2
+            <span style={s.promedioVal}>
+              {promedio} <span style={s.promedioMax}>/5.0</span>
             </span>
-            <span style={{ ...s.badge, background: isDark ? 'rgba(196,16,122,0.18)' : 'rgba(247,48,109,0.10)', color: isDark ? '#C4107A' : '#F7306D', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Circle size={8} fill="currentColor" /> RENDIMIENTO ALTO
+          </div>
+          <ProgressBar value={progreso} isDark={isDark} />
+          <div style={s.badgeRow}>
+            <span
+              style={{
+                ...s.badge,
+                background: isDark ? 'rgba(196,16,122,0.18)' : 'rgba(255,132,48,0.12)',
+                color: isDark ? '#FF5B2E' : '#FF8430',
+                display: 'flex', alignItems: 'center', gap: 4
+              }}
+            >
+              <Pin size={10} /> PRÓXIMAS ENTREGAS: {entregas}
+            </span>
+            <span
+              style={{
+                ...s.badge,
+                background: isDark ? 'rgba(196,16,122,0.18)' : 'rgba(247,48,109,0.10)',
+                color: isDark ? '#C4107A' : '#F7306D',
+                display: 'flex', alignItems: 'center', gap: 4
+              }}
+            >
+              <Circle size={8} fill="currentColor" /> {rendimiento}
             </span>
           </div>
         </div>
@@ -192,7 +251,7 @@ const AcademicManagement = () => {
       <div style={{ ...s.grid2, marginTop: 20 }}>
         <div style={{ ...s.card }}>
           <div style={{ fontSize: 11, color: t.textMuted, letterSpacing: '0.07em', marginBottom: 8 }}>HISTORIAL DE SESIONES</div>
-          {[{ dia: 'Lunes', horas: 2.5 }, { dia: 'Miércoles', horas: 1.8 }, { dia: 'Viernes', horas: 3.0 }].map(d => (
+          {sessionHistory.map(d => (
             <div key={d.dia} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
               <span style={{ fontSize: 11, color: t.textSecondary, width: 80 }}>{d.dia}</span>
               <div style={{ flex: 1, height: 6, borderRadius: 3, background: t.inputBg, overflow: 'hidden' }}>
@@ -205,7 +264,7 @@ const AcademicManagement = () => {
         <div style={{ ...s.card }}>
           <div style={{ fontSize: 11, color: t.textMuted, letterSpacing: '0.07em', marginBottom: 8 }}>EVOLUCIÓN DE NOTAS</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end', height: 80 }}>
-            {[3.2, 3.8, 4.1, 4.5, 4.8].map((n, i) => (
+            {gradeEvolution.map((n, i) => (
               <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                 <div style={{ width: '100%', borderRadius: 4, height: `${(n / 5) * 72}px`, background: i === 4 ? (isDark ? 'linear-gradient(180deg,#FF5B2E,#C4107A)' : 'linear-gradient(180deg,#FF8430,#F7306D)') : (isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.10)') }} />
                 <span style={{ fontSize: 9, color: t.textMuted }}>{n}</span>

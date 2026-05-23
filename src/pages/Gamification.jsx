@@ -1,54 +1,100 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import gamificationService from '../services/gamificationService';
 import AppLayout from '../components/Layout/AppLayout';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import ProgressBar from '../components/ProgressBar';
 import { ChevronRight, Lock, X } from 'lucide-react';
 import aibertGif from '../assets/aibert-logo-sin-negro-corregido.gif';
 
-const LOGROS_RECIENTES = [
-  { id: 1, icon: '⚡', iconBg: 'rgba(255,132,48,0.18)', titulo: 'Racha de 7 días',       sub: 'Completado ayer' },
-  { id: 2, icon: '⭐', iconBg: 'rgba(247,48,109,0.18)', titulo: 'Matemáticas Perfectas', sub: 'Examen final 5' },
-];
+const FILTROS = ['TODOS', 'DESBLOQUEADOS', 'PENDIENTES'];
 
-const INSIGNIAS = [
-  { id: 1, tipo: 'TASK_STREAK',         nombre: 'TASK STREAK',         icon: '⚡', desc: 'Completa tareas sin interrupciones', desbloqueado: true,  color: '#FF8430' },
-  { id: 2, tipo: 'PERFECT_SCORE',       nombre: 'PERFECT SCORE',       icon: '⭐', desc: 'Obtén 5.0 en una evaluación',        desbloqueado: true,  color: '#F7306D' },
+const DEFAULT_INSIGNIAS = [
+  { id: 1, tipo: 'TASK_STREAK',         nombre: 'TASK STREAK',         icon: '⚡', desc: 'Completa tareas sin interrupciones', desbloqueado: false, color: '#FF8430' },
+  { id: 2, tipo: 'PERFECT_SCORE',       nombre: 'PERFECT SCORE',       icon: '⭐', desc: 'Obtén 5.0 en una evaluación',        desbloqueado: false, color: '#F7306D' },
   { id: 3, tipo: 'GOAL_COMPLETED',      nombre: 'GOAL COMPLETED',      icon: '🎯', desc: 'Cumple tu meta semanal',             desbloqueado: false, color: '#A855F7' },
   { id: 4, tipo: 'SUBJECT_MASTERY',     nombre: 'SUBJECT MASTERY',     icon: '🏆', desc: 'Domina una materia completa',        desbloqueado: false, color: '#00CFFF' },
   { id: 5, tipo: 'PRODUCTIVITY_STREAK', nombre: 'PRODUCTIVITY STREAK', icon: '🔥', desc: 'Mantén racha de productividad',      desbloqueado: false, color: '#22C55E' },
 ];
 
-const CURSOS = [
-  { id: 1, nombre: 'Matemáticas Avanzadas',     sub: 'CÁLCULO MULTIVARIABLE', icon: 'Σ',   iconColor: '#FF8430', pct: 95, barColor: '#FF8430', nivel: 4, rango: 'EXPERT',      xp: [220, 230] },
-  { id: 2, nombre: 'Programación Estructurada', sub: 'ALGORITMOS & C++',      icon: '</>', iconColor: '#F7306D', pct: 62, barColor: '#F7306D', nivel: 2, rango: 'INTERMEDIATE', xp: [140, 150] },
-  { id: 3, nombre: 'Estructuras de Datos',      sub: 'GRAFOS & ÁRBOLES',      icon: '⬡',  iconColor: '#A855F7', pct: 45, barColor: '#A855F7', nivel: 1, rango: 'NOVICE',       xp: [90, 100]  },
-];
-
-const FILTROS = ['TODOS', 'DESBLOQUEADOS', 'PENDIENTES'];
-
-const XP_ACTIVIDADES = [
-  { icon: '✅', label: 'Completar una tarea',   xp: '+50 XP'  },
-  { icon: '⏰', label: 'Completar a tiempo',    xp: '+30 XP'  },
-  { icon: '🔥', label: 'Cumplir una racha',     xp: '+100 XP' },
-  { icon: '🎯', label: 'Cumplir meta semanal',  xp: '+200 XP' },
-  { icon: '📈', label: 'Avance en una materia', xp: '+80 XP'  },
-];
-
+/* ── componente ── */
 const Gamification = () => {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const t = createStyles(isDark);
   const [filtro, setFiltro] = useState('TODOS');
   const [showXpModal, setShowXpModal] = useState(false);
   const [hoverAibert, setHoverAibert] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(null);
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [achievements, setAchievements] = useState([]);
+  const [cursos, setCursos] = useState([]);
 
-  const insigniasFiltradas = INSIGNIAS.filter((i) => {
+  useEffect(() => {
+    if (!user?.id) return;
+    const fetchData = async () => {
+      try {
+        const [prog, pts, ach, subs] = await Promise.all([
+          gamificationService.getProgress(user.id),
+          gamificationService.getPoints(user.id),
+          gamificationService.getAchievements(user.id),
+          gamificationService.getSubjectsProgress(user.id),
+        ]);
+        setProgress(prog);
+        setTotalPoints(pts?.totalPoints ?? pts?.points ?? 0);
+        const raw = ach?.achievements ?? ach ?? [];
+        const mapped = raw.map((a) => ({
+          id: a.id, tipo: a.tipo ?? a.type ?? '', nombre: a.nombre ?? a.name ?? '',
+          icon: a.icon ?? '🏅', desc: a.desc ?? a.description ?? '',
+          desbloqueado: a.desbloqueado ?? a.unlocked ?? false, color: a.color ?? '#FF8430',
+        }));
+        setAchievements(mapped.length > 0 ? mapped : DEFAULT_INSIGNIAS);
+        const rawSubs = subs?.subjects ?? subs ?? [];
+        setCursos(rawSubs.map((c) => ({
+          id: c.id, nombre: c.nombre ?? c.name ?? '', sub: c.sub ?? c.subtitle ?? '',
+          icon: c.icon ?? '📘', iconColor: c.iconColor ?? c.color ?? '#FF8430',
+          pct: c.pct ?? c.progress ?? 0, barColor: c.barColor ?? c.color ?? '#FF8430',
+          nivel: c.nivel ?? c.level ?? 1, rango: c.rango ?? c.rank ?? '',
+          xp: c.xp ?? c.xpPoints ?? [],
+        })));
+      } catch {
+        setProgress(null); setTotalPoints(0); setAchievements([]); setCursos([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [user?.id]);
+
+  const logrosRecientes = progress?.recentAchievements?.map((l) => ({
+    id: l.id, icon: l.icon ?? '🏅', iconBg: l.iconBg ?? (l.color ? l.color + '30' : 'rgba(255,132,48,0.18)'),
+    titulo: l.titulo ?? l.title ?? l.name ?? '', sub: l.sub ?? l.description ?? '',
+  })) ?? [];
+
+  const nivel = progress?.level ?? 0;
+  const xpActual = progress?.currentXp ?? 0;
+  const xpParaSiguiente = progress?.xpToNextLevel ?? 2500;
+  const pctProgreso = progress?.progressPercent ?? 0;
+
+  const insigniasFiltradas = achievements.filter((i) => {
     if (filtro === 'DESBLOQUEADOS') return i.desbloqueado;
     if (filtro === 'PENDIENTES')    return !i.desbloqueado;
     return true;
   });
+
+  const xpActividadesInfo = [
+    { icon: '✅', label: 'Completar una tarea',             xp: '+10 XP'  },
+    { icon: '⏰', label: 'Completar una tarea a tiempo',    xp: '+15 XP'  },
+    { icon: '🔥', label: 'Cumplir una racha',               xp: '+20 XP'  },
+    { icon: '🎯', label: 'Cumplir una meta semanal',        xp: '+25 XP'  },
+    { icon: '📈', label: 'Avance en una materia',           xp: '+8 XP'   },
+  ];
+
+  if (loading) return <AppLayout><div style={{ padding: 40, textAlign: 'center', fontFamily: "'Poppins',sans-serif", color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>Cargando...</div></AppLayout>;
 
   const s = st(isDark, t);
 
@@ -65,30 +111,30 @@ const Gamification = () => {
         <div style={s.topRow}>
           <div style={s.heroCard}>
             <div style={s.levelWrap}>
-              <LevelCircle isDark={isDark} level={12} />
+              <LevelCircle isDark={isDark} level={nivel} />
             </div>
             <div style={s.heroInfo}>
               <div style={s.heroRangoRow}>
-                <span style={s.heroRango(isDark)}>Estudiante Experto</span>
+                <span style={s.heroRango(isDark)}>{progress?.rank ?? 'Estudiante Experto'}</span>
                 <span style={s.proBadge}>PRO</span>
               </div>
               <div style={s.xpBar}>
-                <ProgressBar value={74} isDark={isDark} color="linear-gradient(90deg,#FF5B2E,#C4107A)" />
+                <ProgressBar value={pctProgreso} isDark={isDark} color="linear-gradient(90deg,#FF5B2E,#C4107A)" />
               </div>
               <div style={s.xpLabels(isDark)}>
-                <span>1858 XP</span>
-                <span>2500 XP para Nivel 13</span>
+                <span>{xpActual.toLocaleString()} XP</span>
+                <span>{xpParaSiguiente.toLocaleString()} XP para Nivel {nivel + 1}</span>
               </div>
             </div>
             <div style={s.totalPuntosWrap}>
               <span style={s.totalLabel(isDark)}>TOTAL PUNTOS</span>
-              <span style={s.totalNum(isDark)}>14,240</span>
+              <span style={s.totalNum(isDark)}>{totalPoints.toLocaleString()}</span>
             </div>
           </div>
 
           <div style={s.logrosPanel}>
             <div style={s.logrosPanelTitle(isDark)}>LOGROS RECIENTES</div>
-            {LOGROS_RECIENTES.map((l) => (
+            {logrosRecientes.length > 0 ? logrosRecientes.map((l) => (
               <div key={l.id} style={s.logroItem(isDark)}>
                 <div style={{ ...s.logroIcon, background: l.iconBg }}>
                   <span style={{ fontSize: 16 }}>{l.icon}</span>
@@ -99,7 +145,7 @@ const Gamification = () => {
                 </div>
                 <ChevronRight size={15} color={isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.25)'} />
               </div>
-            ))}
+            )) : <div style={{ ...s.logroItem(isDark), justifyContent: 'center', cursor: 'default', color: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)', fontSize: 12 }}>Sin logros recientes</div>}
           </div>
         </div>
 
@@ -119,29 +165,51 @@ const Gamification = () => {
             </div>
           </div>
 
-          <div style={s.insigniasGrid}>
-            {insigniasFiltradas.map((ins) => (
-              <div key={ins.id} style={s.insigniaCard(isDark, ins.desbloqueado)} title={ins.desbloqueado ? ins.nombre : 'Insignia bloqueada'}>
-                <div style={s.insigniaCircle(ins.desbloqueado, ins.color, isDark)}>
-                  {ins.desbloqueado
-                    ? <span style={{ fontSize: 24 }}>{ins.icon}</span>
-                    : <Lock size={18} color={isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.20)'} />}
+          {insigniasFiltradas.length > 0 ? (
+            <div style={s.insigniasGrid}>
+              {insigniasFiltradas.map((ins) => (
+                <div
+                  key={ins.id}
+                  style={s.insigniaCard(isDark, ins.desbloqueado)}
+                  title={ins.desbloqueado ? ins.nombre : 'Insignia bloqueada'}
+                >
+                  <div style={s.insigniaCircle(ins.desbloqueado, ins.color, isDark)}>
+                    {ins.desbloqueado
+                      ? <span style={{ fontSize: 24 }}>{ins.icon}</span>
+                      : <Lock size={18} color={isDark ? 'rgba(255,255,255,0.25)' : 'rgba(0,0,0,0.20)'} />}
+                  </div>
+                  <div style={s.insigniaTextGroup}>
+                    <span style={s.insigniaNombre(isDark, ins.desbloqueado)}>{ins.nombre}</span>
+                    <span style={s.insigniaDesc(isDark, ins.desbloqueado)}>{ins.desc}</span>
+                  </div>
                 </div>
-                <div style={s.insigniaTextGroup}>
-                  <span style={s.insigniaNombre(isDark, ins.desbloqueado)}>{ins.nombre}</span>
-                  <span style={s.insigniaDesc(isDark, ins.desbloqueado)}>{ins.desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div style={s.insigniasEmpty(isDark)}>
+              <span style={{ fontSize: 32 }}>🏅</span>
+              <span style={s.insigniasEmptyText(isDark)}>
+                {filtro === 'DESBLOQUEADOS'
+                  ? 'Aún no has desbloqueado ninguna insignia'
+                  : filtro === 'PENDIENTES'
+                  ? 'No tienes insignias pendientes'
+                  : 'Aún no hay insignias disponibles'}
+              </span>
+              <span style={s.insigniasEmptySubText(isDark)}>
+                {filtro === 'DESBLOQUEADOS'
+                  ? 'Completa tareas y cumple metas para ganar tu primera insignia.'
+                  : 'Sigue así, vas por buen camino.'}
+              </span>
+            </div>
+          )}
         </section>
 
-        {/* ── CURSOS + AIBERT ── */}
-        <div style={s.cursosAibertRow}>
-          <div style={s.cursosCol}>
-            <h2 style={{ ...s.sectionTitle(isDark), marginBottom: 16 }}>Cursos en progreso</h2>
+        {/* ── CURSOS ── */}
+        <div style={{ ...s.cursosCol, marginBottom: 24 }}>
+          <h2 style={{ ...s.sectionTitle(isDark), marginBottom: 16 }}>Cursos en progreso</h2>
+          {cursos.length > 0 ? (
             <div style={s.cursosGrid}>
-              {CURSOS.map((c) => (
+              {cursos.map((c) => (
                 <div key={c.id} style={s.cursoCard(isDark, t)}>
                   <div style={s.cursoTop}>
                     <div>
@@ -171,24 +239,38 @@ const Gamification = () => {
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <div style={s.cursosEmpty(isDark)}>
+              <span style={{ fontSize: 32 }}>📚</span>
+              <span style={s.cursosEmptyText(isDark)}>
+                Aún no tienes cursos en progreso
+              </span>
+              <span style={s.cursosEmptySubText(isDark)}>
+                Tus materias aparecerán aquí una vez que comiences el semestre.
+              </span>
+            </div>
+          )}
+        </div>
 
-          <div style={s.aibertCol}>
-            <div
-              style={{ ...s.aibertWidget(isDark), ...(hoverAibert ? s.aibertWidgetHover(isDark) : {}) }}
-              onMouseEnter={() => setHoverAibert(true)}
-              onMouseLeave={() => setHoverAibert(false)}
-              onClick={() => setShowXpModal(true)}
-              role="button" tabIndex={0}
-              onKeyDown={(e) => e.key === 'Enter' && setShowXpModal(true)}
-              aria-label="Ver cómo funciona el XP"
-            >
-              <img src={aibertGif} alt="Aibert" style={s.aibertWidgetGif} />
-              <span style={s.aibertWidgetLabel(isDark)}>ASISTENTE</span>
+        {/* ── AIBERT WIDGET ── */}
+        <div style={{ width: '100%', marginBottom: 32 }}>
+          <div
+            style={{ ...s.aibertWidget(isDark), ...(hoverAibert ? s.aibertWidgetHover(isDark) : {}) }}
+            onMouseEnter={() => setHoverAibert(true)}
+            onMouseLeave={() => setHoverAibert(false)}
+          >
+            <img src={aibertGif} alt="Aibert" style={s.aibertWidgetGif} />
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 8 }}>
+              <span style={s.aibertWidgetLabel(isDark)}>ASISTENTE ACADÉMICO</span>
               <p style={s.aibertWidgetText(isDark)}>
-                Gana XP completando tareas, manteniendo rachas y cumpliendo metas.
+                Gana puntos XP completando tus tareas, manteniendo rachas y cumpliendo metas. Cada actividad cuenta para subir de nivel y desbloquear nuevos logros.
               </p>
-              <span style={s.aibertWidgetCta(isDark)}>¿Cómo gano XP? →</span>
+              <button
+                style={s.aibertWidgetBtn(isDark)}
+                onClick={() => setShowXpModal(true)}
+              >
+                ¿Cómo funciona el XP?
+              </button>
             </div>
           </div>
         </div>
@@ -230,7 +312,7 @@ const Gamification = () => {
             <div style={s.modalSection}>
               <div style={s.modalSectionTitle(isDark)}>Actividades válidas</div>
               <div style={s.actividadesList}>
-                {XP_ACTIVIDADES.map((a, i) => (
+                {xpActividadesInfo.map((a, i) => (
                   <div key={i} style={s.actividadItem(isDark)}>
                     <span style={s.actividadIcon}>{a.icon}</span>
                     <span style={s.actividadLabel(isDark)}>{a.label}</span>
@@ -325,11 +407,25 @@ const st = (isDark, t) => ({
   logroItem: (isDark) => ({ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', border: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)'}`, borderRadius: 12, cursor: 'pointer' }),
   logroIcon: { width: 38, height: 38, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   logroBody: { flex: 1, minWidth: 0 },
-  logroTitulo: (isDark) => ({ fontSize: 13, fontWeight: 600, color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)', fontFamily: "'Poppins',sans-serif", lineHeight: 1.3 }),
-  logroSub: (isDark) => ({ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontFamily: "'Poppins',sans-serif" }),
-  cursosAibertRow: { display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap', marginBottom: 32 },
+
+  logroTitulo: (isDark) => ({
+    fontSize: 13,
+    fontWeight: 600,
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    fontFamily: "'Poppins',sans-serif",
+    lineHeight: 1.3,
+  }),
+
+  logroSub: (isDark) => ({
+    fontSize: 11,
+    color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)',
+    fontFamily: "'Poppins',sans-serif",
+  }),
+
+  /* Columna de cursos */
   cursosCol: { flex: '1 1 360px', minWidth: 0 },
-  aibertCol: { flex: '0 1 220px', minWidth: 190 },
+
+  /* Secciones */
   section: { marginBottom: 32 },
   sectionHeaderRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16, flexWrap: 'wrap', gap: 12 },
   sectionTitle: (isDark) => ({ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 'clamp(18px,2.5vw,22px)', fontWeight: 700, color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)', margin: '0 0 2px' }),
@@ -342,7 +438,43 @@ const st = (isDark, t) => ({
     color: active ? '#fff' : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)'),
     fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', fontFamily: "'Poppins',sans-serif", cursor: 'pointer', transition: 'all 0.15s',
   }),
-  insigniasGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 14 },
+
+  /* Galería */
+  insigniasEmpty: (isDark) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '40px 20px',
+    background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+    border: `1px dashed ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
+    borderRadius: 16,
+    gap: 10,
+    textAlign: 'center',
+  }),
+
+  insigniasEmptyText: (isDark) => ({
+    fontSize: 15,
+    fontWeight: 600,
+    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+  }),
+
+  insigniasEmptySubText: (isDark) => ({
+    fontSize: 12,
+    color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)',
+    fontFamily: "'Poppins',sans-serif",
+    maxWidth: 320,
+    lineHeight: 1.5,
+  }),
+
+  insigniasGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(5, 140px)',
+    justifyContent: 'center',
+    gap: 14,
+  },
+
   insigniaCard: (isDark, desbloqueado) => ({
     background: t.cardBg,
     border: `1px solid ${desbloqueado ? (isDark ? 'rgba(196,16,122,0.25)' : 'rgba(255,132,48,0.25)') : t.cardBorder}`,
@@ -358,37 +490,358 @@ const st = (isDark, t) => ({
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     boxShadow: desbloqueado ? `0 0 16px ${color}30` : 'none',
   }),
-  insigniaTextGroup: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 },
-  insigniaNombre: (isDark, desbloqueado) => ({ fontSize: 9, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: "'Poppins',sans-serif", color: desbloqueado ? (isDark ? '#FFFFFF' : 'rgba(0,0,0,0.80)') : (isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)'), textAlign: 'center' }),
-  insigniaDesc: (isDark, desbloqueado) => ({ fontSize: 9, fontFamily: "'Poppins',sans-serif", color: desbloqueado ? (isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)') : (isDark ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.20)'), textAlign: 'center', lineHeight: 1.4 }),
-  cursosGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 14 },
-  cursoCard: (isDark) => ({ background: isDark ? 'linear-gradient(160deg,#1A0A0A 0%,#1F0F1A 100%)' : t.cardBg, border: `1px solid ${isDark ? 'rgba(196,16,122,0.18)' : t.cardBorder}`, borderRadius: 16, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12, boxShadow: t.cardShadow, minHeight: 160 }),
-  cursoTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 },
-  cursoNombre: (isDark) => ({ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 15, fontWeight: 700, color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)', lineHeight: 1.25, marginBottom: 3 }),
-  cursoSub: (isDark) => ({ fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)', fontFamily: "'Poppins',sans-serif", fontWeight: 600 }),
-  cursoIconWrap: (color) => ({ width: 34, height: 34, borderRadius: 10, background: color + '18', border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }),
-  cursoPctRow: (isDark, color) => ({ display: 'flex', justifyContent: 'flex-end', marginBottom: 4, color, fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 11 }),
-  cursoFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, flexWrap: 'wrap', gap: 6 },
+
+  insigniaTextGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 4,
+  },
+
+  insigniaNombre: (isDark, desbloqueado) => ({
+    fontSize: 9,
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    fontFamily: "'Poppins',sans-serif",
+    color: desbloqueado
+      ? (isDark ? '#FFFFFF' : 'rgba(0,0,0,0.80)')
+      : (isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)'),
+    textAlign: 'center',
+  }),
+
+  insigniaDesc: (isDark, desbloqueado) => ({
+    fontSize: 9,
+    fontFamily: "'Poppins',sans-serif",
+    color: desbloqueado
+      ? (isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)')
+      : (isDark ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.20)'),
+    textAlign: 'center',
+    lineHeight: 1.4,
+  }),
+
+  /* Cursos */
+  cursosEmpty: (isDark) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '40px 20px',
+    background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+    border: `1px dashed ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)'}`,
+    borderRadius: 16,
+    gap: 10,
+    textAlign: 'center',
+  }),
+
+  cursosEmptyText: (isDark) => ({
+    fontSize: 15,
+    fontWeight: 600,
+    color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+  }),
+
+  cursosEmptySubText: (isDark) => ({
+    fontSize: 12,
+    color: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.30)',
+    fontFamily: "'Poppins',sans-serif",
+    maxWidth: 320,
+    lineHeight: 1.5,
+  }),
+
+  cursosGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: 14,
+  },
+
+  cursoCard: (isDark) => ({
+    background: isDark
+      ? 'linear-gradient(160deg,#1A0A0A 0%,#1F0F1A 100%)'
+      : t.cardBg,
+    border: `1px solid ${isDark ? 'rgba(196,16,122,0.18)' : t.cardBorder}`,
+    borderRadius: 16,
+    padding: '16px 18px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
+    boxShadow: t.cardShadow,
+    minHeight: 160,
+  }),
+
+  cursoTop: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+
+  cursoNombre: (isDark) => ({
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+    fontSize: 15,
+    fontWeight: 700,
+    color: isDark ? '#FFFFFF' : 'rgba(0,0,0,0.85)',
+    lineHeight: 1.25,
+    marginBottom: 3,
+  }),
+
+  cursoSub: (isDark) => ({
+    fontSize: 9,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)',
+    fontFamily: "'Poppins',sans-serif",
+    fontWeight: 600,
+  }),
+
+  cursoIconWrap: (color) => ({
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    background: color + '18',
+    border: `1px solid ${color}30`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  }),
+
+  cursoPctRow: (isDark, color) => ({
+    display: 'flex',
+    justifyContent: 'flex-end',
+    marginBottom: 4,
+    color,
+    fontFamily: "'Poppins',sans-serif",
+    fontWeight: 700,
+    fontSize: 11,
+  }),
+
+  cursoFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+
   xpPillRow: { display: 'flex', gap: 4 },
-  xpPill: (color) => ({ fontSize: 9, fontWeight: 600, fontFamily: "'Poppins',sans-serif", color, background: color + '15', border: `1px solid ${color}30`, padding: '2px 7px', borderRadius: 99 }),
-  nivelBadge: (color) => ({ fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', color, fontFamily: "'Poppins',sans-serif" }),
-  aibertWidget: (isDark) => ({ background: isDark ? 'rgba(196,16,122,0.06)' : 'rgba(255,132,48,0.05)', border: `1px solid ${isDark ? 'rgba(196,16,122,0.22)' : 'rgba(255,132,48,0.22)'}`, borderRadius: 16, padding: '20px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'box-shadow 0.2s, transform 0.2s', userSelect: 'none' }),
-  aibertWidgetHover: (isDark) => ({ boxShadow: isDark ? '0 6px 24px rgba(196,16,122,0.25)' : '0 6px 24px rgba(255,132,48,0.20)', transform: 'translateY(-2px)' }),
-  aibertWidgetGif: { width: 72, height: 72, objectFit: 'contain', borderRadius: '50%' },
-  aibertWidgetLabel: (isDark) => ({ fontSize: 8, letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)', fontFamily: "'Poppins',sans-serif" }),
-  aibertWidgetText: (isDark) => ({ fontSize: 11, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)', fontFamily: "'Poppins',sans-serif", lineHeight: 1.55, textAlign: 'center', margin: 0 }),
-  aibertWidgetCta: (isDark) => ({ fontSize: 10, fontWeight: 700, color: isDark ? '#FF5B2E' : '#FF8430', fontFamily: "'Poppins',sans-serif", letterSpacing: '0.02em' }),
-  ctaBanner: (isDark) => ({ background: isDark ? 'linear-gradient(135deg,#1F0A12 0%,#1A0F08 100%)' : 'linear-gradient(135deg,#FFF5F0 0%,#FFF0F5 100%)', border: `1px solid ${isDark ? 'rgba(196,16,122,0.30)' : 'rgba(255,132,48,0.30)'}`, borderRadius: 18, padding: 'clamp(16px,2.5vw,24px) clamp(20px,3vw,32px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', boxShadow: isDark ? '0 0 0 1px rgba(196,16,122,0.15), 0 8px 32px rgba(0,0,0,0.30)' : '0 8px 32px rgba(255,132,48,0.12)', marginBottom: 4 }),
-  ctaTitulo: (isDark) => ({ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 'clamp(16px,2vw,20px)', fontWeight: 800, color: isDark ? '#FF5B2E' : '#FF8430', marginBottom: 6 }),
-  ctaDesc: (isDark) => ({ fontSize: 13, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)', fontFamily: "'Poppins',sans-serif", lineHeight: 1.55, margin: 0, maxWidth: 520 }),
-  ctaBtn: (isDark) => ({ background: isDark ? 'linear-gradient(90deg,#FF5B2E,#C4107A)' : 'linear-gradient(90deg,#FF8430,#F7306D)', border: 'none', borderRadius: 12, padding: '13px 28px', color: '#fff', fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 13, fontWeight: 800, letterSpacing: '0.06em', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, boxShadow: isDark ? '0 4px 20px rgba(196,16,122,0.40)' : '0 4px 20px rgba(247,48,109,0.30)' }),
-  modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, backdropFilter: 'blur(2px)', padding: '0 16px' },
-  modalCard: { background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: 20, width: '100%', maxWidth: 460, padding: '28px 28px 24px', boxShadow: t.modalShadow, maxHeight: '85vh', overflowY: 'auto' },
-  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
-  modalLabel: (isDark) => ({ fontSize: 9, letterSpacing: '0.14em', fontWeight: 700, textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontFamily: "'Poppins',sans-serif", marginBottom: 4 }),
-  modalTitle: (isDark) => ({ fontFamily: "'Plus Jakarta Sans',sans-serif", fontSize: 20, fontWeight: 800, backgroundImage: isDark ? 'linear-gradient(90deg,#FF5B2E,#C4107A)' : 'linear-gradient(90deg,#FF8430,#F7306D)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }),
-  modalClose: (isDark) => ({ background: 'none', border: 'none', cursor: 'pointer', color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4, flexShrink: 0 }),
-  modalIntro: (isDark) => ({ fontSize: 13, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)', fontFamily: "'Poppins',sans-serif", lineHeight: 1.6, margin: '0 0 20px' }),
+
+  xpPill: (color) => ({
+    fontSize: 9,
+    fontWeight: 600,
+    fontFamily: "'Poppins',sans-serif",
+    color,
+    background: color + '15',
+    border: `1px solid ${color}30`,
+    padding: '2px 7px',
+    borderRadius: 99,
+  }),
+
+  nivelBadge: (color) => ({
+    fontSize: 9,
+    fontWeight: 700,
+    letterSpacing: '0.06em',
+    color,
+    fontFamily: "'Poppins',sans-serif",
+  }),
+
+  /* Aibert widget banner */
+  aibertWidget: (isDark) => ({
+    background: isDark ? '#1A0614' : '#FFF0E8',
+    border: `1px solid ${isDark ? 'rgba(196,16,122,0.22)' : 'rgba(255,132,48,0.22)'}`,
+    borderRadius: 16,
+    padding: '28px 36px',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 32,
+    cursor: 'default',
+    transition: 'box-shadow 0.2s, transform 0.2s',
+    userSelect: 'none',
+  }),
+
+  aibertWidgetHover: (isDark) => ({
+    boxShadow: isDark
+      ? '0 6px 24px rgba(196,16,122,0.25)'
+      : '0 6px 24px rgba(255,132,48,0.20)',
+    transform: 'translateY(-2px)',
+  }),
+
+  aibertWidgetGif: {
+    width: 90,
+    height: 90,
+    objectFit: 'contain',
+    borderRadius: '50%',
+  },
+
+  aibertWidgetLabel: (isDark) => ({
+    fontSize: 13,
+    letterSpacing: '0.08em',
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    color: isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.55)',
+    fontFamily: "'Poppins',sans-serif",
+  }),
+
+  aibertWidgetText: (isDark) => ({
+    fontSize: 11,
+    color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
+    fontFamily: "'Poppins',sans-serif",
+    lineHeight: 1.55,
+    textAlign: 'left',
+    margin: 0,
+  }),
+
+  aibertWidgetBtn: (isDark) => ({
+    background: isDark
+      ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
+      : 'linear-gradient(90deg,#FF8430,#F7306D)',
+    border: 'none',
+    borderRadius: 10,
+    padding: '10px 22px',
+    color: '#fff',
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: 'pointer',
+    boxShadow: isDark
+      ? '0 4px 16px rgba(196,16,122,0.35)'
+      : '0 4px 16px rgba(247,48,109,0.25)',
+    marginTop: 4,
+  }),
+
+  /* CTA Banner */
+  ctaBanner: (isDark) => ({
+    background: isDark
+      ? 'linear-gradient(135deg,#1F0A12 0%,#1A0F08 100%)'
+      : 'linear-gradient(135deg,#FFF5F0 0%,#FFF0F5 100%)',
+    border: `1px solid ${isDark ? 'rgba(196,16,122,0.30)' : 'rgba(255,132,48,0.30)'}`,
+    borderRadius: 18,
+    padding: 'clamp(16px,2.5vw,24px) clamp(20px,3vw,32px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 20,
+    flexWrap: 'wrap',
+    boxShadow: isDark
+      ? '0 0 0 1px rgba(196,16,122,0.15), 0 8px 32px rgba(0,0,0,0.30)'
+      : '0 8px 32px rgba(255,132,48,0.12)',
+    marginBottom: 4,
+  }),
+
+  ctaTitulo: (isDark) => ({
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+    fontSize: 'clamp(16px,2vw,20px)',
+    fontWeight: 800,
+    color: isDark ? '#FF5B2E' : '#FF8430',
+    marginBottom: 6,
+  }),
+
+  ctaDesc: (isDark) => ({
+    fontSize: 13,
+    color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
+    fontFamily: "'Poppins',sans-serif",
+    lineHeight: 1.55,
+    margin: 0,
+    maxWidth: 520,
+  }),
+
+  ctaBtn: (isDark) => ({
+    background: isDark
+      ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
+      : 'linear-gradient(90deg,#FF8430,#F7306D)',
+    border: 'none',
+    borderRadius: 12,
+    padding: '13px 28px',
+    color: '#fff',
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+    fontSize: 13,
+    fontWeight: 800,
+    letterSpacing: '0.06em',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+    boxShadow: isDark
+      ? '0 4px 20px rgba(196,16,122,0.40)'
+      : '0 4px 20px rgba(247,48,109,0.30)',
+  }),
+
+  /* Modal XP */
+  modalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.65)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 200,
+    backdropFilter: 'blur(2px)',
+    padding: '0 16px',
+  },
+
+  modalCard: {
+    background: t.cardBg,
+    border: `1px solid ${t.cardBorder}`,
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 460,
+    padding: '28px 28px 24px',
+    boxShadow: t.modalShadow,
+    maxHeight: '85vh',
+    overflowY: 'auto',
+  },
+
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 14,
+  },
+
+  modalLabel: (isDark) => ({
+    fontSize: 9,
+    letterSpacing: '0.14em',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)',
+    fontFamily: "'Poppins',sans-serif",
+    marginBottom: 4,
+  }),
+
+  modalTitle: (isDark) => ({
+    fontFamily: "'Plus Jakarta Sans',sans-serif",
+    fontSize: 20,
+    fontWeight: 800,
+    backgroundImage: isDark
+      ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
+      : 'linear-gradient(90deg,#FF8430,#F7306D)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    margin: 0,
+  }),
+
+  modalClose: (isDark) => ({
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    color: isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+    flexShrink: 0,
+  }),
+
+  modalIntro: (isDark) => ({
+    fontSize: 13,
+    color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.55)',
+    fontFamily: "'Poppins',sans-serif",
+    lineHeight: 1.6,
+    margin: '0 0 20px',
+  }),
+
   modalSection: { marginBottom: 20 },
   modalSectionTitle: (isDark) => ({ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: isDark ? 'rgba(255,255,255,0.40)' : 'rgba(0,0,0,0.40)', fontFamily: "'Poppins',sans-serif", marginBottom: 10 }),
   actividadesList: { display: 'flex', flexDirection: 'column', gap: 8 },

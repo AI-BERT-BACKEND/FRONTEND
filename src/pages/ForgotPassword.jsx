@@ -5,6 +5,7 @@ import ErrorIcon from '../components/ErrorIcon';
 import { useTheme } from '../context/ThemeContext';
 import { validateEmail } from '../utils/validators';
 import { createStyles } from '../theme/createStyles';
+import authService from '../services/authService';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -23,8 +24,11 @@ const ForgotPassword = () => {
     if (!validate()) return;
     setLoading(true);
     try {
-      await new Promise(r => setTimeout(r, 600));
+      await authService.forgotPassword({ email });
       navigate('/forgot-password/sent', { state: { email } });
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || 'Error al enviar correo';
+      setErrors({ email: msg });
     } finally {
       setLoading(false);
     }

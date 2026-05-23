@@ -46,6 +46,8 @@ const Login = () => {
     try {
       await login({ email, password, rememberMe: remember });
       navigate('/academic-profile');
+    } catch {
+      setErrors({ email: 'Credenciales inválidas o servidor no disponible' });
     } finally {
       setLoading(false);
     }

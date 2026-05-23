@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '../components/Layout/AppLayout';
 import { ChevronDown } from 'lucide-react';
 import StatusBadge from '../components/StatusBadge';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import taskService from '../services/taskService';
+import academicService from '../services/academicService';
 
 const MONTHS = [
   'Enero',
@@ -37,74 +39,9 @@ const HOURS = [
   '20:00',
 ];
 
-const EVENTS_INIT = [
-  {
-    id: 1,
-    titulo: 'Clase de DOSW',
-    fecha: '2026-05-18',
-    hora: '11:00',
-    materia: 'DOSW',
-    estado: 'pendiente',
-    color: '#FF8430',
-  },
-  {
-    id: 2,
-    titulo: 'Lab de AYSR',
-    fecha: '2026-05-18',
-    hora: '14:00',
-    materia: 'AYSR',
-    estado: 'pendiente',
-    color: '#C4107A',
-  },
-  {
-    id: 3,
-    titulo: 'Entrega Proyecto FUPR',
-    fecha: '2026-05-20',
-    hora: '08:30',
-    materia: 'FUPR',
-    estado: 'urgente',
-    color: '#FF5B2E',
-  },
-  {
-    id: 4,
-    titulo: 'Parcial TPRO',
-    fecha: '2026-05-21',
-    hora: '10:00',
-    materia: 'TPRO',
-    estado: 'examen',
-    color: '#C4107A',
-  },
-  {
-    id: 5,
-    titulo: 'Parcial DOSW',
-    fecha: '2026-05-22',
-    hora: '08:00',
-    materia: 'DOSW',
-    estado: 'examen',
-    color: '#C4107A',
-  },
-  {
-    id: 6,
-    titulo: 'Parcial IPRO',
-    fecha: '2026-05-23',
-    hora: '09:00',
-    materia: 'IPRO',
-    estado: 'examen',
-    color: '#C4107A',
-  },
-];
 
-const SUBJECTS_INIT = ['Todas las materias', 'DOSW', 'AYSR', 'FUPR', 'TPRO', 'IPRO'];
-const STATUSES = ['Todos', 'pendiente', 'urgente', 'examen', 'completado'];
+const STATUSES = ['All', 'pendiente', 'urgente', 'examen', 'completado'];
 
-// Bloques bloqueados por horario universitario: { diaSemana(0-6): [horas] }
-const UNIVERSITY_BLOCKS = {
-  1: ['07:00', '08:00', '11:00', '12:00'],  // Lunes
-  2: ['08:00', '09:00', '14:00', '15:00'],  // Martes
-  3: ['11:00', '12:00', '16:00'],            // Miércoles
-  4: ['07:00', '08:00', '10:00'],            // Jueves
-  5: ['09:00', '10:00', '14:00'],            // Viernes
-};
 
 const HORA_FIN_DISPONIBILIDAD = 18;
 
@@ -114,11 +51,11 @@ const Calendar = () => {
   const { isDark } = useTheme();
   const t = createStyles(isDark);
   const [view, setView] = useState('month');
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 4, 1));
-  const [events, setEvents] = useState(EVENTS_INIT);
-  const [subjects, setSubjects] = useState(SUBJECTS_INIT);
-  const [filterSubject, setFilterSubject] = useState('Todas las materias');
-  const [filterStatus, setFilterStatus] = useState('Todos');
+  const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [events, setEvents] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [filterSubject, setFilterSubject] = useState('All subjects');
+  const [filterStatus, setFilterStatus] = useState('All');
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
@@ -146,7 +83,7 @@ const Calendar = () => {
   };
 
   const getWeekDays = () => {
-    const today = new Date(2026, 4, 18);
+    const today = new Date();
     const sun = new Date(today);
     sun.setDate(today.getDate() - today.getDay());
     return Array.from({ length: 7 }, (_, i) => {
@@ -188,9 +125,7 @@ const Calendar = () => {
     setDragOver(key);
   };
   const isBlockedHour = (fecha, hora) => {
-    const d = new Date(fecha + 'T00:00:00');
-    const dayOfWeek = d.getDay();
-    return (UNIVERSITY_BLOCKS[dayOfWeek] || []).includes(hora);
+    return false;
   };
   const isOutsideAvailability = (hora) => parseInt(hora) >= HORA_FIN_DISPONIBILIDAD;
 
@@ -234,7 +169,7 @@ const Calendar = () => {
     setSubjects((prev) => prev.includes(materia) ? prev : [...prev, materia]);
   };
 
-  const today = new Date(2026, 4, 18);
+  const today = new Date();
   const todayStr = dateStr(today.getFullYear(), today.getMonth(), today.getDate());
 
   /* ── Icons específicos de esta pantalla ── */

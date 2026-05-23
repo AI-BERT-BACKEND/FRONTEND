@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import ProgressBar from '../components/ProgressBar';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import academicService from '../services/academicService';
 
 const IconUser = ({ color }) => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -30,59 +31,6 @@ const IconPin = ({ color }) => (
     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z" />
   </svg>
 );
-
-const MATERIA_DATA = {
-  nombre: 'Estructuras Avanzadas II',
-  profesor: 'Prof. Roberto Méndez',
-  promedio: 3.8,
-  promedioMax: 5.0,
-  progresoSemestre: 76,
-  notaParaAprobar: 3.2,
-  estadoDesempeno: 'Aprobado Parcial',
-  mejorNota: 4.5,
-  menorNota: 3.2,
-  inasistencias: '2/4',
-  recomendacion:
-    'Para asegurar una nota final de 4.0, debes obtener al menos 4.3 en el Proyecto Final. Hemos analizado tus talleres previos y te sugerimos enfocarte en los cálculos de carga sísmica.',
-  cortes: [
-    {
-      id: 1,
-      nombre: 'Corte 1',
-      porcentaje: 30,
-      estado: 'completado',
-      fecha: 'Completado el 15 de Sep',
-      puntaje: 4.2,
-      actividades: [
-        { nombre: 'Examen Parcial', peso: 60, nota: 4.5 },
-        { nombre: 'Taller de Maquetas', peso: 40, nota: 3.8 },
-      ],
-    },
-    {
-      id: 2,
-      nombre: 'Corte 2',
-      porcentaje: 30,
-      estado: 'completado',
-      fecha: 'Completado el 28 de Oct',
-      puntaje: 3.4,
-      actividades: [
-        { nombre: 'Análisis Estructural', peso: 50, nota: 3.5 },
-        { nombre: 'Informe de Campo', peso: 50, nota: 3.3 },
-      ],
-    },
-    {
-      id: 3,
-      nombre: 'Corte 3',
-      porcentaje: 40,
-      estado: 'en_progreso',
-      fecha: 'En progreso · Cierra el 12 de Dic',
-      puntaje: null,
-      actividades: [
-        { nombre: 'Proyecto Final de Estructura', peso: 70, nota: null },
-        { nombre: 'Sustentación Oral', peso: 30, nota: null },
-      ],
-    },
-  ],
-};
 
 const SimuladorModal = ({ corte, promedio, isDark, onClose }) => {
   const t = createStyles(isDark);
@@ -197,6 +145,18 @@ const SubjectDetail = () => {
     'En Riesgo':        { bg: isDark ? 'rgba(240,7,7,0.15)'   : 'rgba(240,7,7,0.10)',   color: '#F00707' },
     'Excelente':        { bg: isDark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.12)', color: '#22C55E' },
   }[m.estadoDesempeno] || { bg: 'rgba(234,179,8,0.15)', color: '#EAB308' };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 300 }}>
+          <span style={{ fontFamily: "'Poppins', sans-serif", fontSize: 14, color: 'var(--text-muted, #888)' }}>
+            Cargando...
+          </span>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>

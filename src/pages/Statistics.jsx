@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import statsService from '../services/statsService';
 
 const AlertTriangle = ({ color, size = 13 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -287,6 +288,12 @@ const Statistics = () => {
           </div>
         </div>
 
+        <div style={s.promedioHeaderCard}>
+          <div style={s.promedioHeaderLabel}>Promedio Actual</div>
+          <div style={s.promedioHeaderVal}>{statsData.promedio} / 5.0</div>
+          <div style={s.riesgoModerado}>
+            <AlertTriangle color="#EAB308" />
+            <span>RIESGO MODERADO</span>
         <div style={{ position: 'relative', height: CHART_H, padding: '0 4px', marginBottom: 8 }}>
           <div style={{
             position: 'absolute',
