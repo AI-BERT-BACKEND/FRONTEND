@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const GAMIFICATION_BASE_URL = import.meta.env.VITE_GAMIFICATION_API_URL || 'http://localhost:9090';
+const GAMIFICATION_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
 const gamificationApi = axios.create({
   baseURL: GAMIFICATION_BASE_URL,

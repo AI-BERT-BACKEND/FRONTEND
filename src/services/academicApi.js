@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const ACADEMIC_BASE_URL = import.meta.env.VITE_ACADEMIC_API_URL || 'http://localhost:1502';
+const ACADEMIC_BASE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
 
 const academicApi = axios.create({
   baseURL: ACADEMIC_BASE_URL,
