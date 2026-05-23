@@ -17,12 +17,17 @@ const authService = {
     return data;
   },
 
-  resetPassword: async (resetData) => {
-    const { data } = await api.post('/api/auth/reset-password', resetData);
-    return data;
-  },
-  
-  getCurrentUser: async () => {
+   resetPassword: async (resetData) => {
+     const { data } = await api.post('/api/auth/reset-password', resetData);
+     return data;
+   },
+
+   register: async (payload) => {
+     const { data } = await api.post('/api/auth/register', payload);
+     return data;
+   },
+   
+   getCurrentUser: async () => {
     const token = localStorage.getItem('token');
 
     if (!token) return null;
