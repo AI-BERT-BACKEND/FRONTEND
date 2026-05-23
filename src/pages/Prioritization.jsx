@@ -77,18 +77,24 @@ const Prioritization = () => {
           const mapped = (Array.isArray(items) ? items : []).map(t => ({
             id: t.id,
             nombre: t.title || t.name || t.nombre,
-            materia: t.subject || t.materia,
-            tipo: t.type || t.tipo,
-            urgencia: t.urgency || t.urgencia || (t.priority === 'high' ? 'high' : 'medium'),
-            prioridad: t.priority || t.prioridad || (t.level === 'high' ? 'ALTO' : 'BAJO'),
-            entrega: t.dueDate || t.entrega || t.fecha,
-            estimado: t.estimatedHours ? `${t.estimatedHours}h necesarias` : t.estimado,
-            tiempoEstudio: t.estimatedHours ? `${t.estimatedHours}h necesarios hoy` : t.tiempoEstudio,
-            nota: t.note || t.nota || t.dueDate || t.fecha,
+            materia: t.subjectId || t.subject || t.materia,
+            tipo: t.taskType || t.type || t.tipo,
+            urgencia: t.urgency || t.urgencia || (t.priority === 'HIGH' || t.priority === 'CRITICAL' ? 'high' : 'medium'),
+            prioridad: (t.priority === 'HIGH' || t.priority === 'CRITICAL') ? 'ALTO' : 'BAJO',
+            entrega: t.deadline || t.dueDate || t.entrega || t.fecha,
+            estimado: t.estimatedDurationMinutes
+              ? `${(t.estimatedDurationMinutes / 60).toFixed(1)}h necesarias`
+              : t.estimado || '—',
+            tiempoEstudio: t.estimatedDurationMinutes
+              ? `${(t.estimatedDurationMinutes / 60).toFixed(1)}h necesarios hoy`
+              : t.tiempoEstudio || '—',
+            nota: t.note || t.nota || t.deadline || t.dueDate || t.fecha,
             diasDisponibles: t.daysAvailable ?? t.diasDisponibles,
-            horasEstimadas: t.estimatedHours ?? t.horasEstimadas,
+            horasEstimadas: t.estimatedDurationMinutes != null
+              ? t.estimatedDurationMinutes / 60
+              : t.horasEstimadas,
             accion: t.action || t.accion || 'REVISAR',
-            completada: t.completed ?? t.completada,
+            completada: t.status === 'COMPLETED' || t.completed ?? t.completada,
           }));
           setTareasCriticas(mapped.filter(t => t.tipo === 'CRITICO' || t.urgencia === 'high'));
           setTareasPriorizadas(mapped);
@@ -137,7 +143,7 @@ const Prioritization = () => {
       setNotificacionVista(p => ({ ...p, [id]: true }));
       setTimeout(() => setNotificacionVista(p => ({ ...p, [id]: false })), 4000);
       try {
-        await taskService.updateTaskStatus(actualId, 'completed');
+        await taskService.updateTaskStatus(actualId, 'COMPLETED');
       } catch {
         // silent fail
       }

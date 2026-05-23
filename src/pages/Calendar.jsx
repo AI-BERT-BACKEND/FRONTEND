@@ -40,7 +40,14 @@ const HOURS = [
 ];
 
 
-const STATUSES = ['Todos', 'pendiente', 'urgente', 'examen', 'completado'];
+const STATUSES = ['Todos', 'TODO', 'IN_PROGRESS', 'PAUSED', 'COMPLETED'];
+const STATUS_LABELS = {
+  'Todos': 'Todos',
+  'TODO': 'Pendiente',
+  'IN_PROGRESS': 'En Progreso',
+  'PAUSED': 'Pausada',
+  'COMPLETED': 'Completada',
+};
 
 
 const HORA_FIN_DISPONIBILIDAD = 18;
@@ -114,6 +121,7 @@ const Calendar = () => {
   const [panelDragOver, setPanelDragOver] = useState(null);
   const [droppedEvents, setDroppedEvents] = useState({});
   const [loading, setLoading] = useState(true);
+  const [newDeadline, setNewDeadline] = useState('');
   const panelDragOccurred = React.useRef(false);
 
   useEffect(() => {
@@ -128,22 +136,25 @@ const Calendar = () => {
         const taskSubjects = new Set();
         
         const formattedEvents = tasks.map((t) => {
-          const subjectName = t.subject || t.materia || 'General';
+          const subjectName = String(t.subjectId || t.subject || t.materia || 'General');
           taskSubjects.add(subjectName);
+          const status = t.status || 'TODO';
+          const taskType = t.taskType || t.type || t.tipo || '';
           return {
             id: t.id || Date.now(),
             titulo: t.title || t.name || t.nombre || 'Evento',
             descripcion: t.description || t.descripcion || '',
             materia: subjectName,
-            estado: t.type || t.tipo || t.status || 'pendiente',
-            fecha: t.dueDate || t.fecha || t.scheduledDate || '',
+            estado: status,
+            taskType,
+            fecha: t.deadline || t.dueDate || t.scheduledDate || t.fecha || '',
             hora: t.hora || '09:00',
-            color: t.type === 'examen' || t.tipo === 'examen' 
-              ? '#C4107A' 
-              : t.type === 'urgente' || t.urgencia === 'high'
-                ? '#FF5B2E'
-                : t.type === 'completado' || t.status === 'completed'
-                  ? '#22C55E'
+            color: taskType === 'EXAMEN'
+              ? '#C4107A'
+              : status === 'COMPLETED'
+                ? '#22C55E'
+                : status === 'IN_PROGRESS'
+                  ? '#FF5B2E'
                   : '#3B82F6',
           };
         });
@@ -211,9 +222,9 @@ const Calendar = () => {
     .slice(0, 6);
 
   const statusBadgeColor = (status) => {
-    if (status === 'urgente') return { bg: 'rgba(255,91,46,0.20)', color: '#FF5B2E' };
-    if (status === 'examen') return { bg: 'rgba(196,16,122,0.20)', color: '#C4107A' };
-    if (status === 'completado') return { bg: 'rgba(34,197,94,0.20)', color: '#22C55E' };
+    if (status === 'IN_PROGRESS') return { bg: 'rgba(255,91,46,0.20)', color: '#FF5B2E' };
+    if (status === 'PAUSED') return { bg: 'rgba(196,16,122,0.20)', color: '#C4107A' };
+    if (status === 'COMPLETED') return { bg: 'rgba(34,197,94,0.20)', color: '#22C55E' };
     return {
       bg: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
       color: isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.45)',
@@ -233,7 +244,7 @@ const Calendar = () => {
   };
   const isOutsideAvailability = (hora) => parseInt(hora) >= HORA_FIN_DISPONIBILIDAD;
 
-  const handleDrop = (e, fecha, hora = null) => {
+  const handleDrop = async (e, fecha, hora = null) => {
     e.preventDefault();
     if (dragging) {
       if (hora && isOutsideAvailability(hora)) {
@@ -250,9 +261,25 @@ const Calendar = () => {
         setDragOver(null);
         return;
       }
+      // Optimistic update
       setEvents((prev) =>
         prev.map((ev) => (ev.id === dragging.id ? { ...ev, fecha, ...(hora ? { hora } : {}) } : ev))
       );
+      // Persist to backend
+      const scheduledDate = hora ? `${fecha}T${hora}:00` : `${fecha}T09:00:00`;
+      const draggedId = dragging.id;
+      try {
+        await taskService.rescheduleTask(draggedId, scheduledDate);
+        const conflictsRes = await taskService.getCalendarConflicts();
+        const conflictList = conflictsRes.conflicts || conflictsRes || [];
+        if (Array.isArray(conflictList) && conflictList.length > 0) {
+          const msg = conflictList[0].description || conflictList[0].message || 'Superposición de horarios detectada';
+          setBlockConflict(`⚠ Conflicto: ${msg}`);
+          setTimeout(() => setBlockConflict(null), 5000);
+        }
+      } catch {
+        // optimistic update stays; silent fail
+      }
     }
     setDragging(null);
     setDragOver(null);
@@ -352,7 +379,7 @@ const Calendar = () => {
             >
               {STATUSES.map((e) => (
                 <option key={e} value={e}>
-                  {e.charAt(0).toUpperCase() + e.slice(1)}
+                  {STATUS_LABELS[e] || e}
                 </option>
               ))}
             </select>
@@ -632,11 +659,11 @@ const Calendar = () => {
         {view === 'kanban' && (
           <div style={s.calMain}>
             <div style={s.kanbanWrap}>
-              {['pendiente', 'urgente', 'examen', 'completado'].map((col) => (
+              {['TODO', 'IN_PROGRESS', 'PAUSED', 'COMPLETED'].map((col) => (
                 <div key={col} style={s.kanbanCol}>
                   <div style={s.kanbanHeader}>
                     <span style={{ ...s.kanbanBadge, ...statusBadgeColor(col) }}>
-                      {col.charAt(0).toUpperCase() + col.slice(1)}
+                      {STATUS_LABELS[col]}
                     </span>
                     <span style={s.kanbanCount}>
                       {filteredEvents.filter((e) => e.estado === col).length}
@@ -713,9 +740,9 @@ const Calendar = () => {
                 >
                   <div style={s.upcomingTop}>
                     <span style={s.upcomingEventTitle}>{ev.titulo}</span>
-                    {ev.estado !== 'pendiente' && (
+                    {ev.estado !== 'TODO' && (
                       <StatusBadge
-                        label={ev.estado}
+                        label={STATUS_LABELS[ev.estado] || ev.estado}
                         color={badge.color}
                         bgColor={badge.bg}
                       />
@@ -748,7 +775,7 @@ const Calendar = () => {
                     {eventDetail.materia}
                   </span>
                   <span style={{ ...s.modalBadge, ...statusBadgeColor(eventDetail.estado) }}>
-                    {eventDetail.estado.charAt(0).toUpperCase() + eventDetail.estado.slice(1)}
+                    {STATUS_LABELS[eventDetail.estado] || eventDetail.estado}
                   </span>
                 </div>
               </div>
@@ -786,16 +813,54 @@ const Calendar = () => {
                 <div>
                   <div style={s.modalRowLabel}>Estado</div>
                   <div style={s.modalRowVal}>
-                    {eventDetail.estado.charAt(0).toUpperCase() + eventDetail.estado.slice(1)}
+                    {STATUS_LABELS[eventDetail.estado] || eventDetail.estado}
                   </div>
+                </div>
+              </div>
+              <div style={s.modalRow}>
+                <span style={{ color: t.textSecondary }}>
+                  <IconCalendar />
+                </span>
+                <div style={{ flex: 1 }}>
+                  <div style={s.modalRowLabel}>Nueva Fecha Límite</div>
+                  <input
+                    type="date"
+                    value={newDeadline || eventDetail.fecha}
+                    onChange={e => setNewDeadline(e.target.value)}
+                    style={{
+                      fontSize: 13, background: 'transparent',
+                      border: `1px solid ${t.cardBorder}`,
+                      borderRadius: 6, padding: '4px 8px',
+                      color: t.textPrimary, outline: 'none',
+                    }}
+                  />
                 </div>
               </div>
             </div>
             <div style={s.modalFooter}>
-              <button style={s.modalBtnOutline} onClick={() => setEventDetail(null)}>
+              <button style={s.modalBtnOutline} onClick={() => { setEventDetail(null); setNewDeadline(''); }}>
                 Cerrar
               </button>
-              <button style={s.modalBtnFill}>Editar evento</button>
+              <button
+                style={s.modalBtnFill}
+                onClick={async () => {
+                  const deadline = newDeadline || eventDetail.fecha;
+                  if (deadline && eventDetail.id) {
+                    try {
+                      await taskService.updateTaskDeadline(eventDetail.id, deadline);
+                      setEvents(prev => prev.map(ev =>
+                        ev.id === eventDetail.id ? { ...ev, fecha: deadline } : ev
+                      ));
+                    } catch {
+                      // silent fail
+                    }
+                  }
+                  setEventDetail(null);
+                  setNewDeadline('');
+                }}
+              >
+                Guardar Fecha
+              </button>
             </div>
           </div>
         </div>

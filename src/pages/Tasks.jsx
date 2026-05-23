@@ -41,11 +41,22 @@ const LightningIcon = ({ color }) => (
   <Zap size={14} color={color} strokeWidth={2} />
 );
 
+// Backend taskType enums → visual config
 const ESTADO_CONFIG = {
-  'ENTREGA HOY': { bg: 'rgba(240,7,7,0.18)', color: '#F00707' },
-  'TAREA':       { bg: 'rgba(59,130,246,0.18)', color: '#3B82F6' },
-  'ESTUDIO':     { bg: 'rgba(234,179,8,0.18)', color: '#EAB308' },
-  'ENTREGA':     { bg: 'rgba(34,197,94,0.18)', color: '#22C55E' },
+  'TAREA':    { bg: 'rgba(59,130,246,0.18)', color: '#3B82F6' },
+  'EXAMEN':   { bg: 'rgba(240,7,7,0.18)', color: '#F00707' },
+  'PROYECTO': { bg: 'rgba(234,179,8,0.18)', color: '#EAB308' },
+  'OTRO':     { bg: 'rgba(34,197,94,0.18)', color: '#22C55E' },
+};
+
+const parseHoras = (val) => {
+  if (!val) return 60;
+  const s = String(val);
+  if (s.includes(':')) {
+    const [h, m] = s.split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+  }
+  return Math.round(parseFloat(s) * 60) || 60;
 };
 
 const Spinner = () => (
@@ -62,7 +73,7 @@ const Tasks = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const [subjects, setSubjects] = useState([]); // [{id, name}]
   const [fetchLoading, setFetchLoading] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [filtroMateria, setFiltroMateria] = useState('Todos los materias');
@@ -72,7 +83,7 @@ const Tasks = () => {
   const [detailTask, setDetailTask] = useState(null);
   const [editTask, setEditTask] = useState(null);
   const [form, setForm] = useState({
-    nombre: '', materia: '', tipo: 'TAREA',
+    nombre: '', materiaId: '', tipo: 'TAREA',
     descripcion: '', fecha: '', horas: '', estimado: '',
   });
   const [formErrors, setFormErrors] = useState({});
@@ -84,22 +95,29 @@ const Tasks = () => {
           taskService.getTasks(),
           academicService.getSubjects(),
         ]);
+        const subs = subjectsData.subjects || subjectsData || [];
+        const subjectMap = {};
+        subs.forEach(s => { subjectMap[String(s.id)] = s.name || s.nombre || String(s.id); });
+        const subjectObjects = subs.map(s => ({ id: String(s.id), name: s.name || s.nombre || String(s.id) }));
+        setSubjects(subjectObjects);
+
         const items = tasksData.tasks || tasksData || [];
         setTasks(items.map((t) => ({
           id: t.id || Date.now(),
-          nombre: t.title || t.name || t.nombre,
+          nombre: t.title || t.name || t.nombre || '',
           descripcion: t.description || t.descripcion || '',
-          materia: t.subject || t.materia || 'General',
-          tipo: t.type || t.tipo || 'TAREA',
-          fecha: t.dueDate || t.fecha || '',
-          horasEstudio: t.estimatedHours || t.horasEstudio || '1:00',
-          estimado: t.estimated || t.estimado || '—',
+          materia: subjectMap[String(t.subjectId)] || String(t.subjectId || 'General'),
+          materiaId: String(t.subjectId || ''),
+          tipo: t.taskType || t.type || t.tipo || 'TAREA',
+          fecha: t.deadline || t.dueDate || t.fecha || '',
+          horasEstudio: t.estimatedDurationMinutes
+            ? `${(t.estimatedDurationMinutes / 60).toFixed(1)}h`
+            : '1h',
+          status: t.status || 'TODO',
         })));
-        const subs = subjectsData.subjects || subjectsData || [];
-        setSubjects(subs.map((s) => s.name || s.nombre || s));
-        if (subs.length > 0) {
-          const firstSub = subs[0].name || subs[0].nombre || subs[0];
-          setForm((f) => ({ ...f, materia: firstSub }));
+
+        if (subjectObjects.length > 0) {
+          setForm(f => ({ ...f, materiaId: subjectObjects[0].id }));
         }
       } catch {
         // fallback vacío
@@ -114,16 +132,15 @@ const Tasks = () => {
   const t = createStyles(isDark);
 
   const tareasFiltradas = tasks.filter(t => {
-    const matchBusqueda = t.nombre.toLowerCase().includes(busqueda.toLowerCase());
+    const matchBusqueda = (t.nombre || '').toLowerCase().includes(busqueda.toLowerCase());
     const matchMateria = filtroMateria === 'Todos los materias' || t.materia === filtroMateria;
     return matchBusqueda && matchMateria;
   });
 
-  const completadas = Math.round((tasks.filter(t => t.tipo === 'ENTREGA').length / tasks.length) * 100);
-  const totalHoras = tasks.reduce((acc, t) => {
-    const [h, m] = (t.horasEstudio || '0:00').split(':').map(Number);
-    return acc + h + m / 60;
-  }, 0).toFixed(1);
+  const completadas = tasks.length > 0
+    ? Math.round((tasks.filter(t => t.status === 'COMPLETED').length / tasks.length) * 100)
+    : 0;
+  const totalHoras = tasks.reduce((acc, t) => acc + (parseFloat(t.horasEstudio) || 0), 0).toFixed(1);
 
   const validateForm = () => {
     const e = {};
@@ -140,15 +157,25 @@ const Tasks = () => {
       const taskData = {
         title: form.nombre,
         description: form.descripcion,
-        subject: form.materia,
-        type: form.tipo,
-        dueDate: form.fecha,
-        estimatedHours: form.horas || '1:00',
-        estimated: form.estimado || '—',
+        subjectId: form.materiaId ? Number(form.materiaId) : undefined,
+        taskType: form.tipo,
+        deadline: form.fecha,
+        estimatedDurationMinutes: parseHoras(form.horas),
       };
       const res = await taskService.createTask(taskData);
-      setTasks(p => [...p, { id: res.id || Date.now(), ...taskData }]);
-      setForm({ nombre: '', materia: 'Matemáticas II', tipo: 'TAREA', descripcion: '', fecha: '', horas: '', estimado: '' });
+      const subjectName = subjects.find(s => s.id === form.materiaId)?.name || 'General';
+      setTasks(p => [...p, {
+        id: res.id || Date.now(),
+        nombre: form.nombre,
+        descripcion: form.descripcion,
+        materia: subjectName,
+        materiaId: form.materiaId,
+        tipo: form.tipo,
+        fecha: form.fecha,
+        horasEstudio: form.horas ? `${(parseHoras(form.horas) / 60).toFixed(1)}h` : '1h',
+        status: 'TODO',
+      }]);
+      setForm({ nombre: '', materiaId: subjects[0]?.id || '', tipo: 'TAREA', descripcion: '', fecha: '', horas: '', estimado: '' });
       setFormErrors({});
       setShowModal(false);
       setShowSuccess(true);
@@ -174,10 +201,10 @@ const Tasks = () => {
       await taskService.updateTask(updated.id, {
         title: updated.nombre,
         description: updated.descripcion,
-        subject: updated.materia,
-        type: updated.tipo,
-        dueDate: updated.fecha,
-        estimatedHours: updated.horasEstudio,
+        subjectId: updated.materiaId ? Number(updated.materiaId) : undefined,
+        taskType: updated.tipo,
+        deadline: updated.fecha,
+        estimatedDurationMinutes: parseHoras(updated.horasEstudio),
       });
       setTasks(p => p.map(t => t.id === updated.id ? updated : t));
     } catch {
@@ -238,8 +265,8 @@ const Tasks = () => {
                value={filtroMateria}
                onChange={e => setFiltroMateria(e.target.value)}
              >
-               <option>Todos los materias</option>
-               {subjects.map(m => <option key={m}>{m}</option>)}
+               <option value="Todos los materias">Todos los materias</option>
+               {subjects.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
              </select>
             <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
           </div>
@@ -400,9 +427,9 @@ const Tasks = () => {
                 <div style={{ ...s.mField, flex: 1 }}>
                   <label style={s.mLabel}>MATERIA</label>
                   <div style={{ position: 'relative' }}>
-                     <select style={{ ...s.mInput, ...s.mSelect }} value={editTask.materia}
-                       onChange={e => setEditTask(p => ({ ...p, materia: e.target.value }))}>
-                       {subjects.map(m => <option key={m}>{m}</option>)}
+                     <select style={{ ...s.mInput, ...s.mSelect }} value={editTask.materiaId}
+                       onChange={e => setEditTask(p => ({ ...p, materiaId: e.target.value }))}>
+                       {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                      </select>
                     <ChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
                   </div>
@@ -473,9 +500,9 @@ const Tasks = () => {
                   <label style={s.mLabel}>MATERIA</label>
                   <div style={{ position: 'relative' }}>
                      <select style={{ ...s.mInput, ...s.mSelect }}
-                       value={form.materia}
-                       onChange={e => setForm(p => ({ ...p, materia: e.target.value }))}>
-                       {subjects.map(m => <option key={m}>{m}</option>)}
+                       value={form.materiaId}
+                       onChange={e => setForm(p => ({ ...p, materiaId: e.target.value }))}>
+                       {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                      </select>
                     <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.40)'} />
                   </div>
