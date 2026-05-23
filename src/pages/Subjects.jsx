@@ -63,11 +63,12 @@ const Subjects = () => {
     const fetchSubjects = async () => {
       try {
         const data = await academicService.getSubjects();
-        const items = data.subjects || data || [];
+        const raw = data.data || data;
+        const items = Array.isArray(raw) ? raw : (raw.subjects || []);
         setMaterias(items.map((s, i) => ({
-          id: s.id || Date.now() + i,
-          nombre: s.name || s.nombre,
-          profesor: s.teacher || s.profesor || '',
+          id: s.id || s.subjectId || Date.now() + i,
+          nombre: s.subjectName || s.name || s.nombre,
+          profesor: s.teacherName || s.teacher || s.profesor || '',
           creditos: String(s.credits || s.creditos || ''),
           semestre: s.semester || s.semestre || '',
           color: s.color || COLORS[i % COLORS.length],
@@ -83,11 +84,15 @@ const Subjects = () => {
     fetchSubjects();
   }, []);
 
-  const creditosOptions = ['1','2','3','4','5','6'];
+  const creditosOptions = ['1','2','3','4'];
+  const currentYear = new Date().getFullYear();
   const semestresOptions = [
-    'Primer Semestre','Segundo Semestre','Tercer Semestre','Cuarto Semestre',
-    'Quinto Semestre','Sexto Semestre','Séptimo Semestre','Octavo Semestre',
-    'Noveno Semestre','Décimo Semestre',
+    { label: `1er Semestre ${currentYear - 1}`, value: `${currentYear - 1}-1` },
+    { label: `2do Semestre ${currentYear - 1}`, value: `${currentYear - 1}-2` },
+    { label: `1er Semestre ${currentYear}`,     value: `${currentYear}-1` },
+    { label: `2do Semestre ${currentYear}`,     value: `${currentYear}-2` },
+    { label: `1er Semestre ${currentYear + 1}`, value: `${currentYear + 1}-1` },
+    { label: `2do Semestre ${currentYear + 1}`, value: `${currentYear + 1}-2` },
   ];
 
   useEffect(() => {
@@ -122,8 +127,8 @@ const Subjects = () => {
     setLoading(true);
     try {
       const subjectData = {
-        name: form.nombre,
-        teacher: form.profesor,
+        subjectName: form.nombre,
+        teacherName: form.profesor,
         credits: Number(form.creditos),
         semester: form.semestre,
         color: form.color,
@@ -133,11 +138,30 @@ const Subjects = () => {
       if (editingId) {
         await academicService.updateSubject(editingId, subjectData);
         setMaterias((prev) => prev.map((m) =>
-          m.id === editingId ? { ...m, ...subjectData, id: editingId } : m
+          m.id === editingId ? {
+            ...m,
+            nombre: form.nombre,
+            profesor: form.profesor,
+            creditos: form.creditos,
+            semestre: form.semestre,
+            color: form.color,
+            horario: form.horario,
+          } : m
         ));
       } else {
         const res = await academicService.createSubject(subjectData);
-        setMaterias((prev) => [...prev, { ...subjectData, id: res.id || Date.now(), activo: true, progreso: 0 }]);
+        const resData = res.data || res;
+        setMaterias((prev) => [...prev, {
+          id: resData.id || resData.subjectId || Date.now(),
+          nombre: form.nombre,
+          profesor: form.profesor,
+          creditos: form.creditos,
+          semestre: form.semestre,
+          color: form.color,
+          horario: form.horario,
+          activo: true,
+          progreso: 0,
+        }]);
       }
 
       setForm({ nombre: '', profesor: '', creditos: '', semestre: '', color: '#FF8430', horario: {} });
@@ -426,9 +450,9 @@ const Subjects = () => {
                         if (formErrors.semestre) setFormErrors((p) => ({ ...p, semestre: '' }));
                       }}
                     >
-                      <option value="" disabled>Primer Semestre</option>
+                      <option value="" disabled>Seleccionar semestre</option>
                       {semestresOptions.map((sem) => (
-                        <option key={sem} value={sem}>{sem}</option>
+                        <option key={sem.value} value={sem.value}>{sem.label}</option>
                       ))}
                     </select>
                     <LocalChevronDown color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'} />

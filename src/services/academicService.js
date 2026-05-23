@@ -1,4 +1,4 @@
-import api from './api';
+import api from './academicApi';
 
 const academicService = {
 
@@ -8,7 +8,13 @@ const academicService = {
   },
 
   getAcademicWeight: async (subjectId) => {
-    const { data } = await api.get('/api/v1/academic/weight', { params: { subjectId } });
+    let studentId;
+    try {
+      const token = localStorage.getItem('token');
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      studentId = payload.id || payload.userId || payload.sub;
+    } catch { /* */ }
+    const { data } = await api.get('/api/v1/academic/weight', { params: { subjectId, studentId } });
     return data;
   },
 

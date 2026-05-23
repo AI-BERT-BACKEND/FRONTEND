@@ -60,8 +60,9 @@ const Availability = () => {
     (async () => {
       try {
         const data = await academicService.getScheduleAvailability();
-        if (data.categorias) setCategorias(data.categorias);
-        if (data.availability || data.cellBlocks) setCellBlocks(data.availability || data.cellBlocks || {});
+        const schedData = data.data || data;
+        if (schedData.categorias) setCategorias(schedData.categorias);
+        if (schedData.availability || schedData.cellBlocks) setCellBlocks(schedData.availability || schedData.cellBlocks || {});
       } catch (err) {
         console.error('Error loading availability config', err);
       } finally {
@@ -119,7 +120,18 @@ const Availability = () => {
    const handleSave = async () => {
      setSaving(true);
      try {
-       await academicService.saveScheduleAvailability({ categorias, cellBlocks, weekStart: weekStart.toISOString() });
+       const blockCounts = {};
+       Object.values(cellBlocks).forEach((catId) => {
+         blockCounts[catId] = (blockCounts[catId] || 0) + 1;
+       });
+       await academicService.saveScheduleAvailability({
+         freeTimeHours:  blockCounts['libre']    || 0,
+         restHours:      blockCounts['descanso'] || 0,
+         studyHours:     blockCounts['estudio']  || 0,
+         personalHours:  blockCounts['personal'] || 0,
+         socialHours:    blockCounts['social']   || 0,
+         weekStart: weekStart.toISOString(),
+       });
        setSaved(true);
        setTimeout(() => setSaved(false), 3000);
      } finally {
@@ -250,7 +262,7 @@ const Availability = () => {
                 </div>
                 <div style={s.horasRow}>
                   <button style={s.horasBtn} onClick={(e) => { e.stopPropagation(); adjustHoras(cat.id, -0.5); }}>−</button>
-                  <span style={s.horasVal}>{cat.horas.toFixed(1)}</span>
+                  <span style={s.horasVal}>{(cat.horas || 0).toFixed(1)}</span>
                   <button style={s.horasBtn} onClick={(e) => { e.stopPropagation(); adjustHoras(cat.id, +0.5); }}>+</button>
                   <span style={s.horasUnit}>horas</span>
                 </div>
