@@ -12,7 +12,7 @@ import {
   validateRequired,
 } from '../utils/validators';
 import { createStyles } from '../theme/createStyles';
-import authService from '../services/authService';
+import profileService from '../services/profileService';
 
 const EyeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -115,27 +115,34 @@ const Register = () => {
     if (errors[field]) setErrors((p) => ({ ...p, [field]: '' }));
   };
 
-  const handleSubmit = async () => {
-    if (!validate()) return;
-    setLoading(true);
+   const handleSubmit = async () => {
+     if (!validate()) return;
+     setLoading(true);
 
-    try {
-      await authService.register({
-        fullName: form.nombre,
-        email: form.email,
-        career: form.carrera,
-        password: form.password,
-        confirmPassword: form.confirmPassword,
-      });
-      
-      navigate('/verify-email');
-    } catch (err) {
-      const msg = err?.response?.data?.message || err.message || 'Error al registrar';
-      setErrors((p) => ({ ...p, email: msg }));
-    } finally {
-      setLoading(false);
-    }
-  };
+     try {
+       const result = await profileService.register({
+         fullName: form.nombre,
+         email: form.email,
+         career: form.carrera,
+         password: form.password,
+         confirmPassword: form.confirmPassword,
+       });
+       
+       if (result?.userId) {
+         localStorage.setItem('pendingVerifyUserId', result.userId);
+       }
+       if (result?.email || form.email) {
+         localStorage.setItem('pendingVerifyEmail', result?.email || form.email);
+       }
+       
+       navigate('/verify-email');
+     } catch (err) {
+       const msg = err?.response?.data?.message || err.message || 'Error al registrar';
+       setErrors((p) => ({ ...p, email: msg }));
+     } finally {
+       setLoading(false);
+     }
+   };
   
   const s = getStyles(isDark);
   const t = createStyles(isDark);
@@ -150,7 +157,7 @@ const Register = () => {
           <Field
             label="Nombre Completo"
             field="nombre"
-            placeholder="Isaac Burgos"
+            placeholder="Ingresa tu nombre completo"
             value={form.nombre}
             error={errors.nombre}
             onChange={handleChange}

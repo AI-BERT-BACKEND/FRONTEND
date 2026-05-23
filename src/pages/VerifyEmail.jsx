@@ -4,6 +4,7 @@ import AuthLayout from '../components/Layout/AuthLayout';
 import Logo from '../assets/LOGO.png';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
+import profileService from '../services/profileService';
 
 const VerifyEmail = () => {
   const { isDark } = useTheme();
@@ -11,8 +12,16 @@ const VerifyEmail = () => {
   const [error, setError] = useState('');
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const [loading, setLoading] = useState(false);
   const inputs = useRef([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const pendingEmail = localStorage.getItem('pendingVerifyEmail');
+    if (!pendingEmail) {
+      setError('No hay un registro pendiente de verificación. Por favor regístrate primero.');
+    }
+  }, []);
 
   useEffect(() => {
     if (timer <= 0) return;
@@ -47,22 +56,82 @@ const VerifyEmail = () => {
     inputs.current[Math.min(p.length, 5)]?.focus();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const full = code.join('');
     if (full.length < 6) {
       setError('Ingresa los 6 dígitos del código');
       return;
     }
-    navigate('/verified-success');
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const userId = localStorage.getItem('pendingVerifyUserId');
+      const email = localStorage.getItem('pendingVerifyEmail');
+
+      if (!userId && !email) {
+        setError('No hay un registro pendiente de verificación. Por favor regístrate primero.');
+        return;
+      }
+
+      const verifyUserId = userId || email;
+      
+      if (!verifyUserId) {
+        setError('Error: No se encontró información de usuario para verificar.');
+        return;
+      }
+
+      await profileService.verifyOtp(verifyUserId, full);
+
+      localStorage.removeItem('pendingVerifyUserId');
+      localStorage.removeItem('pendingVerifyEmail');
+
+      navigate('/verified-success');
+    } catch (err) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message || 'Error al verificar el código';
+
+      if (status === 400 || status === 404) {
+        setError('Código inválido o expirado. Verifica el código o solicita uno nuevo.');
+      } else if (status === 401) {
+        setError('Código incorrecto. Por favor intenta nuevamente.');
+      } else if (msg.toLowerCase().includes('expir') || msg.toLowerCase().includes('expired')) {
+        setError('El código ha expirado. Por favor solicita uno nuevo.');
+      } else if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('incorrect')) {
+        setError('Código inválido. Por favor verifica e intenta nuevamente.');
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (!canResend) return;
-    setTimer(60);
-    setCanResend(false);
-    setCode(['', '', '', '', '', '']);
-    setError('');
+
+    const email = localStorage.getItem('pendingVerifyEmail');
+    if (!email) {
+      setError('No hay un correo registrado para reenviar el código.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await profileService.resendVerification(email);
+      setTimer(60);
+      setCanResend(false);
+      setCode(['', '', '', '', '', '']);
+      setError('');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Error al reenviar el código';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
   };
+
   const formatTime = (s) =>
     `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
   const s = getStyles(isDark);
@@ -114,9 +183,16 @@ const VerifyEmail = () => {
           )}
         </div>
 
-        <button style={s.btn} onClick={handleSubmit}>
-          Verificar correo
-        </button>
+         <button 
+           style={{
+             ...s.btn,
+             ...(loading ? { opacity: 0.7, cursor: 'not-allowed' } : {}),
+           }} 
+           onClick={handleSubmit}
+           disabled={loading}
+         >
+           {loading ? 'Verificando...' : 'Verificar correo'}
+         </button>
 
         <div style={s.resendWrap}>
           <span style={s.resendLabel}>Reenviar código en</span>
