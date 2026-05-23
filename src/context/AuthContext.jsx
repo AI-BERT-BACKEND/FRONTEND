@@ -38,6 +38,10 @@ export const AuthProvider = ({ children }) => {
     const userData = await authService.getCurrentUser();
     setUser(userData);
     setIsAuthenticated(true);
+    // Normalize: always expose 'id' regardless of what the backend user object sends
+    const rawUser = data.user || {};
+    const normalizedUser = { ...rawUser, id: rawUser.id || rawUser.userId || rawUser.sub };
+    setUser(normalizedUser);
     return data;
   };
 
