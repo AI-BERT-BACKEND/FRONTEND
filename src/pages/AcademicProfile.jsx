@@ -6,18 +6,21 @@ import {
   ChevronDown, BookOpen, FileText, Target, 
   GraduationCap, Scale, Trophy, Clock, Briefcase, Quote 
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
 const AcademicProfile = () => {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [nuevaMateria, setNuevaMateria] = useState('');
   const [modalError, setModalError] = useState('');
 
+  const carreraPrincipal = user?.career || user?.carrera || user?.careerName || user?.program || '';
+
   const [form, setForm] = useState({
-    carreraPrincipal: '',
     carreraSecundaria: '',
     semestre: '',
     promedio: '',
@@ -56,7 +59,6 @@ const AcademicProfile = () => {
 
   const validate = () => {
     const e = {};
-    if (!form.carreraPrincipal) e.carreraPrincipal = 'Campo requerido';
     if (!form.semestre) e.semestre = 'Campo requerido';
     if (!form.promedio || isNaN(form.promedio)) e.promedio = 'Ingresa un número';
     if (form.materias.length === 0) e.materias = 'Agrega al menos una materia';
@@ -109,41 +111,15 @@ const AcademicProfile = () => {
             <div style={s.formRow}>
               <div style={s.formGroup}>
                 <label style={s.label}>Carrera principal</label>
-                <div style={{ position: 'relative' }}>
-                  <select
-                    style={{
-                      ...s.input,
-                      ...s.select,
-                      ...(errors.carreraPrincipal ? s.inputError : {}),
-                    }}
-                    value={form.carreraPrincipal}
-                    onChange={(e) => {
-                      setForm((p) => ({ ...p, carreraPrincipal: e.target.value }));
-                      if (errors.carreraPrincipal)
-                        setErrors((p) => ({ ...p, carreraPrincipal: '' }));
-                    }}
-                  >
-                    <option value="" disabled style={{ background: t.cardBg, color: t.textSecondary }}>
-                      Seleccionar carrera
-                    </option>
-                    {carreras.map((c) => (
-                      <option key={c} value={c} style={{ background: t.cardBg, color: t.textPrimary }}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    color={isDark ? 'rgba(255,255,255,0.50)' : 'rgba(0,0,0,0.40)'}
-                    style={{
-                      position: 'absolute',
-                      right: 10,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      pointerEvents: 'none',
-                    }}
-                  />
-                </div>
-                <ErrorMsg message={errors.carreraPrincipal} />
+                <input
+                  style={{ ...s.input, opacity: 0.75, cursor: 'not-allowed' }}
+                  type="text"
+                  disabled
+                  value={carreraPrincipal}
+                />
+                <span style={{ display: 'block', fontSize: 11, color: t.textMuted, marginTop: 5, fontStyle: 'italic' }}>
+                  La carrera fue definida al momento del registro y no puede modificarse desde aquí.
+                </span>
               </div>
               <div style={s.formGroup}>
                 <label style={s.label}>Carrera secundaria (opcional)</label>
