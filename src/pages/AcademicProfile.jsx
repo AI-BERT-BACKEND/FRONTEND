@@ -39,14 +39,16 @@ const AcademicProfile = () => {
 
   const [errors, setErrors] = useState({});
 
-  const carreras = [
-    { label: 'Ing. de Sistemas',           value: 'ING_SISTEMAS' },
-    { label: 'Ing. Industrial',            value: 'ING_INDUSTRIAL' },
-    { label: 'Ing. Civil',                value: 'ING_CIVIL' },
-    { label: 'Administración de Empresas', value: 'ADMINISTRACION_EMPRESAS' },
-    { label: 'Derecho',                    value: 'DERECHO' },
-    { label: 'Psicología',                value: 'PSICOLOGIA' },
-    { label: 'Diseño Gráfico',            value: 'DISENO_GRAFICO' },
+   const carreras = [
+    { label: 'Ing. Sistemas',    value: 'INGENIERIA_SISTEMAS' },
+    { label: 'Ing. Industrial',  value: 'INGENIERIA_INDUSTRIAL' },
+    { label: 'Ing. Civil',       value: 'INGENIERIA_CIVIL' },
+    { label: 'Ing. Electrónica', value: 'INGENIERIA_ELECTRONICA' },
+    { label: 'Ing. Biomédica',   value: 'INGENIERIA_BIOMEDICA' },
+    { label: 'Ing. Eléctrica',   value: 'INGENIERIA_ELECTRICA' },
+    { label: 'Ing. Mecánica',    value: 'INGENIERIA_MECANICA' },
+    { label: 'Administración',   value: 'ADMINISTRACION_EMPRESAS' },
+    { label: 'Matemáticas',      value: 'MATEMATICAS' },
   ];
 
   const semestres = Array.from({ length: 10 }, (_, i) => ({
