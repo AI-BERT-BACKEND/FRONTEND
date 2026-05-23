@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { createStyles } from '../theme/createStyles';
 import CircleProgress from '../components/CircleProgress';
 import ProgressBar from '../components/ProgressBar';
@@ -15,74 +16,108 @@ const NIVEL_COLOR = { rojo: '#F00707', amarillo: '#EAB308', verde: '#22C55E' };
 import taskService from '../services/taskService';
 import notificationService from '../services/notificationService';
 import academicService from '../services/academicService';
+import statsService from '../services/statsService';
 
 const Dashboard = () => {
   const { isDark } = useTheme();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const t = createStyles(isDark);
+
+  const getGreetingName = () => {
+    if (!user) return 'Usuario';
+    if (user.name) return user.name;
+    if (user.firstName) return user.firstName;
+    if (user.email) return user.email.split('@')[0];
+    return 'Usuario';
+  };
 
   const [alertas, setAlertas] = useState([]);
   const [materias, setMaterias] = useState([]);
   const [tareas, setTareas] = useState([]);
+  const [stats, setStats] = useState({ focusHours: 0 });
+  const [aiSuggestion, setAiSuggestion] = useState(null);
   const [loadingAlertas, setLoadingAlertas] = useState(true);
   const [loadingSummary, setLoadingSummary] = useState(true);
   const [loadingTasks, setLoadingTasks] = useState(true);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [showNewTask, setShowNewTask] = useState(false);
   const [newTask, setNewTask]       = useState('');
   const [pulseBorder, setPulseBorder] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [alertasRes, summaryRes, tasksRes] = await Promise.allSettled([
-          notificationService.getAlertNotifications(),
-          academicService.getSummary(),
-          taskService.getTasks(),
-        ]);
+  const tareasTotales = tareas.length;
+  const tareasCompletadas = tareas.filter((t) => t.done).length;
+  const progresoPorcentaje = tareasTotales > 0 ? Math.round((tareasCompletadas / tareasTotales) * 100) : 0;
 
-        if (alertasRes.status === 'fulfilled') {
-          const data = alertasRes.value;
-          setAlertas((data.alerts || data || []).map((a, i) => ({
-            id: a.id || i + 1,
-            tipo: a.type === 'danger' ? 'danger' : 'warning',
-            texto: a.title || a.message || a.texto,
-            detalle: a.description || a.detail || a.detalle,
-          })));
-        }
-        setLoadingAlertas(false);
+   useEffect(() => {
+     const fetchData = async () => {
+       try {
+         const [alertasRes, summaryRes, tasksRes, statsRes, aiSugRes] = await Promise.allSettled([
+           notificationService.getAlertNotifications(),
+           academicService.getSummary(),
+           taskService.getTasks(),
+           statsService.getDashboard(),
+           notificationService.getTopStudySuggestion().catch(() => null),
+         ]);
 
-        if (summaryRes.status === 'fulfilled') {
-          const data = summaryRes.value;
-          const subjects = data.subjects || data || [];
-          setMaterias(subjects.map((s) => ({
-            nombre: s.name || s.nombre,
-            pct: s.percentage || s.pct || s.progress || 0,
-            color: s.color || '#FF8430',
-          })));
-        }
-        setLoadingSummary(false);
+         if (alertasRes.status === 'fulfilled') {
+           const data = alertasRes.value;
+           setAlertas((data.alerts || data || []).map((a, i) => ({
+             id: a.id || i + 1,
+             tipo: a.type === 'danger' ? 'danger' : 'warning',
+             texto: a.title || a.message || a.texto,
+             detalle: a.description || a.detail || a.detalle,
+           })));
+         }
+         setLoadingAlertas(false);
 
-        if (tasksRes.status === 'fulfilled') {
-          const data = tasksRes.value;
-          const tasks = data.tasks || data || [];
-          setTareas(tasks.slice(0, 5).map((t) => ({
-            id: t.id || Date.now(),
-            texto: t.title || t.name || t.nombre || t.texto,
-            materia: t.subject || t.materia || 'General',
-            color: t.color || '#00CFFF',
-            hora: t.time || t.hora || t.schedule || '',
-            done: t.completed || t.done || false,
-          })));
-        }
-        setLoadingTasks(false);
-      } catch {
-        setLoadingAlertas(false);
-        setLoadingSummary(false);
-        setLoadingTasks(false);
-      }
-    };
-    fetchData();
-  }, []);
+         if (summaryRes.status === 'fulfilled') {
+           const data = summaryRes.value;
+           const subjects = data.subjects || data || [];
+           setMaterias(subjects.map((s) => ({
+             nombre: s.name || s.nombre,
+             pct: s.percentage || s.pct || s.progress || 0,
+             color: s.color || '#FF8430',
+           })));
+         }
+         setLoadingSummary(false);
+
+         if (tasksRes.status === 'fulfilled') {
+           const data = tasksRes.value;
+           const tasks = data.tasks || data || [];
+           setTareas(tasks.slice(0, 5).map((t) => ({
+             id: t.id || Date.now(),
+             texto: t.title || t.name || t.nombre || t.texto,
+             materia: t.subject || t.materia || 'General',
+             color: t.color || '#00CFFF',
+             hora: t.time || t.hora || t.schedule || '',
+             done: t.completed || t.done || false,
+           })));
+         }
+         setLoadingTasks(false);
+
+         if (statsRes.status === 'fulfilled') {
+           const data = statsRes.value;
+           setStats({
+             focusHours: data.focusHours || data.focus_hours || data.studyHours || 0,
+           });
+         }
+         setLoadingStats(false);
+
+         if (aiSugRes.status === 'fulfilled' && aiSugRes.value) {
+           const data = aiSugRes.value;
+           const text = data.suggestion || data.text || data.message || data.title || data.advice || '';
+           if (text) setAiSuggestion(text);
+         }
+       } catch {
+         setLoadingAlertas(false);
+         setLoadingSummary(false);
+         setLoadingTasks(false);
+         setLoadingStats(false);
+       }
+     };
+     fetchData();
+   }, []);
 
   const dismissAlerta = (id) => setAlertas((prev) => prev.filter((a) => a.id !== id));
 
@@ -125,8 +160,8 @@ const Dashboard = () => {
   return (
     <AppLayout>
 
-      {/* ── SALUDO ── */}
-      <h1 style={s.greeting}>Hola, Juan</h1>
+       {/* ── SALUDO ── */}
+       <h1 style={s.greeting}>Hola, {getGreetingName()}</h1>
 
       {/* ── GIF DE ESTADO ── */}
       <section style={{ ...s.card, border: alertNivel === 'rojo' ? `1px solid ${pulseBorder ? 'rgba(240,7,7,0.60)' : 'rgba(240,7,7,0.18)'}` : alertNivel === 'amarillo' ? '1px solid rgba(234,179,8,0.35)' : '1px solid rgba(34,197,94,0.35)', transition: 'border-color 0.35s ease' }}>
@@ -215,10 +250,10 @@ const Dashboard = () => {
               <div style={s.cardTitle}>Resumen Diario</div>
               <div style={s.cardSubtitle(isDark)}>Tu ritmo de estudio esta semana</div>
             </div>
-            <div style={s.focusBlock}>
-              <span style={s.focusTime(isDark)}>4.2h</span>
-              <span style={s.focusLabel(isDark)}>ENFOCADO HOY</span>
-            </div>
+             <div style={s.focusBlock}>
+               <span style={s.focusTime(isDark)}>{stats.focusHours || 0}h</span>
+               <span style={s.focusLabel(isDark)}>ENFOCADO HOY</span>
+             </div>
           </div>
           <div style={s.materiasList}>
             {materias.length === 0 && loadingSummary && (
@@ -239,8 +274,8 @@ const Dashboard = () => {
           </div>
         </section>
 
-        <section style={{ ...s.card, flex: '0 1 240px', alignItems: 'center', textAlign: 'center' }} aria-label="Progreso semanal">
-          <CircleProgress pct={75} isDark={isDark} size={130} label="Completado" />
+         <section style={{ ...s.card, flex: '0 1 240px', alignItems: 'center', textAlign: 'center' }} aria-label="Progreso semanal">
+           <CircleProgress pct={progresoPorcentaje} isDark={isDark} size={130} label="Completado" />
           <p style={s.progressText(isDark)}>
             Vas por buen camino para cumplir tus metas de la semana.
           </p>
@@ -325,10 +360,12 @@ const Dashboard = () => {
           <div style={s.aiImgWrap(isDark)}>
             <img src={AibertGif} alt="AI.BERT" style={s.aiImg} />
           </div>
-          <blockquote style={s.aiQuote(isDark)}>
-            &ldquo;Te sugiero priorizar Matem&aacute;ticas hoy. Tienes un examen en 3 d&iacute;as y esta sesi&oacute;n
-            te dar&aacute; la ventaja necesaria.&rdquo;
-          </blockquote>
+           <blockquote style={s.aiQuote(isDark)}>
+             &ldquo;{aiSuggestion
+               ? aiSuggestion.replace(/["']/g, '')
+               : 'Sigue con tu plan de estudio. Organiza tus prioridades y mantén la constancia para alcanzar tus metas académicas.'}
+             &rdquo;
+           </blockquote>
           <button style={s.aiBtn(isDark)} onClick={() => navigate('/horario-inteligente')}>Ver recomendación</button>
           <button style={s.aiBtn(isDark)} onClick={() => navigate('/sesion/iniciar')}>Iniciar Sesión de Estudio</button>
         </section>

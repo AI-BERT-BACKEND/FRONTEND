@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AppLayout from '../components/Layout/AppLayout';
 import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
-import socialService from '../services/socialService';
+import academicService from '../services/academicService';
 import { useAuth } from '../context/AuthContext';
 
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -57,18 +57,18 @@ const Availability = () => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
     (async () => {
       try {
-        const data = await socialService.getAvailabilityConfig(user.id);
-        setCategorias(data.categorias ?? []);
+        const data = await academicService.getScheduleAvailability();
+        if (data.categorias) setCategorias(data.categorias);
+        if (data.availability || data.cellBlocks) setCellBlocks(data.availability || data.cellBlocks || {});
       } catch (err) {
         console.error('Error loading availability config', err);
       } finally {
         setLoading(false);
       }
     })();
-  }, [user]);
+  }, []);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
@@ -116,16 +116,16 @@ const Availability = () => {
     );
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await socialService.saveAvailabilityConfig(user.id, { categorias });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } finally {
-      setSaving(false);
-    }
-  };
+   const handleSave = async () => {
+     setSaving(true);
+     try {
+       await academicService.saveScheduleAvailability({ categorias, cellBlocks, weekStart: weekStart.toISOString() });
+       setSaved(true);
+       setTimeout(() => setSaved(false), 3000);
+     } finally {
+       setSaving(false);
+     }
+   };
 
   const t = createStyles(isDark);
 
@@ -137,12 +137,9 @@ const Availability = () => {
     );
   }
 
-  return (
-    <AppLayout>
-      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
-        ← Volver
-      </button>
-      <div style={s.layout}>
+   return (
+     <AppLayout>
+       <div style={s.layout}>
 
         {/* ── IZQUIERDA: CALENDARIO SEMANAL ─────────────────── */}
         <div style={s.calSection}>

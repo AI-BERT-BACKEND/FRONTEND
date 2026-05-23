@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 import taskService from '../services/taskService';
 import academicService from '../services/academicService';
+import enginePlanningService from '../services/enginePlanningService';
 
 const ChevronLeft = ({ color }) => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -47,8 +48,47 @@ const AlertIcon = ({ color }) => (
 );
 
 const DIAS = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
-const FECHAS = [14, 15, 16, 17, 18, 19, 20];
-const DIA_HOY = 2;
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+const calcularSemanaActual = () => {
+  const hoy = new Date();
+  const jsDay = hoy.getDay();
+  const ourDay = (jsDay + 6) % 7;
+
+  const lunes = new Date(hoy);
+  const diasDesdeLunes = ourDay;
+  lunes.setDate(hoy.getDate() - diasDesdeLunes);
+
+  const fechas = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lunes);
+    d.setDate(lunes.getDate() + i);
+    fechas.push(d.getDate());
+  }
+
+  const mes = lunes.getMonth();
+  const mesFin = (lunes.getDate() + 6 > new Date(lunes.getFullYear(), mes + 1, 0).getDate()) ? mes + 1 : mes;
+
+  const formatMes = (m) => MESES[m];
+  const rangoFechas = mes === mesFin
+    ? `${formatMes(mes)} ${fechas[0]} - ${fechas[6]}, ${lunes.getFullYear()}`
+    : `${formatMes(mes)} ${fechas[0]} - ${formatMes(mesFin)} ${fechas[6]}, ${lunes.getFullYear()}`;
+
+  const startDate = new Date(lunes.getFullYear(), 0, 1);
+  const weekNum = Math.ceil((((lunes - startDate) / 86400000) + startDate.getDay() + 1) / 7);
+
+  return {
+    FECHAS: fechas,
+    DIA_HOY: ourDay,
+    MES_INICIO: mes,
+    RANGO: rangoFechas,
+    SEMANA: weekNum,
+  };
+};
+
+const datosSemana = calcularSemanaActual();
+const FECHAS = datosSemana.FECHAS;
+const DIA_HOY = datosSemana.DIA_HOY;
 
 const TIPO_COLORS = {
   examen: '#F00707', clase: '#3B82F6', lab: '#22C55E',
@@ -59,17 +99,23 @@ const TIPO_COLORS = {
 const SmartSchedule = () => {
   const { isDark } = useTheme();
   const navigate = useNavigate();
-  const [semana, setSemana] = useState(12);
+  const [semana, setSemana] = useState(datosSemana.SEMANA);
   const [eventos, setEventos] = useState({});
   const [distribucion, setDistribucion] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [alertInfo, setAlertInfo] = useState({
+    show: false,
+    count: 0,
+    message: '',
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [tasksRes, subjectsRes] = await Promise.allSettled([
+        const [tasksRes, subjectsRes, riskRes] = await Promise.allSettled([
           taskService.getTasks(),
           academicService.getSubjects(),
+          enginePlanningService.getHighRiskTasks().catch(() => null),
         ]);
 
         if (tasksRes.status === 'fulfilled') {
@@ -107,6 +153,21 @@ const SmartSchedule = () => {
             })));
           }
         }
+
+        if (riskRes.status === 'fulfilled' && riskRes.value) {
+          const risk = riskRes.value;
+          const riskTasks = risk.tasks || risk.data || risk || [];
+          const count = Array.isArray(riskTasks) ? riskTasks.length : 0;
+          if (count > 0) {
+            setAlertInfo({
+              show: true,
+              count,
+              message: count === 1
+                ? 'Tienes 1 tarea de alto riesgo. Organiza tu tiempo para priorizarla.'
+                : `Tienes ${count} tareas de alto riesgo. Revisa el motor de priorización.`
+            });
+          }
+        }
       } catch {
         // fallback - state stays as initialized
       } finally {
@@ -132,22 +193,24 @@ const SmartSchedule = () => {
     );
   }
 
-  return (
-    <AppLayout>
-      <button style={s.volverBtn} onClick={() => navigate(-1)}>← Volver</button>
-      <div style={s.alertBanner}>
-        <div style={s.alertLeft}>
-          <div style={s.alertDot} />
-          <span style={s.alertBrand}>Albert rebalanceo</span>
-        </div>
-        <span style={s.alertText}>Se han reorganizado 2 sesiones para optimizar tu descanso y maximizar la retención cognitiva.</span>
-      </div>
+   return (
+     <AppLayout>
+       <button style={s.volverBtn} onClick={() => navigate(-1)}>← Volver</button>
+       {alertInfo.show && (
+         <div style={s.alertBanner}>
+           <div style={s.alertLeft}>
+             <div style={s.alertDot} />
+             <span style={s.alertBrand}>Albert rebalanceo</span>
+           </div>
+           <span style={s.alertText}>{alertInfo.message}</span>
+         </div>
+       )}
 
-      <div style={s.pageHeader}>
-        <div>
-          <h1 style={s.pageTitle}>Semana {semana}</h1>
-          <p style={s.pageDesc}>Octubre 14 - Octubre 20, 2024</p>
-        </div>
+       <div style={s.pageHeader}>
+         <div>
+           <h1 style={s.pageTitle}>Semana {semana}</h1>
+           <p style={s.pageDesc}>{datosSemana.RANGO}</p>
+         </div>
         <div style={s.headerBtns}>
           <button style={s.navBtn} onClick={() => setSemana(p => p - 1)}>
             <ChevronLeft color={isDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.55)'} />
@@ -249,13 +312,13 @@ const SmartSchedule = () => {
 const getStyles = (isDark) => {
   const t = createStyles(isDark);
   return {
-    volverBtn: {
-      display: 'inline-flex', alignItems: 'center', gap: 6,
-      background: 'none', border: 'none', cursor: 'pointer',
-      fontSize: 13, fontWeight: 600,
-      color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)',
-      fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 12,
-    },
+     volverBtn: {
+       display: 'inline-flex', alignItems: 'center', gap: 6,
+       background: 'none', border: 'none', cursor: 'pointer',
+       fontSize: 15, fontWeight: 600,
+       color: '#FFFFFF',
+       fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 12,
+     },
     alertBanner: {
       display: 'flex',
       alignItems: 'center',

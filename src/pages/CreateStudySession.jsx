@@ -86,9 +86,9 @@ const CreateStudySession = () => {
   return (
     <AppLayout>
       {/* ENCABEZADO */}
-      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
-        ← Volver
-      </button>
+       <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 15, fontWeight: 600, color: '#FFFFFF', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
+         ← Volver
+       </button>
       <h1 style={s.pageTitle}>Crear sesion de estudio</h1>
       <p style={s.subtitle}>Encuentra automáticamente quién puede unirse.</p>
 

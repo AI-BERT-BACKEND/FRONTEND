@@ -200,22 +200,22 @@ const MusicaIcon = ({ active, isDark }) => (
   </svg>
 );
 
-const SilencioIcon = ({ active }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={active ? '#fff' : '#fff'}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-    <line x1="23" y1="9" x2="17" y2="15" />
-    <line x1="17" y1="9" x2="23" y2="15" />
-  </svg>
-);
+ const SilencioIcon = ({ active, isDark }) => (
+   <svg
+     width="22"
+     height="22"
+     viewBox="0 0 24 24"
+     fill="none"
+     stroke={active ? '#fff' : '#FF5B2E'}
+     strokeWidth="2"
+     strokeLinecap="round"
+     strokeLinejoin="round"
+   >
+     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+     <line x1="23" y1="9" x2="17" y2="15" />
+     <line x1="17" y1="9" x2="23" y2="15" />
+   </svg>
+ );
 
 const CasaIcon = ({ active, isDark }) => (
   <svg
@@ -440,12 +440,9 @@ const StudyPreferences = () => {
     );
   }
 
-  return (
-    <AppLayout>
-      <button style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }} onClick={() => navigate(-1)}>
-        ← Volver
-      </button>
-      <div style={s.row2}>
+   return (
+     <AppLayout>
+       <div style={s.row2}>
         <div style={s.card}>
           <div style={s.cardHeader}>
             <div style={s.sectionLabel}>

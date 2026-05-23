@@ -40,7 +40,7 @@ const HOURS = [
 ];
 
 
-const STATUSES = ['All', 'pendiente', 'urgente', 'examen', 'completado'];
+const STATUSES = ['Todos', 'pendiente', 'urgente', 'examen', 'completado'];
 
 
 const HORA_FIN_DISPONIBILIDAD = 18;
@@ -104,8 +104,8 @@ const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [events, setEvents] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [filterSubject, setFilterSubject] = useState('All subjects');
-  const [filterStatus, setFilterStatus] = useState('All');
+  const [filterSubject, setFilterSubject] = useState('Todas las materias');
+  const [filterStatus, setFilterStatus] = useState('Todos');
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
@@ -113,7 +113,61 @@ const Calendar = () => {
   const [panelDragging, setPanelDragging] = useState(null);
   const [panelDragOver, setPanelDragOver] = useState(null);
   const [droppedEvents, setDroppedEvents] = useState({});
+  const [loading, setLoading] = useState(true);
   const panelDragOccurred = React.useRef(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [tasksData, subjectsData] = await Promise.all([
+          taskService.getTasks().catch(() => ({ tasks: [] })),
+          academicService.getSubjects().catch(() => ({ subjects: [] })),
+        ]);
+        
+        const tasks = tasksData.tasks || tasksData || [];
+        const taskSubjects = new Set();
+        
+        const formattedEvents = tasks.map((t) => {
+          const subjectName = t.subject || t.materia || 'General';
+          taskSubjects.add(subjectName);
+          return {
+            id: t.id || Date.now(),
+            titulo: t.title || t.name || t.nombre || 'Evento',
+            descripcion: t.description || t.descripcion || '',
+            materia: subjectName,
+            estado: t.type || t.tipo || t.status || 'pendiente',
+            fecha: t.dueDate || t.fecha || t.scheduledDate || '',
+            hora: t.hora || '09:00',
+            color: t.type === 'examen' || t.tipo === 'examen' 
+              ? '#C4107A' 
+              : t.type === 'urgente' || t.urgencia === 'high'
+                ? '#FF5B2E'
+                : t.type === 'completado' || t.status === 'completed'
+                  ? '#22C55E'
+                  : '#3B82F6',
+          };
+        });
+        
+        setEvents(formattedEvents);
+        
+        const subs = subjectsData.subjects || subjectsData || [];
+        let subjectNames = subs.map((s) => s.name || s.nombre || s);
+        
+        if (subjectNames.length === 0 && taskSubjects.size > 0) {
+          subjectNames = Array.from(taskSubjects);
+        }
+        
+        if (subjectNames.length > 0) {
+          setSubjects(['Todas las materias', ...subjectNames]);
+        }
+      } catch {
+        // fallback empty
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const s = getStyles(isDark);
 
@@ -250,39 +304,28 @@ const Calendar = () => {
           {MONTHS[currentMonth.getMonth()]} {currentMonth.getFullYear()}
         </h2>
 
-        <div style={s.viewGroup}>
-          {['month', 'week'].map((v) => (
+          <div style={s.viewGroup}>
+            {['month', 'week'].map((v) => (
+              <button
+                key={v}
+                style={{ ...s.viewBtn, ...(view === v ? s.viewBtnActive : {}) }}
+                onClick={() => setView(v)}
+              >
+                {VIEW_LABELS[v]}
+              </button>
+            ))}
             <button
-              key={v}
-              style={{ ...s.viewBtn, ...(view === v ? s.viewBtnActive : {}) }}
-              onClick={() => setView(v)}
+              style={{
+                ...s.viewBtn,
+                ...s.viewBtnIcon,
+                ...(view === 'kanban' ? s.viewBtnActive : {}),
+              }}
+              onClick={() => setView('kanban')}
             >
-              {VIEW_LABELS[v]}
+              <IconKanban />
+              <span>Kanban</span>
             </button>
-          ))}
-          <button
-            style={{
-              ...s.viewBtn,
-              ...s.viewBtnIcon,
-              ...(view === 'calendar' ? s.viewBtnActive : {}),
-            }}
-            onClick={() => setView('calendar')}
-          >
-            <IconCalendar />
-            <span>Calendario</span>
-          </button>
-          <button
-            style={{
-              ...s.viewBtn,
-              ...s.viewBtnIcon,
-              ...(view === 'kanban' ? s.viewBtnActive : {}),
-            }}
-            onClick={() => setView('kanban')}
-          >
-            <IconKanban />
-            <span>Kanban</span>
-          </button>
-        </div>
+          </div>
 
         <div style={s.filtersGroup}>
           <div style={{ position: 'relative' }}>
@@ -929,7 +972,7 @@ const getStyles = (isDark) => {
       color: t.textPrimary,
     },
     weekDayNumToday: { color: isDark ? '#FF5B2E' : '#FF8430' },
-    weekBody: { overflowY: 'auto', maxHeight: 'calc(100vh - 240px)' },
+     weekBody: { overflowY: 'auto', maxHeight: 'calc(100vh - 150px)' },
     weekRow: {
       display: 'grid',
       gridTemplateColumns: '52px repeat(7, 1fr)',

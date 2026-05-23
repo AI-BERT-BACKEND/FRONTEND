@@ -43,13 +43,13 @@ export const AppLayout = ({ children }) => {
   };
 
   return (
-    <div style={styles.root}>
-      <GridBackground isDark={isDark} />
-      <Sidebar
-        collapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed((p) => !p)}
-      />
-      <div style={styles.main}>
+     <div style={styles.root}>
+       <GridBackground isDark={isDark} />
+       <Sidebar
+         collapsed={sidebarCollapsed}
+         onToggle={() => setSidebarCollapsed((p) => !p)}
+       />
+       <div style={styles.main}>
         <Header />
         <div style={styles.scrollArea}>
           <div style={styles.content} className="page-transition">

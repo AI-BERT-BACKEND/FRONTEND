@@ -4,60 +4,96 @@ import { Bell, Users, ClipboardList, Calendar, TrendingDown, Trophy } from 'luci
 import SocialPopup from './SocialPopup';
 import ThemeToggle from './ThemeToggle';
 import { createStyles } from '../theme/createStyles';
+import notificationService from '../services/notificationService';
 
-/* ── Notificaciones data ── */
-const NOTIFICACIONES = [
-  {
-    id: 1,
-    icon: ClipboardList,
-    iconBg: 'rgba(255,132,48,0.15)',
-    titulo: 'Resolver ejercicios de cálculo integral',
-    tiempo: 'Hace 5 min',
-    tag: null,
-  },
-  {
-    id: 2,
-    icon: Calendar,
-    iconBg: 'rgba(247,48,109,0.15)',
-    titulo: 'Mañana vence el taller de Matemáticas',
-    tiempo: 'Hace 1h',
-    tag: 'Prioridad Alta',
-    tagColor: '#F7306D',
-  },
-  {
-    id: 3,
-    icon: null,
-    isLogo: true,
-    iconBg: 'rgba(255,91,46,0.12)',
-    titulo: 'ALBERT recomienda tu sesión de estudio',
-    tiempo: 'Hace 2h',
-    tag: null,
-  },
-  {
-    id: 4,
-    icon: TrendingDown,
-    iconBg: 'rgba(196,16,122,0.15)',
-    titulo: 'Rendimiento bajo en Historia Moderna',
-    tiempo: 'Hace 4h',
-    tag: null,
-  },
-  {
-    id: 5,
-    icon: Trophy,
-    iconBg: 'rgba(255,91,46,0.15)',
-    titulo: 'Llevas 5 días consecutivos estudiando',
-    tiempo: 'Hace 6h',
-    tag: '¡Sigue así!',
-    tagColor: '#FF8430',
-  },
-];
+const getIconForType = (type) => {
+  switch (type) {
+    case 'task': case 'tarea': return ClipboardList;
+    case 'deadline': case 'fecha': case 'examen': return Calendar;
+    case 'warning': case 'alert': case 'rendimiento': return TrendingDown;
+    case 'achievement': case 'logro': return Trophy;
+    case 'ai': case 'suggestion': case 'recomendacion': return null;
+    default: return ClipboardList;
+  }
+};
+
+const getIconBgForType = (type, isDark) => {
+  switch (type) {
+    case 'deadline': case 'urgent': case 'prioridad':
+      return 'rgba(247,48,109,0.15)';
+    case 'achievement': case 'success':
+      return 'rgba(34,197,94,0.15)';
+    case 'warning': case 'alert':
+      return 'rgba(234,179,8,0.15)';
+    case 'ai': case 'suggestion':
+      return 'rgba(255,91,46,0.12)';
+    default:
+      return 'rgba(255,132,48,0.15)';
+  }
+};
+
+const formatTimeAgo = (dateStr) => {
+  if (!dateStr) return 'Reciente';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  
+  if (diffMins < 1) return 'Ahora';
+  if (diffMins < 60) return `Hace ${diffMins} min`;
+  if (diffHours < 24) return `Hace ${diffHours}h`;
+  if (diffDays < 7) return `Hace ${diffDays}d`;
+  return dateStr;
+};
 
 const Header = () => {
   const { isDark, toggleTheme } = useTheme();
   const [showNotif, setShowNotif] = useState(false);
   const [showSocial, setShowSocial] = useState(false);
+  const [notificaciones, setNotificaciones] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotif, setLoadingNotif] = useState(false);
   const notifRef = useRef(null);
   const socialRef = useRef(null);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setLoadingNotif(true);
+        const [notifs, count] = await Promise.all([
+          notificationService.getMyNotifications().catch(() => []),
+          notificationService.getUnreadCount().catch(() => ({ count: 0 })),
+        ]);
+        
+        const notifList = notifs.notifications || notifs || [];
+        if (notifList.length > 0) {
+          const formatted = notifList.slice(0, 10).map((n, i) => {
+            const type = n.type || n.category || n.tipo || 'info';
+            const Icon = getIconForType(type);
+            return {
+              id: n.id || n._id || i + 1,
+              icon: Icon,
+              isLogo: type === 'ai' || type === 'suggestion' || type === 'recomendacion',
+              iconBg: getIconBgForType(type, isDark),
+              titulo: n.title || n.message || n.titulo || n.texto || 'Notificación',
+              tiempo: formatTimeAgo(n.createdAt || n.date || n.fecha),
+              tag: n.tag || n.priority === 'high' ? 'Prioridad Alta' : null,
+              tagColor: n.priority === 'high' ? '#F7306D' : n.priority === 'success' ? '#22C55E' : '#FF8430',
+            };
+          });
+          setNotificaciones(formatted);
+          setUnreadCount(count.count || count.unread || notifList.filter(n => !n.read).length || 0);
+        }
+      } catch {
+        // Fallback: no hardcoded data, just empty
+      } finally {
+        setLoadingNotif(false);
+      }
+    };
+    fetchNotifications();
+  }, [isDark]);
 
   useEffect(() => {
     const handleClick = (e) => {
@@ -79,62 +115,74 @@ const Header = () => {
 
         {/* BELL + NOTIF POPUP */}
         <div style={{ position: 'relative' }} ref={notifRef}>
-          <button
-            style={s.iconBtn}
-            onClick={() => {
-              setShowNotif((p) => !p);
-              setShowSocial(false);
-            }}
-            aria-label="Notificaciones"
-            aria-expanded={showNotif}
-            aria-haspopup="true"
-          >
-            <Bell size={20} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2} />
-            <span style={s.badge}>5</span>
-          </button>
+           <button
+             style={s.iconBtn}
+             onClick={() => {
+               setShowNotif((p) => !p);
+               setShowSocial(false);
+             }}
+             aria-label="Notificaciones"
+             aria-expanded={showNotif}
+             aria-haspopup="true"
+           >
+             <Bell size={20} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2} />
+             {unreadCount > 0 && <span style={s.badge}>{unreadCount > 9 ? '9+' : unreadCount}</span>}
+           </button>
 
-          {showNotif && (
-            <div style={s.notifPopup}>
-              <div style={s.notifHeader}>
-                <div style={s.notifTitleRow}>
-                  <Bell size={20} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2} />
-                  <span style={s.notifTitle}>Notificaciones</span>
-                </div>
-                <span style={s.notifCount}>5</span>
-              </div>
-              <div style={s.notifList}>
-                {NOTIFICACIONES.map((n) => (
-                  <div key={n.id} style={s.notifItem}>
-                    <div style={{ ...s.notifIconWrap, background: n.iconBg }}>
-                      {n.isLogo ? (
-                        <span
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 800,
-                            color: isDark ? '#FF5B2E' : '#FF8430',
-                            fontFamily: "'Plus Jakarta Sans',sans-serif",
-                          }}
-                        >
-                          AI
-                        </span>
-                      ) : (
-                        <n.icon size={16} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2.5} />
-                      )}
-                    </div>
-                    <div style={s.notifContent}>
-                      <div style={s.notifTexto}>{n.titulo}</div>
-                      <div style={s.notifMeta}>
-                        {n.tag && (
-                          <span style={{ ...s.notifTag, color: n.tagColor }}>{n.tag} • </span>
-                        )}
-                        <span style={s.notifTiempo}>{n.tiempo}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+           {showNotif && (
+             <div style={s.notifPopup}>
+               <div style={s.notifHeader}>
+                 <div style={s.notifTitleRow}>
+                   <Bell size={20} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2} />
+                   <span style={s.notifTitle}>Notificaciones</span>
+                 </div>
+                 {unreadCount > 0 && <span style={s.notifCount}>{unreadCount}</span>}
+               </div>
+               <div style={s.notifList}>
+                 {loadingNotif && (
+                   <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', fontStyle: 'italic' }}>
+                     Cargando...
+                   </div>
+                 )}
+                 {!loadingNotif && notificaciones.length === 0 && (
+                   <div style={{ padding: 20, textAlign: 'center', fontSize: 12, color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)', fontStyle: 'italic' }}>
+                     No hay notificaciones
+                   </div>
+                 )}
+                 {!loadingNotif && notificaciones.map((n) => (
+                   <div key={n.id} style={s.notifItem}>
+                     <div style={{ ...s.notifIconWrap, background: n.iconBg }}>
+                       {n.isLogo ? (
+                         <span
+                           style={{
+                             fontSize: 10,
+                             fontWeight: 800,
+                             color: isDark ? '#FF5B2E' : '#FF8430',
+                             fontFamily: "'Plus Jakarta Sans',sans-serif",
+                           }}
+                         >
+                           AI
+                         </span>
+                       ) : n.icon ? (
+                         <n.icon size={16} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2.5} />
+                       ) : (
+                         <Bell size={16} color={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth={2} />
+                       )}
+                     </div>
+                     <div style={s.notifContent}>
+                       <div style={s.notifTexto}>{n.titulo}</div>
+                       <div style={s.notifMeta}>
+                         {n.tag && (
+                           <span style={{ ...s.notifTag, color: n.tagColor }}>{n.tag} • </span>
+                         )}
+                         <span style={s.notifTiempo}>{n.tiempo}</span>
+                       </div>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             </div>
+           )}
         </div>
 
         {/* SOCIAL BUTTON + POPUP */}
