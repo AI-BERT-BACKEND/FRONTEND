@@ -10,16 +10,8 @@ import { useTheme } from '../context/ThemeContext';
 import { createStyles } from '../theme/createStyles';
 
 const DashboardIcon = ({ isDark }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={isDark ? '#FF5B2E' : '#FF8430'}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+    stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" />
     <rect x="14" y="3" width="7" height="7" />
     <rect x="14" y="14" width="7" height="7" />
@@ -28,16 +20,8 @@ const DashboardIcon = ({ isDark }) => (
 );
 
 const CalendarIcon = ({ isDark }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={isDark ? '#FF5B2E' : '#FF8430'}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+    stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" />
     <line x1="16" y1="2" x2="16" y2="6" />
     <line x1="8" y1="2" x2="8" y2="6" />
@@ -49,16 +33,8 @@ const CalendarIcon = ({ isDark }) => (
 );
 
 const MetasIcon = ({ isDark }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={isDark ? '#FF5B2E' : '#FF8430'}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+    stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" />
     <circle cx="12" cy="12" r="6" />
     <circle cx="12" cy="12" r="2" />
@@ -66,16 +42,8 @@ const MetasIcon = ({ isDark }) => (
 );
 
 const PreferenciasIcon = ({ isDark }) => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={isDark ? '#FF5B2E' : '#FF8430'}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+    stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="8" y1="6" x2="21" y2="6" />
     <line x1="8" y1="12" x2="21" y2="12" />
     <line x1="8" y1="18" x2="21" y2="18" />
@@ -90,8 +58,7 @@ const SECCIONES = [
     id: 'SEC_01',
     IconComp: DashboardIcon,
     titulo: 'Dashboard Académico',
-    descripcion:
-      'Resumen de rendimiento, promedio general, próximas entregas y progreso académico.',
+    descripcion: 'Resumen de rendimiento, promedio general, próximas entregas y progreso académico.',
     path: '/gestion/dashboard',
     accion: 'Entrar',
     extra: 'promedio',
@@ -100,8 +67,7 @@ const SECCIONES = [
     id: 'SEC_02',
     IconComp: CalendarIcon,
     titulo: 'Disponibilidad',
-    descripcion:
-      'Configuración de horarios, bloques de estudio, horas libres y calendario semanal.',
+    descripcion: 'Configuración de horarios, bloques de estudio, horas libres y calendario semanal.',
     path: '/gestion/disponibilidad',
     accion: 'Configurar',
     extra: 'dias',
@@ -110,8 +76,7 @@ const SECCIONES = [
     id: 'SEC_03',
     IconComp: MetasIcon,
     titulo: 'Metas Académicas',
-    descripcion:
-      'Metas de promedio, objetivos por materia y seguimiento de progreso en tiempo real.',
+    descripcion: 'Metas de promedio, objetivos por materia y seguimiento de progreso en tiempo real.',
     path: '/gestion/metas',
     accion: 'Definir Metas',
     extra: 'circular',
@@ -217,9 +182,7 @@ const AcademicManagement = () => {
         <div style={s.extraBlock}>
           <div style={s.diasRow}>
             {DIAS.map((d) => (
-              <div key={d} style={s.diaCircle}>
-                {d}
-              </div>
+              <div key={d} style={s.diaCircle}>{d}</div>
             ))}
           </div>
           <div style={{ ...s.estadoBadge, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
@@ -257,6 +220,13 @@ const AcademicManagement = () => {
 
   return (
     <AppLayout>
+      <button
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)', fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 14 }}
+        onClick={() => navigate(-1)}
+      >
+        ← Volver
+      </button>
+
       <h1 style={s.pageTitle}>Gestión Académica</h1>
 
       <div style={s.grid2}>
@@ -278,7 +248,6 @@ const AcademicManagement = () => {
         ))}
       </div>
 
-      {/* ── PANEL ESTADÍSTICAS RÁPIDAS ── */}
       <div style={{ ...s.grid2, marginTop: 20 }}>
         <div style={{ ...s.card }}>
           <div style={{ fontSize: 11, color: t.textMuted, letterSpacing: '0.07em', marginBottom: 8 }}>HISTORIAL DE SESIONES</div>
@@ -305,7 +274,6 @@ const AcademicManagement = () => {
           <div style={{ fontSize: 11, color: '#22C55E', fontWeight: 600, marginTop: 8 }}>↑ Tendencia positiva</div>
         </div>
       </div>
-
     </AppLayout>
   );
 };
@@ -323,134 +291,44 @@ const getStyles = (isDark) => {
     },
     grid2: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 },
     card: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 16,
-      padding: '20px 22px',
-      display: 'flex',
-      flexDirection: 'column',
-      boxShadow: t.cardShadow,
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 16, padding: '20px 22px',
+      display: 'flex', flexDirection: 'column', boxShadow: t.cardShadow,
     },
-    cardTop: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: 12,
-    },
+    cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
     cardIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
+      width: 40, height: 40, borderRadius: 10,
       background: isDark ? 'rgba(255,91,46,0.12)' : 'rgba(255,132,48,0.10)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
     },
-    secId: {
-      fontSize: 10,
-      letterSpacing: '0.10em',
-      color: t.textMuted,
-      fontFamily: t.fontSecondary,
-    },
-    cardTitle: {
-      fontSize: 16,
-      fontWeight: 700,
-      color: t.textPrimary,
-      fontFamily: t.fontSecondary,
-      marginBottom: 6,
-    },
-    cardDesc: {
-      fontSize: 12,
-      color: t.textSecondary,
-      lineHeight: 1.5,
-      marginBottom: 14,
-    },
+    secId: { fontSize: 10, letterSpacing: '0.10em', color: t.textMuted, fontFamily: t.fontSecondary },
+    cardTitle: { fontSize: 16, fontWeight: 700, color: t.textPrimary, fontFamily: t.fontSecondary, marginBottom: 6 },
+    cardDesc: { fontSize: 12, color: t.textSecondary, lineHeight: 1.5, marginBottom: 14 },
     extraBlock: { marginBottom: 16 },
-    promedioRow: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 6,
-    },
-    promedioLabel: {
-      fontSize: 9,
-      letterSpacing: '0.08em',
-      textTransform: 'uppercase',
-      color: t.textMuted,
-    },
-    promedioVal: {
-      fontSize: 16,
-      fontWeight: 800,
-      fontFamily: t.fontPrimary,
-      color: isDark ? '#FF5B2E' : '#FF8430',
-    },
-    promedioMax: {
-      fontSize: 11,
-      fontWeight: 400,
-      color: t.textMuted,
-    },
+    promedioRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+    promedioLabel: { fontSize: 9, letterSpacing: '0.08em', textTransform: 'uppercase', color: t.textMuted },
+    promedioVal: { fontSize: 16, fontWeight: 800, fontFamily: t.fontPrimary, color: isDark ? '#FF5B2E' : '#FF8430' },
+    promedioMax: { fontSize: 11, fontWeight: 400, color: t.textMuted },
     badgeRow: { display: 'flex', gap: 6, flexWrap: 'wrap' },
-    badge: {
-      fontSize: 9,
-      fontWeight: 600,
-      padding: '3px 8px',
-      borderRadius: 20,
-      letterSpacing: '0.04em',
-    },
+    badge: { fontSize: 9, fontWeight: 600, padding: '3px 8px', borderRadius: 20, letterSpacing: '0.04em' },
     diasRow: { display: 'flex', gap: 6, marginBottom: 10, justifyContent: 'center' },
     diaCircle: {
-      width: 28,
-      height: 28,
-      borderRadius: '50%',
-      background: t.inputBg,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: 10,
-      fontWeight: 600,
-      color: t.textSecondary,
+      width: 28, height: 28, borderRadius: '50%', background: t.inputBg,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 10, fontWeight: 600, color: t.textSecondary,
     },
     estadoBadge: {
-      fontSize: 10,
-      fontWeight: 600,
-      color: t.textSecondary,
-      background: t.inputBg,
-      borderRadius: 8,
-      padding: '5px 10px',
-      textAlign: 'center',
+      fontSize: 10, fontWeight: 600, color: t.textSecondary,
+      background: t.inputBg, borderRadius: 8, padding: '5px 10px', textAlign: 'center',
     },
-    prefItem: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      background: t.inputBg,
-      borderRadius: 8,
-      padding: '8px 10px',
-    },
-    prefIcon: { fontSize: 16 },
-    prefTitle: {
-      fontSize: 12,
-      fontWeight: 600,
-      color: t.textPrimary,
-    },
-    prefSub: {
-      fontSize: 10,
-      color: t.textMuted,
-      marginTop: 2,
-    },
+    prefItem: { display: 'flex', alignItems: 'center', gap: 10, background: t.inputBg, borderRadius: 8, padding: '8px 10px' },
+    prefTitle: { fontSize: 12, fontWeight: 600, color: t.textPrimary },
+    prefSub: { fontSize: 10, color: t.textMuted, marginTop: 2 },
     cardBtn: {
-      marginTop: 'auto',
-      width: '100%',
-      padding: '11px 0',
-      border: 'none',
-      borderRadius: 10,
-      background: t.primaryGradient,
-      color: '#fff',
-      fontFamily: t.fontPrimary,
-      fontSize: 13,
-      fontWeight: 700,
-      letterSpacing: '0.04em',
-      cursor: 'pointer',
+      marginTop: 'auto', width: '100%', padding: '11px 0',
+      border: 'none', borderRadius: 10, background: t.primaryGradient,
+      color: '#fff', fontFamily: t.fontPrimary, fontSize: 13,
+      fontWeight: 700, letterSpacing: '0.04em', cursor: 'pointer',
     },
   };
 };

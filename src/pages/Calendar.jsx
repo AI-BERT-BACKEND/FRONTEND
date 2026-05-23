@@ -8,20 +8,20 @@ import taskService from '../services/taskService';
 import academicService from '../services/academicService';
 
 const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  'Enero',
+  'Febrero',
+  'Marzo',
+  'Abril',
+  'Mayo',
+  'Junio',
+  'Julio',
+  'Agosto',
+  'Septiembre',
+  'Octubre',
+  'Noviembre',
+  'Diciembre',
 ];
-const WEEK_DAYS_MONTH = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEK_DAYS_MONTH = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const HOURS = [
   '07:00',
   '08:00',
@@ -43,6 +43,10 @@ const HOURS = [
 const STATUSES = ['All', 'pendiente', 'urgente', 'examen', 'completado'];
 
 
+const HORA_FIN_DISPONIBILIDAD = 18;
+
+const VIEW_LABELS = { month: 'Mes', week: 'Semana' };
+
 const Calendar = () => {
   const { isDark } = useTheme();
   const t = createStyles(isDark);
@@ -56,40 +60,10 @@ const Calendar = () => {
   const [dragOver, setDragOver] = useState(null);
   const [eventDetail, setEventDetail] = useState(null);
   const [blockConflict, setBlockConflict] = useState(null);
-  const [fetchLoading, setFetchLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCalendarData = async () => {
-      try {
-        const [tasksRes, subjectsRes] = await Promise.all([
-          taskService.getTasks(),
-          academicService.getSubjects(),
-        ]);
-
-        const taskItems = tasksRes?.tasks || tasksRes || [];
-        setEvents(taskItems.map((t) => {
-          const startVal = t.startTime || t.start;
-          return {
-            id: t.id,
-            titulo: t.title || t.titulo || t.name || '',
-            fecha: startVal ? startVal.substring(0, 10) : t.fecha || t.dueDate || '',
-            hora: startVal ? startVal.substring(11, 16) : t.hora || '',
-            materia: t.subject || t.materia || 'General',
-            estado: t.status || t.type || t.estado || 'pendiente',
-            color: t.color || '#FF8430',
-          };
-        }));
-
-        const subjectItems = subjectsRes?.subjects || subjectsRes || [];
-        setSubjects(['All subjects', ...subjectItems.map((s) => s.name || s.nombre)]);
-      } catch {
-        // fallback vacío
-      } finally {
-        setFetchLoading(false);
-      }
-    };
-    fetchCalendarData();
-  }, []);
+  const [panelDragging, setPanelDragging] = useState(null);
+  const [panelDragOver, setPanelDragOver] = useState(null);
+  const [droppedEvents, setDroppedEvents] = useState({});
+  const panelDragOccurred = React.useRef(false);
 
   const s = getStyles(isDark);
 
@@ -123,8 +97,8 @@ const Calendar = () => {
     `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 
   const filteredEvents = events.filter((e) => {
-    const okS = filterSubject === 'All subjects' || e.materia === filterSubject;
-    const okSt = filterStatus === 'All' || e.estado === filterStatus;
+    const okS = filterSubject === 'Todas las materias' || e.materia === filterSubject;
+    const okSt = filterStatus === 'Todos' || e.estado === filterStatus;
     return okS && okSt;
   });
 
@@ -153,10 +127,18 @@ const Calendar = () => {
   const isBlockedHour = (fecha, hora) => {
     return false;
   };
+  const isOutsideAvailability = (hora) => parseInt(hora) >= HORA_FIN_DISPONIBILIDAD;
 
   const handleDrop = (e, fecha, hora = null) => {
     e.preventDefault();
     if (dragging) {
+      if (hora && isOutsideAvailability(hora)) {
+        setBlockConflict('Este horario está fuera de tu disponibilidad.');
+        setTimeout(() => setBlockConflict(null), 3000);
+        setDragging(null);
+        setDragOver(null);
+        return;
+      }
       if (hora && isBlockedHour(fecha, hora)) {
         setBlockConflict('Este horario está bloqueado por clases universitarias.');
         setTimeout(() => setBlockConflict(null), 3000);
@@ -170,6 +152,17 @@ const Calendar = () => {
     }
     setDragging(null);
     setDragOver(null);
+  };
+
+  const handlePanelDragStart = (e, ev) => {
+    panelDragOccurred.current = true;
+    setPanelDragging(ev);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
+  const handlePanelDragEnd = () => {
+    setPanelDragging(null);
+    setPanelDragOver(null);
   };
 
   const autoAddSubject = (materia) => {
@@ -291,7 +284,7 @@ const Calendar = () => {
             }
           >
             <IconPrev />
-            <span>Prev</span>
+            <span>Ant</span>
           </button>
           <button
             style={s.navBtn}
@@ -299,7 +292,7 @@ const Calendar = () => {
               setCurrentMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
             }
           >
-            <span>Next</span>
+            <span>Sig</span>
             <IconNext />
           </button>
         </div>
@@ -315,7 +308,7 @@ const Calendar = () => {
               style={{ ...s.viewBtn, ...(view === v ? s.viewBtnActive : {}) }}
               onClick={() => setView(v)}
             >
-              {v.charAt(0).toUpperCase() + v.slice(1)}
+              {VIEW_LABELS[v]}
             </button>
           ))}
           <button
@@ -327,7 +320,7 @@ const Calendar = () => {
             onClick={() => setView('calendar')}
           >
             <IconCalendar />
-            <span>Calendar</span>
+            <span>Calendario</span>
           </button>
           <button
             style={{
@@ -378,6 +371,27 @@ const Calendar = () => {
         </div>
       </div>
 
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{
+            width: 16, height: 12, borderRadius: 4, flexShrink: 0,
+            background: isDark
+              ? 'rgba(239,68,68,0.80) repeating-linear-gradient(45deg, rgba(239,68,68,0.40), rgba(239,68,68,0.40) 3px, transparent 3px, transparent 8px)'
+              : 'rgba(239,68,68,0.18) repeating-linear-gradient(45deg, rgba(239,68,68,0.35), rgba(239,68,68,0.35) 3px, transparent 3px, transparent 8px)',
+            border: '1px solid rgba(239,68,68,0.50)',
+          }} />
+          <span style={{ fontSize: 10, color: t.textSecondary, fontFamily: t.fontSecondary }}>Clases universitarias</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{
+            width: 16, height: 12, borderRadius: 4, flexShrink: 0,
+            background: isDark ? 'rgba(255,255,255,0.30)' : 'rgba(0,0,0,0.12)',
+            border: isDark ? '2px dashed rgba(255,255,255,0.40)' : '2px dashed rgba(0,0,0,0.25)',
+          }} />
+          <span style={{ fontSize: 10, color: t.textSecondary, fontFamily: t.fontSecondary }}>Fuera de disponibilidad</span>
+        </div>
+      </div>
+
       {blockConflict && (
         <div style={{
           background: 'rgba(239,68,68,0.14)', border: '1px solid rgba(239,68,68,0.35)',
@@ -407,8 +421,10 @@ const Calendar = () => {
                 const dayEvents = fecha
                   ? filteredEvents.filter((e) => e.fecha === fecha)
                   : [];
+                const droppedForDay = fecha ? (droppedEvents[fecha] || []) : [];
                 const isToday = fecha === todayStr;
                 const isDragTarget = dragOver === fecha;
+                const isPanelDragTarget = panelDragOver === fecha;
                 return (
                   <div
                     key={idx}
@@ -416,10 +432,33 @@ const Calendar = () => {
                       ...s.monthCell,
                       ...(isToday ? s.monthCellToday : {}),
                       ...(isDragTarget ? s.dragOverCell : {}),
+                      ...(isPanelDragTarget ? s.panelDragOverCell : {}),
                       opacity: day ? 1 : 0.3,
                     }}
-                    onDragOver={(e) => fecha && handleDragOver(e, fecha)}
-                    onDrop={(e) => fecha && handleDrop(e, fecha)}
+                    onDragOver={(e) => {
+                      if (!fecha) return;
+                      if (panelDragging) {
+                        e.preventDefault();
+                        setPanelDragOver(fecha);
+                      } else {
+                        handleDragOver(e, fecha);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      if (!fecha) return;
+                      if (panelDragging) {
+                        e.preventDefault();
+                        const newEv = { ...panelDragging, id: `panel-${Date.now()}`, fecha };
+                        setDroppedEvents((prev) => ({
+                          ...prev,
+                          [fecha]: [...(prev[fecha] || []), newEv],
+                        }));
+                        setPanelDragging(null);
+                        setPanelDragOver(null);
+                      } else {
+                        handleDrop(e, fecha);
+                      }
+                    }}
                   >
                     {day && (
                       <>
@@ -434,8 +473,9 @@ const Calendar = () => {
                               onDragStart={(e) => handleDragStart(e, ev)}
                               style={{
                                 ...s.eventChip,
-                                background: ev.color + '33',
+                                background: ev.color + '40',
                                 borderLeft: `2px solid ${ev.color}`,
+                                ...(isDark ? { boxShadow: `inset 0 0 0 1px ${ev.color}80` } : {}),
                               }}
                               onClick={() => setEventDetail(ev)}
                             >
@@ -445,8 +485,25 @@ const Calendar = () => {
                             </div>
                           ))}
                           {dayEvents.length > 2 && (
-                            <span style={s.moreEvents}>+{dayEvents.length - 2} more</span>
+                            <span style={s.moreEvents}>+{dayEvents.length - 2} más</span>
                           )}
+                          {droppedForDay.map((dev) => (
+                            <div
+                              key={`d-${dev.id}`}
+                              style={{
+                                ...s.eventChip,
+                                background: dev.color + '40',
+                                borderLeft: `2px solid ${dev.color}`,
+                                animation: 'appleFadeIn 0.3s ease forwards',
+                                ...(isDark ? { boxShadow: `inset 0 0 0 1px ${dev.color}80` } : {}),
+                              }}
+                              onClick={() => setEventDetail(dev)}
+                            >
+                              <span style={{ ...s.eventChipText, color: dev.color }}>
+                                {dev.titulo}
+                              </span>
+                            </div>
+                          ))}
                         </div>
                       </>
                     )}
@@ -485,23 +542,57 @@ const Calendar = () => {
                       (e) => e.fecha === fecha && e.hora === hour
                     );
                     const isDragTarget = dragOver === `${fecha}-${hour}`;
+                    const isPanelWeekDragTarget = panelDragOver === `${fecha}-${hour}`;
                     const isBlocked = isBlockedHour(fecha, hour);
+                    const isOutside = isOutsideAvailability(hour);
+                    const droppedEvsInCell = (droppedEvents[fecha] || []).filter((e) => e.hora === hour);
                     return (
                       <div
                         key={i}
                         style={{
                           ...s.weekCell,
                           ...(isDragTarget ? s.dragOverCell : {}),
+                          ...(isPanelWeekDragTarget ? s.panelDragOverCell : {}),
                           ...(isBlocked ? {
                             background: isDark
-                              ? 'repeating-linear-gradient(45deg, rgba(239,68,68,0.06), rgba(239,68,68,0.06) 3px, transparent 3px, transparent 8px)'
-                              : 'repeating-linear-gradient(45deg, rgba(239,68,68,0.05), rgba(239,68,68,0.05) 3px, transparent 3px, transparent 8px)',
+                              ? 'repeating-linear-gradient(45deg, rgba(239,68,68,0.55), rgba(239,68,68,0.55) 3px, rgba(239,68,68,0.15) 3px, rgba(239,68,68,0.15) 8px)'
+                              : 'repeating-linear-gradient(45deg, rgba(239,68,68,0.45), rgba(239,68,68,0.45) 3px, rgba(239,68,68,0.12) 3px, rgba(239,68,68,0.12) 8px)',
+                            borderLeft: '3px solid rgba(239,68,68,0.90)',
+                            cursor: 'not-allowed',
+                          } : {}),
+                          ...(isOutside && !isBlocked ? {
+                            background: isDark ? 'rgba(255,255,255,0.13)' : 'rgba(0,0,0,0.10)',
+                            borderTop: isDark ? '2px dashed rgba(255,255,255,0.35)' : '2px dashed rgba(0,0,0,0.28)',
                             cursor: 'not-allowed',
                           } : {}),
                         }}
-                        onDragOver={(e) => !isBlocked && handleDragOver(e, `${fecha}-${hour}`)}
-                        onDrop={(e) => handleDrop(e, fecha, hour)}
-                        title={isBlocked ? '🔒 Horario universitario bloqueado' : undefined}
+                        onDragOver={(e) => {
+                          if (panelDragging) {
+                            if (!isBlocked && !isOutside) {
+                              e.preventDefault();
+                              setPanelDragOver(`${fecha}-${hour}`);
+                            }
+                          } else if (!isBlocked && !isOutside) {
+                            handleDragOver(e, `${fecha}-${hour}`);
+                          }
+                        }}
+                        onDrop={(e) => {
+                          if (panelDragging) {
+                            e.preventDefault();
+                            if (!isBlocked && !isOutside) {
+                              const newEv = { ...panelDragging, id: `panel-${Date.now()}`, fecha, hora: hour };
+                              setDroppedEvents((prev) => ({
+                                ...prev,
+                                [fecha]: [...(prev[fecha] || []), newEv],
+                              }));
+                            }
+                            setPanelDragging(null);
+                            setPanelDragOver(null);
+                          } else {
+                            handleDrop(e, fecha, hour);
+                          }
+                        }}
+                        title={isBlocked ? 'Clases universitarias' : isOutside ? 'Fuera de disponibilidad' : undefined}
                       >
                         {ev && (
                           <div
@@ -509,16 +600,34 @@ const Calendar = () => {
                             onDragStart={(e) => handleDragStart(e, ev)}
                             style={{
                               ...s.weekEvent,
-                              background: ev.color + '33',
+                              background: ev.color + '40',
                               borderLeft: `2px solid ${ev.color}`,
+                              ...(isDark ? { boxShadow: `inset 0 0 0 1px ${ev.color}80` } : {}),
                             }}
                             onClick={() => setEventDetail(ev)}
                           >
-                            <span style={{ fontSize: 10, color: ev.color, fontWeight: 600 }}>
+                            <span style={{ fontSize: 10, color: ev.color, fontWeight: 700 }}>
                               {ev.titulo}
                             </span>
                           </div>
                         )}
+                        {droppedEvsInCell.map((dev) => (
+                          <div
+                            key={`d-${dev.id}`}
+                            style={{
+                              ...s.weekEvent,
+                              background: dev.color + '40',
+                              borderLeft: `2px solid ${dev.color}`,
+                              animation: 'appleFadeIn 0.3s ease forwards',
+                              ...(isDark ? { boxShadow: `inset 0 0 0 1px ${dev.color}80` } : {}),
+                            }}
+                            onClick={() => setEventDetail(dev)}
+                          >
+                            <span style={{ fontSize: 10, color: dev.color, fontWeight: 700 }}>
+                              {dev.titulo}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     );
                   })}
@@ -579,19 +688,36 @@ const Calendar = () => {
             <span style={{ color: isDark ? '#FF5B2E' : '#FF8430' }}>
               <IconEventSmall />
             </span>
-            <span style={s.upcomingTitle}>Upcoming Events</span>
+            <span style={s.upcomingTitle}>Próximos Eventos</span>
           </div>
           <div style={s.upcomingList}>
             {upcomingEvents.length === 0 && (
-              <div style={s.upcomingEmpty}>No events match the selected filters</div>
+              <div style={s.upcomingEmpty}>No hay eventos que coincidan con los filtros seleccionados</div>
             )}
             {upcomingEvents.map((ev) => {
               const badge = statusBadgeColor(ev.estado);
+              const isBeingDragged = panelDragging?.id === ev.id;
               return (
                 <div
                   key={ev.id}
-                  style={{ ...s.upcomingItem, borderLeft: `3px solid ${ev.color}` }}
-                  onClick={() => setEventDetail(ev)}
+                  draggable
+                  onDragStart={(e) => handlePanelDragStart(e, ev)}
+                  onDragEnd={handlePanelDragEnd}
+                  style={{
+                    ...s.upcomingItem,
+                    borderLeft: `3px solid ${ev.color}`,
+                    cursor: isBeingDragged ? 'grabbing' : 'grab',
+                    opacity: isBeingDragged ? 0.5 : 1,
+                    transition: 'opacity 0.2s',
+                    userSelect: 'none',
+                  }}
+                  onClick={() => {
+                    if (panelDragOccurred.current) {
+                      panelDragOccurred.current = false;
+                      return;
+                    }
+                    setEventDetail(ev);
+                  }}
                 >
                   <div style={s.upcomingTop}>
                     <span style={s.upcomingEventTitle}>{ev.titulo}</span>
@@ -644,7 +770,7 @@ const Calendar = () => {
                   <IconClock />
                 </span>
                 <div>
-                  <div style={s.modalRowLabel}>Date & Time</div>
+                  <div style={s.modalRowLabel}>Fecha y hora</div>
                   <div style={s.modalRowVal}>
                     {eventDetail.fecha} · {eventDetail.hora}
                   </div>
@@ -655,7 +781,7 @@ const Calendar = () => {
                   <IconTag />
                 </span>
                 <div>
-                  <div style={s.modalRowLabel}>Subject</div>
+                  <div style={s.modalRowLabel}>Materia</div>
                   <div style={{ ...s.modalRowVal, color: eventDetail.color }}>
                     {eventDetail.materia}
                   </div>
@@ -666,7 +792,7 @@ const Calendar = () => {
                   <IconEventSmall />
                 </span>
                 <div>
-                  <div style={s.modalRowLabel}>Status</div>
+                  <div style={s.modalRowLabel}>Estado</div>
                   <div style={s.modalRowVal}>
                     {eventDetail.estado.charAt(0).toUpperCase() + eventDetail.estado.slice(1)}
                   </div>
@@ -675,9 +801,9 @@ const Calendar = () => {
             </div>
             <div style={s.modalFooter}>
               <button style={s.modalBtnOutline} onClick={() => setEventDetail(null)}>
-                Close
+                Cerrar
               </button>
-              <button style={s.modalBtnFill}>Edit event</button>
+              <button style={s.modalBtnFill}>Editar evento</button>
             </div>
           </div>
         </div>
@@ -799,6 +925,11 @@ const getStyles = (isDark) => {
       outlineOffset: '-1px',
     },
     dragOverCell: { background: isDark ? 'rgba(196,16,122,0.15)' : 'rgba(255,132,48,0.15)' },
+    panelDragOverCell: {
+      background: isDark ? 'rgba(196,16,122,0.15)' : 'rgba(255,132,48,0.15)',
+      outline: `2px dashed ${isDark ? '#FF5B2E' : '#FF8430'}`,
+      outlineOffset: '-2px',
+    },
     dayNum: {
       fontSize: 12,
       fontWeight: 500,
@@ -811,7 +942,7 @@ const getStyles = (isDark) => {
     eventChip: { borderRadius: 4, padding: '2px 5px', cursor: 'grab', userSelect: 'none' },
     eventChipText: {
       fontSize: 9,
-      fontWeight: 600,
+      fontWeight: 700,
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textOverflow: 'ellipsis',

@@ -10,95 +10,41 @@ import statsService from '../services/statsService';
 import academicService from '../services/academicService';
 
 const StarIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="#F9A825"
-    stroke="#F9A825"
-    strokeWidth="1"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="#F9A825" stroke="#F9A825" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 );
 
 const BookIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#A78BFA"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
   </svg>
 );
 
 const ClockIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#FB923C"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FB923C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" />
     <polyline points="12 6 12 12 16 14" />
   </svg>
 );
 
 const PinIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#F472B6"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F472B6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
     <circle cx="12" cy="10" r="3" />
   </svg>
 );
 
 const EditIcon = ({ isDark }) => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke={isDark ? '#FF5B2E' : '#FF8430'}
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={isDark ? '#FF5B2E' : '#FF8430'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 );
 
 const CalendarAccesoIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#3B82F6"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" />
     <line x1="16" y1="2" x2="16" y2="6" />
     <line x1="8" y1="2" x2="8" y2="6" />
@@ -107,16 +53,7 @@ const CalendarAccesoIcon = () => (
 );
 
 const MetaAccesoIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="#F7306D"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F7306D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" />
     <circle cx="12" cy="12" r="6" />
     <circle cx="12" cy="12" r="2" />
@@ -130,9 +67,9 @@ const PlayIcon = () => (
 );
 
 const ESTADO_COLORS = {
-  ESTABLE: { bg: 'rgba(76,175,80,0.18)', text: '#4CAF50' },
+  ESTABLE:   { bg: 'rgba(76,175,80,0.18)',  text: '#4CAF50' },
   MEJORANDO: { bg: 'rgba(33,150,243,0.18)', text: '#2196F3' },
-  CRÍTICO: { bg: 'rgba(244,67,54,0.18)', text: '#F44336' },
+  CRÍTICO:   { bg: 'rgba(244,67,54,0.18)',  text: '#F44336' },
 };
 
 const AcademicDashboard = () => {
@@ -208,6 +145,7 @@ const AcademicDashboard = () => {
   return (
     <AppLayout>
       <button style={s.volverBtn} onClick={() => navigate(-1)}>← Volver</button>
+
       {/* STATS */}
       <div style={s.statsRow}>
         {stats.map((stat) => (
@@ -252,16 +190,10 @@ const AcademicDashboard = () => {
                     isDark={isDark}
                     color={
                       r.id === 1
-                        ? isDark
-                          ? 'linear-gradient(90deg,#FF5B2E,#C4107A)'
-                          : 'linear-gradient(90deg,#FF8430,#F7306D)'
+                        ? isDark ? 'linear-gradient(90deg,#FF5B2E,#C4107A)' : 'linear-gradient(90deg,#FF8430,#F7306D)'
                         : r.id === 2
-                          ? isDark
-                            ? '#C4107A'
-                            : '#F7306D'
-                          : isDark
-                            ? 'rgba(255,255,255,0.20)'
-                            : 'rgba(0,0,0,0.15)'
+                          ? isDark ? '#C4107A' : '#F7306D'
+                          : isDark ? 'rgba(255,255,255,0.20)' : 'rgba(0,0,0,0.15)'
                     }
                   />
                 </div>
@@ -289,10 +221,7 @@ const AcademicDashboard = () => {
 
       <div style={s.materiasRow}>
         {materias.map((m) => {
-          const ec = ESTADO_COLORS[m.estado] || {
-            bg: 'rgba(255,255,255,0.08)',
-            text: '#fff',
-          };
+          const ec = ESTADO_COLORS[m.estado] || { bg: 'rgba(255,255,255,0.08)', text: '#fff' };
           return (
             <div key={m.id} style={s.materiaCard}>
               <div style={s.materiaTop}>
@@ -334,23 +263,9 @@ const getStyles = (isDark) => {
       padding: '14px 16px',
       boxShadow: t.cardShadow,
     },
-    statTop: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    statLabel: {
-      fontSize: 11,
-      color: t.textMuted,
-      marginBottom: 4,
-    },
-    statValue: {
-      fontFamily: t.fontPrimary,
-      fontWeight: 800,
-      fontSize: 26,
-      color: t.textPrimary,
-    },
+    statTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+    statLabel: { fontSize: 11, color: t.textMuted, marginBottom: 4 },
+    statValue: { fontFamily: t.fontPrimary, fontWeight: 800, fontSize: 26, color: t.textPrimary },
     midRow: { display: 'flex', gap: 14, marginBottom: 16, alignItems: 'stretch' },
     card: {
       background: t.cardBg,
@@ -359,27 +274,9 @@ const getStyles = (isDark) => {
       padding: '18px 20px',
       boxShadow: t.cardShadow,
     },
-    cardHeader: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 16,
-    },
-    cardTitle: {
-      fontSize: 14,
-      fontWeight: 700,
-      color: t.textPrimary,
-      fontFamily: t.fontSecondary,
-    },
-    editBtn: {
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 2,
-    },
+    cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+    cardTitle: { fontSize: 14, fontWeight: 700, color: t.textPrimary, fontFamily: t.fontSecondary },
+    editBtn: { background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 2 },
     rendimientoBody: { display: 'flex', gap: 20, alignItems: 'center' },
     circleWrap: { flexShrink: 0 },
     barsList: { flex: 1, display: 'flex', flexDirection: 'column', gap: 12 },
@@ -389,89 +286,32 @@ const getStyles = (isDark) => {
     barVal: { fontSize: 12, fontWeight: 700, color: isDark ? '#FF5B2E' : '#FF8430' },
     accesosCard: { width: 220, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 10 },
     accesoBtn: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      background: t.inputBg,
-      border: `1px solid ${t.inputBorder}`,
-      borderRadius: 10,
-      padding: '10px 14px',
-      cursor: 'pointer',
-      width: '100%',
-      fontFamily: t.fontSecondary,
-      fontSize: 12,
-      fontWeight: 500,
-      color: t.textPrimary,
-      textAlign: 'left',
+      display: 'flex', alignItems: 'center', gap: 10,
+      background: t.inputBg, border: `1px solid ${t.inputBorder}`,
+      borderRadius: 10, padding: '10px 14px', cursor: 'pointer',
+      width: '100%', fontFamily: t.fontSecondary, fontSize: 12,
+      fontWeight: 500, color: t.textPrimary, textAlign: 'left',
     },
     accesoSesionBtn: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      background: t.primaryGradient,
-      border: 'none',
-      borderRadius: 10,
-      padding: '11px 14px',
-      cursor: 'pointer',
-      width: '100%',
-      fontFamily: t.fontSecondary,
-      fontSize: 12,
-      fontWeight: 700,
-      color: '#fff',
-      marginTop: 4,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      background: t.primaryGradient, border: 'none', borderRadius: 10,
+      padding: '11px 14px', cursor: 'pointer', width: '100%',
+      fontFamily: t.fontSecondary, fontSize: 12, fontWeight: 700,
+      color: '#fff', marginTop: 4,
     },
     materiasRow: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 },
     materiaCard: {
-      background: t.cardBg,
-      border: `1px solid ${t.cardBorder}`,
-      borderRadius: 14,
-      padding: '16px 18px',
-      boxShadow: t.cardShadow,
+      background: t.cardBg, border: `1px solid ${t.cardBorder}`,
+      borderRadius: 14, padding: '16px 18px', boxShadow: t.cardShadow,
     },
-    materiaTop: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-start',
-      marginBottom: 8,
-    },
-    materiaNombre: {
-      fontSize: 13,
-      fontWeight: 700,
-      color: t.textPrimary,
-      fontFamily: t.fontSecondary,
-    },
-    materiaLabel: {
-      fontSize: 10,
-      color: t.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: '0.06em',
-      marginBottom: 4,
-    },
-    materiaRow: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'flex-end',
-      marginBottom: 8,
-    },
-    materiaValor: {
-      fontFamily: t.fontPrimary,
-      fontWeight: 800,
-      fontSize: 28,
-      color: isDark ? '#FF5B2E' : '#FF8430',
-    },
+    materiaTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
+    materiaNombre: { fontSize: 13, fontWeight: 700, color: t.textPrimary, fontFamily: t.fontSecondary },
+    materiaLabel: { fontSize: 10, color: t.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 },
+    materiaRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 8 },
+    materiaValor: { fontFamily: t.fontPrimary, fontWeight: 800, fontSize: 28, color: isDark ? '#FF5B2E' : '#FF8430' },
     materiaProgresoWrap: { textAlign: 'right' },
-    materiaProgresoLabel: {
-      display: 'block',
-      fontSize: 10,
-      color: t.textMuted,
-    },
-    materiaProgresoPct: {
-      display: 'block',
-      fontSize: 13,
-      fontWeight: 700,
-      color: t.textSecondary,
-    },
+    materiaProgresoLabel: { display: 'block', fontSize: 10, color: t.textMuted },
+    materiaProgresoPct: { display: 'block', fontSize: 13, fontWeight: 700, color: t.textSecondary },
   };
 };
 
