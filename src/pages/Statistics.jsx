@@ -836,7 +836,7 @@ const getStyles = (isDark) => {
     },
     miniCardsGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(6, 1fr)',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
       gap: 12,
       marginBottom: 16,
     },

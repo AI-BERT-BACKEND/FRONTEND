@@ -6,7 +6,7 @@ import { createStyles } from '../theme/createStyles';
 import LogoImg from '../assets/LOGO.png';
 import {
   Home, Calendar, BookOpen, Zap, Trophy,
-  GraduationCap, CheckSquare, BarChart3, Settings, LogOut, User,
+  GraduationCap, CheckSquare, BarChart3, Settings, LogOut, User, X,
 } from 'lucide-react';
 
 const NAV_ACADEMIC = [
@@ -24,13 +24,13 @@ const NAV_PERSONAL = [
   { label: 'Sesión de Estudio',     IconComp: BookOpen,   path: '/sesion'       },
 ];
 
-const Sidebar = ({ collapsed, onToggle }) => {
+const Sidebar = ({ collapsed, onToggle, isMobile = false, mobileOpen = false, onMobileClose }) => {
   const { isDark } = useTheme();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showLogout, setShowLogout] = useState(false);
-  const s = getStyles(isDark, collapsed);
+  const s = getStyles(isDark, collapsed, isMobile, mobileOpen);
 
   const getUserName = () => {
     if (!user) return 'USUARIO';
@@ -56,6 +56,11 @@ const Sidebar = ({ collapsed, onToggle }) => {
     navigate('/');
   };
 
+  const handleNavAndClose = (path) => {
+    navigate(path);
+    if (isMobile && onMobileClose) onMobileClose();
+  };
+
   const handleKeyDown = (e, action) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -68,32 +73,43 @@ const Sidebar = ({ collapsed, onToggle }) => {
       <aside style={s.sidebar} aria-label="Sidebar principal">
 
         {/* LOGO */}
-        <div 
-          style={s.logoRow} 
-          onClick={onToggle}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => handleKeyDown(e, onToggle)}
-          aria-label={collapsed ? "Expandir sidebar" : "Contraer sidebar"}
-        >
-          <div style={s.logoCircle}>
-            <img
-              src={LogoImg}
-              alt="AI.BERT Logo"
-              style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 12 }}
-            />
+        <div style={s.logoRow}>
+          <div
+            style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, cursor: isMobile ? 'default' : 'pointer' }}
+            onClick={isMobile ? undefined : onToggle}
+            role={isMobile ? undefined : 'button'}
+            tabIndex={isMobile ? undefined : 0}
+            onKeyDown={isMobile ? undefined : (e) => handleKeyDown(e, onToggle)}
+            aria-label={isMobile ? undefined : (collapsed ? 'Expandir sidebar' : 'Contraer sidebar')}
+          >
+            <div style={s.logoCircle}>
+              <img
+                src={LogoImg}
+                alt="AI.BERT Logo"
+                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 12 }}
+              />
+            </div>
+            {!collapsed && <span style={s.logoText}>AI.BERT</span>}
           </div>
-          {!collapsed && <span style={s.logoText}>AI.BERT</span>}
+          {isMobile && (
+            <button
+              style={s.mobileCloseBtn}
+              onClick={onMobileClose}
+              aria-label="Cerrar menú"
+            >
+              <X size={18} color={isDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.55)'} />
+            </button>
+          )}
         </div>
 
         {/* USER BLOCK */}
         {!collapsed && (
-          <div 
-            style={s.userBlock} 
-            onClick={() => navigate('/profile')}
+          <div
+            style={s.userBlock}
+            onClick={() => handleNavAndClose('/profile')}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => handleKeyDown(e, () => navigate('/profile'))}
+            onKeyDown={(e) => handleKeyDown(e, () => handleNavAndClose('/profile'))}
             aria-label="Ir al perfil de usuario"
           >
             <div style={s.avatar}>
@@ -107,12 +123,12 @@ const Sidebar = ({ collapsed, onToggle }) => {
         )}
 
         {collapsed && (
-          <div 
-            style={s.avatarCollapsed} 
-            onClick={() => navigate('/profile')}
+          <div
+            style={s.avatarCollapsed}
+            onClick={() => handleNavAndClose('/profile')}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => handleKeyDown(e, () => navigate('/profile'))}
+            onKeyDown={(e) => handleKeyDown(e, () => handleNavAndClose('/profile'))}
             aria-label="Ir al perfil de usuario"
           >
             <User size={20} color="#fff" />
@@ -129,10 +145,10 @@ const Sidebar = ({ collapsed, onToggle }) => {
             <div
               key={item.path}
               style={{ ...s.navItem, ...(active ? s.navItemActive : {}) }}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavAndClose(item.path)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => handleKeyDown(e, () => navigate(item.path))}
+              onKeyDown={(e) => handleKeyDown(e, () => handleNavAndClose(item.path))}
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
             >
@@ -156,10 +172,10 @@ const Sidebar = ({ collapsed, onToggle }) => {
             <div
               key={item.path}
               style={{ ...s.navItem, ...(active ? s.navItemActive : {}) }}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavAndClose(item.path)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => handleKeyDown(e, () => navigate(item.path))}
+              onKeyDown={(e) => handleKeyDown(e, () => handleNavAndClose(item.path))}
               aria-label={item.label}
               aria-current={active ? 'page' : undefined}
             >
@@ -178,18 +194,18 @@ const Sidebar = ({ collapsed, onToggle }) => {
           <div style={s.divider} />
           <div
             style={{ ...s.navItem, ...(location.pathname === '/configuracion' ? s.navItemActive : {}) }}
-            onClick={() => navigate('/configuracion')}
+            onClick={() => handleNavAndClose('/configuracion')}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => handleKeyDown(e, () => navigate('/configuracion'))}
+            onKeyDown={(e) => handleKeyDown(e, () => handleNavAndClose('/configuracion'))}
             aria-label="Configuración"
             aria-current={location.pathname === '/configuracion' ? 'page' : undefined}
           >
             <Settings size={17} color={iconColor(location.pathname === '/configuracion')} />
             {!collapsed && <span style={s.navLabel}>Configuración</span>}
           </div>
-          <div 
-            style={s.navItem} 
+          <div
+            style={s.navItem}
             onClick={() => setShowLogout(true)}
             role="button"
             tabIndex={0}
@@ -235,10 +251,28 @@ const Sidebar = ({ collapsed, onToggle }) => {
   );
 };
 
-const getStyles = (isDark, collapsed) => {
+const getStyles = (isDark, collapsed, isMobile = false, mobileOpen = false) => {
   const t = createStyles(isDark);
   return {
-    sidebar: {
+    sidebar: isMobile ? {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      height: '100vh',
+      width: 260,
+      background: isDark ? '#0F0E0F' : '#FEFBF9',
+      borderRight: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'}`,
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '16px 0',
+      flexShrink: 0,
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      zIndex: 20,
+      transform: mobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+      transition: 'transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)',
+      boxShadow: mobileOpen ? '4px 0 32px rgba(0,0,0,0.25)' : 'none',
+    } : {
       width: collapsed ? 72 : 230,
       minHeight: '100vh',
       background: isDark ? '#0F0E0F' : '#FEFBF9',
@@ -257,9 +291,19 @@ const getStyles = (isDark, collapsed) => {
     alignItems: 'center',
     gap: 12,
     padding: collapsed ? '10px 0 20px' : '10px 16px 20px',
-    cursor: 'pointer',
     justifyContent: collapsed ? 'center' : 'flex-start',
     marginTop: 8,
+  },
+  mobileCloseBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: 6,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    flexShrink: 0,
   },
   logoCircle: {
     width: collapsed ? 56 : 64,

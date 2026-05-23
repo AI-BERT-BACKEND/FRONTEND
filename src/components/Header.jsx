@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
-import { Bell, Users, ClipboardList, Calendar, TrendingDown, Trophy } from 'lucide-react';
+import { Bell, Users, ClipboardList, Calendar, TrendingDown, Trophy, Menu } from 'lucide-react';
 import SocialPopup from './SocialPopup';
 import ThemeToggle from './ThemeToggle';
 import { createStyles } from '../theme/createStyles';
@@ -48,7 +48,7 @@ const formatTimeAgo = (dateStr) => {
   return dateStr;
 };
 
-const Header = () => {
+const Header = ({ isMobile = false, onMenuClick }) => {
   const { isDark, toggleTheme } = useTheme();
   const [showNotif, setShowNotif] = useState(false);
   const [showSocial, setShowSocial] = useState(false);
@@ -104,11 +104,21 @@ const Header = () => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const s = getStyles(isDark);
+  const s = getStyles(isDark, isMobile);
 
   return (
     <div style={s.topbar}>
-      <div />
+      {isMobile ? (
+        <button
+          style={s.hamburgerBtn}
+          onClick={onMenuClick}
+          aria-label="Abrir menú"
+        >
+          <Menu size={22} color={isDark ? '#FF5B2E' : '#FF8430'} />
+        </button>
+      ) : (
+        <div />
+      )}
       <div style={s.topbarRight}>
         {/* THEME TOGGLE */}
         <ThemeToggle isDark={isDark} onToggle={toggleTheme} variant="inline" />
@@ -186,27 +196,29 @@ const Header = () => {
         </div>
 
         {/* SOCIAL BUTTON + POPUP */}
-        <div style={{ position: 'relative' }} ref={socialRef}>
-          <button
-            style={s.socialBtn}
-            onClick={() => {
-              setShowSocial((p) => !p);
-              setShowNotif(false);
-            }}
-            aria-label="Menú social"
-            aria-expanded={showSocial}
-            aria-haspopup="true"
-          >
-            <Users size={15} color="#fff" strokeWidth={2} /> Social
-          </button>
-          {showSocial && <SocialPopup onClose={() => setShowSocial(false)} />}
-        </div>
+        {!isMobile && (
+          <div style={{ position: 'relative' }} ref={socialRef}>
+            <button
+              style={s.socialBtn}
+              onClick={() => {
+                setShowSocial((p) => !p);
+                setShowNotif(false);
+              }}
+              aria-label="Menú social"
+              aria-expanded={showSocial}
+              aria-haspopup="true"
+            >
+              <Users size={15} color="#fff" strokeWidth={2} /> Social
+            </button>
+            {showSocial && <SocialPopup onClose={() => setShowSocial(false)} />}
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-const getStyles = (isDark) => {
+const getStyles = (isDark, isMobile = false) => {
   const t = createStyles(isDark);
   return {
     topbar: {
@@ -214,13 +226,23 @@ const getStyles = (isDark) => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 28px',
+      padding: '0 16px',
       borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
       backgroundColor: isDark ? '#0F0E0F' : '#FEFBF9',
       position: 'sticky',
       top: 0,
       zIndex: 5,
       transition: t.appleTransition,
+    },
+    hamburgerBtn: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: '4px 8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderRadius: 8,
     },
     topbarRight: { display: 'flex', alignItems: 'center', gap: 10 },
     iconBtn: {
@@ -270,10 +292,10 @@ const getStyles = (isDark) => {
 
     /* NOTIF POPUP */
     notifPopup: {
-      position: 'absolute',
-      top: 'calc(100% + 10px)',
-      right: 0,
-      width: 350,
+      position: 'fixed',
+      top: 66,
+      right: 12,
+      width: Math.min(350, window.innerWidth - 24),
       background: isDark ? '#171717' : '#FFFFFF',
       border: `1px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(220,193,181,0.40)'}`,
       borderRadius: 16,

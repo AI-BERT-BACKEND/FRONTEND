@@ -282,7 +282,7 @@ const getStyles = (isDark) => {
       color: isDark ? '#FF5B2E' : '#FF8430',
       letterSpacing: '-0.02em',
     },
-    grid2: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 },
+    grid2: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 },
     card: {
       background: t.cardBg, border: `1px solid ${t.cardBorder}`,
       borderRadius: 16, padding: '20px 22px',

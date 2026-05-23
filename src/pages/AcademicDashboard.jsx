@@ -253,7 +253,7 @@ const getStyles = (isDark) => {
       color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.50)',
       fontFamily: t.fontSecondary, padding: '4px 0', marginBottom: 12,
     },
-    statsRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 16 },
+    statsRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, marginBottom: 16 },
     statCard: {
       background: t.cardBg,
       border: `1px solid ${t.cardBorder}`,
@@ -264,7 +264,7 @@ const getStyles = (isDark) => {
     statTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
     statLabel: { fontSize: 11, color: t.textMuted, marginBottom: 4 },
     statValue: { fontFamily: t.fontPrimary, fontWeight: 800, fontSize: 26, color: t.textPrimary },
-    midRow: { display: 'flex', gap: 14, marginBottom: 16, alignItems: 'stretch' },
+    midRow: { display: 'flex', gap: 14, marginBottom: 16, alignItems: 'stretch', flexWrap: 'wrap' },
     card: {
       background: t.cardBg,
       border: `1px solid ${t.cardBorder}`,
@@ -297,7 +297,7 @@ const getStyles = (isDark) => {
       fontFamily: t.fontSecondary, fontSize: 12, fontWeight: 700,
       color: '#fff', marginTop: 4,
     },
-    materiasRow: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 },
+    materiasRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 },
     materiaCard: {
       background: t.cardBg, border: `1px solid ${t.cardBorder}`,
       borderRadius: 14, padding: '16px 18px', boxShadow: t.cardShadow,

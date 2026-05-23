@@ -885,7 +885,7 @@ const getStyles = (isDark) => {
       background: t.cardBgAlt,
       border: `1px solid ${t.cardBorder}`,
       borderRadius: 16,
-      overflow: 'hidden',
+      overflow: 'auto',
       minWidth: 0,
     },
     weekHeader: {
@@ -993,7 +993,7 @@ const getStyles = (isDark) => {
       transition: 'background 0.1s',
     },
     weekEvent: { borderRadius: 4, padding: '3px 5px', cursor: 'grab', userSelect: 'none' },
-    kanbanWrap: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, padding: 16 },
+    kanbanWrap: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, padding: 16 },
     kanbanCol: {
       background: t.inputBg,
       borderRadius: 12,

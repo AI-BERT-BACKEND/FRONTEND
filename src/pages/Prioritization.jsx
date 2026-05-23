@@ -391,7 +391,7 @@ const getStyles = (isDark) => {
     secHeader: { marginBottom: 12 },
     secTitleRow: { display: 'flex', alignItems: 'center', gap: 8 },
     secTitle: { fontFamily: t.fontPrimary, fontSize: 14, fontWeight: 800, color: '#F00707', letterSpacing: '0.06em' },
-    criticasGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 24 },
+    criticasGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14, marginBottom: 24 },
     criticaCard: {
       background: t.cardBg, border: `1px solid ${t.cardBorder}`, borderRadius: 14,
       padding: '16px 18px', boxShadow: t.cardShadow,
@@ -491,7 +491,7 @@ const getStyles = (isDark) => {
       borderRadius: 8, padding: '8px 10px', marginTop: 4,
     },
     riesgoInfoText: { fontSize: 10, color: t.textSecondary, lineHeight: 1.45 },
-    bottomRow: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 },
+    bottomRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 },
     bottomCard: {
       background: t.cardBg, border: '1px solid', borderRadius: 14,
       padding: '16px 18px', boxShadow: t.cardShadow,

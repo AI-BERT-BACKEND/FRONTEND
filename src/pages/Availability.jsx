@@ -349,13 +349,14 @@ const getStyles = (isDark) => {
       background: t.cardBg,
       border: `1px solid ${t.cardBorder}`,
       borderRadius: 16,
-      overflow: 'hidden',
+      overflow: 'auto',
       boxShadow: t.cardShadow,
     },
     headerRow: {
       display: 'grid',
       gridTemplateColumns: '60px repeat(7, 1fr)',
       borderBottom: `1px solid ${t.cardBorder}`,
+      minWidth: 600,
     },
     cornerCell: {
       borderRight: `1px solid ${t.cardBorder}`,
@@ -388,6 +389,7 @@ const getStyles = (isDark) => {
       display: 'grid',
       gridTemplateColumns: '60px repeat(7, 1fr)',
       borderBottom: `1px solid ${cellBorder}`,
+      minWidth: 600,
     },
     timeLabel: {
       fontSize: 10,

@@ -586,7 +586,7 @@ const getStyles = (isDark) => {
     pageDesc: { fontSize: 13, color: t.textSecondary, margin: 0 },
     statsRow: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
       gap: 12,
       marginBottom: 20,
     },
@@ -608,7 +608,7 @@ const getStyles = (isDark) => {
     },
     cortesGrid: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
       gap: 16,
       marginBottom: 20,
     },
